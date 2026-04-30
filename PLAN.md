@@ -2,7 +2,7 @@
 
 ## 1. 概要 / Goal
 
-VRMアバター表示に加え、VRMA（VRM Animation）によるモーション再生、および多機能な背景制御（透過・グリッド・画像）を備えた汎用Vue 3コンポーネントライブラリの構築。  
+VRMアバター表示に加え、VRMA（VRM Animation）によるモーション再生、および多機能な背景制御（透過・グリッド・画像）を備えた汎用Vue 3コンポーネントライブラリの構築。
 npm パッケージ名は **`vue-vrm`**（スコープなし）。
 
 参考ソースコード：
@@ -28,24 +28,27 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 
 ### A. Props (Input)
 
-| Prop             | Type                                 | Default | Description                                                                                                                            |
-| ---------------- | ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| modelData        | ArrayBuffer                          | null    | VRM 1.0 モデルバイナリ                                                                                                                 |
-| animationData    | ArrayBuffer \| ArrayBuffer[] \| null | null    | VRMA アニメーションバイナリ。単体で単一再生、配列でブレンド再生。変更時に自動再生（watch）。                                           |
-| animationWeights | number[] \| null                     | null    | `animationData` が配列の場合の各クリップのブレンドウェイト。省略時または長さ不一致時は均等配分。合計が `1.0` 超の場合は `error` emit。 |
-| bgTransparent    | boolean                              | false   | キャンバス背景を透過させるか                                                                                                           |
-| bgImage          | string \| null                       | null    | 背景画像の URL。`scene.background` に適用。                                                                                            |
-| showGrid         | boolean                              | false   | 地面の座標グリッドを表示するか                                                                                                         |
-| maxWidth         | number \| null                       | null    | キャンバスの最大幅（px）。null で制限なし。                                                                                            |
-| maxHeight        | number \| null                       | null    | キャンバスの最大高さ（px）。null で制限なし。                                                                                          |
-| aspectRatio      | number                               | 9/16    | キャンバスのアスペクト比（width / height）                                                                                             |
-| cameraDistance   | number                               | auto    | カメラとモデルの距離（ズーム）                                                                                                         |
-| cameraPitch      | number                               | 0       | カメラの上下角度（度）                                                                                                                 |
-| cameraYaw        | number                               | 0       | カメラの左右角度（度）                                                                                                                 |
-| cameraPanX       | number                               | 0       | カメラのパン（X軸オフセット）                                                                                                          |
-| cameraPanY       | number                               | 0       | カメラのパン（Y軸オフセット）                                                                                                          |
+| Prop                      | Type                                 | Default     | Description                                                                                                                            |
+| ------------------------- | ------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| modelData                 | ArrayBuffer                          | null        | VRM 1.0 モデルバイナリ                                                                                                                 |
+| animationData             | ArrayBuffer \| ArrayBuffer[] \| null | null        | VRMA アニメーションバイナリ。単体で単一再生、配列でブレンド再生。変更時に自動再生（watch）。                                           |
+| animationWeights          | number[] \| null                     | null        | `animationData` が配列の場合の各クリップのブレンドウェイト。省略時または長さ不一致時は均等配分。合計が `1.0` 超の場合は `error` emit。 |
+| bgTransparent             | boolean                              | false       | キャンバス背景を透過させるか                                                                                                           |
+| bgImage                   | string \| null                       | null        | 背景画像の URL。`scene.background` に適用。                                                                                            |
+| showGrid                  | boolean                              | false       | 地面の座標グリッドを表示するか                                                                                                         |
+| maxWidth                  | number \| null                       | null        | キャンバスの最大幅（px）。null で制限なし。                                                                                            |
+| maxHeight                 | number \| null                       | null        | キャンバスの最大高さ（px）。null で制限なし。                                                                                          |
+| aspectRatio               | number                               | 9/16        | キャンバスのアスペクト比（width / height）                                                                                             |
+| cameraDistance            | number                               | auto        | カメラとモデルの距離（ズーム）                                                                                                         |
+| cameraEuler               | [number, number, number]             | [0, 0, 0]   | カメラの回転（ラジアン）。`[x, y, z]` = `[pitch, yaw, roll]` の順。`THREE.Euler` にそのまま渡す。                                      |
+| cameraOffset              | [number, number, number]             | [0, 0, 0]   | カメラのオフセット（パン）。`[x, y, z]` の順。`THREE.Vector3` にそのまま渡す。                                                         |
+| ambientLightColor         | string                               | `'#ffffff'` | 環境光の色。CSS カラー文字列または16進数文字列。`THREE.AmbientLight` の `color` に渡す。                                               |
+| ambientLightIntensity     | number                               | 0.5         | 環境光の強度。                                                                                                                         |
+| directionalLightColor     | string                               | `'#ffffff'` | 平行光源の色。CSS カラー文字列または16進数文字列。`THREE.DirectionalLight` の `color` に渡す。                                         |
+| directionalLightIntensity | number                               | 1.0         | 平行光源の強度。                                                                                                                       |
+| directionalLightPosition  | [number, number, number]             | [1, 1, 1]   | 平行光源の位置。`[x, y, z]` の順。`THREE.DirectionalLight.position.set(x, y, z)` に渡す。                                              |
 
-> **注**: カメラの初期値は VRM モデル全身が中央に収まる位置を自動計算する。カメラリセットは `resetCamera()` を `defineExpose` で公開する。
+> **注**: カメラの初期値は VRM モデル全身が中央に収まる位置を自動計算する。カメラリセットは `resetCamera()` を `defineExpose` で公開する。`cameraEuler` は `new THREE.Euler(x, y, z)` に直接渡すラジアン値（`[pitch, yaw, roll]` 順）。`cameraOffset` は `new THREE.Vector3(x, y, z)` に直接渡すワールド座標オフセット。`cameraOptions` 変更時は `THREE.PerspectiveCamera` を再生成した後、`resetCamera()` で初期位置を再計算する。
 
 ### B. Emits (Output)
 
@@ -58,7 +61,7 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 | animation:loaded  | VRMAnimation \| VRMAnimation[] | VRMA アニメーションの読み込み完了（配列渡し時は配列で返す） |
 | error             | Error                          | 読み込みエラー                                              |
 
-> `isLoading` 状態は `model:loading` / `model:loaded` イベントで親が管理する。
+> `isLoading` 状態は `model:loading` / `model:loaded` イベントで親が管理する。emit ペイロードの型（`VRM`, `VRMAnimation`）は `@pixiv/three-vrm` / `@pixiv/three-vrm-animation` の型をそのまま使用する。
 
 ### C. Exposed Methods (defineExpose)
 
@@ -75,8 +78,9 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 
 - **エントリポイント**: メインコンポーネントは `VrmCanvas.vue`。パッケージからは `VrmCanvas` コンポーネントと各コンポーザブル（`useVrmLoader`, `useVrmAnimation`, `useThreeScene` 等）を named export する。
 - **ビルド形式**: ESM（`.mjs`）と CJS（`.cjs`）の両方を出力。
-- **型定義**: `tsc --declaration` で `.d.ts` を生成。
+- **型定義**: `tsc --declaration` で `.d.ts` を生成。公開 API（emits のペイロード・`defineExpose` の戻り値）には Three.js / `@pixiv/three-vrm` の型をそのまま使用する（`VRM`, `VRMAnimation`, `THREE.AnimationMixer` 等を独自ラップしない）。利用者は `@types/three` を別途インストールする必要がある。
 - **peerDependencies**: `three`, `@pixiv/three-vrm`, `@pixiv/three-vrm-animation`, `vue ^3.3`。バンドルには含めない。
+- **peerDevDependencies**: `@types/three`（型定義の参照に必要）。
 - **exports フィールド**:
 
 ```jsonc
@@ -85,9 +89,9 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts",
-    },
-  },
+      "types": "./dist/index.d.ts"
+    }
+  }
 }
 ```
 
@@ -112,6 +116,7 @@ VRM / VRMA の `ArrayBuffer` はいずれも GLB（glTF Binary）形式。ロー
 ### 1. キャンバスサイズ管理
 
 - `ResizeObserver` でコンテナ要素を監視し、`maxWidth` / `maxHeight` / `aspectRatio` に従って `<canvas>` サイズを動的に更新。
+- `ResizeObserver` が返すコンテナサイズが `0×0`（コンテナに CSS サイズ未指定）の場合は `width` / `height` prop のフォールバック値を使用する。
 - `renderer.setSize()` および `camera.aspect` を同期する。
 
 ### 2. Background Manager
@@ -120,14 +125,21 @@ VRM / VRMA の `ArrayBuffer` はいずれも GLB（glTF Binary）形式。ロー
 - `bgImage` 変更時は `TextureLoader` で読み込み `scene.background` にセット。古いテクスチャは `texture.dispose()` でメモリ解放。
 - `showGrid` 変更時は `GridHelper` を `scene.add` / `scene.remove`。
 
-### 3. VRM Loader (useVrmLoader)
+### 3. Lighting Manager
+
+- `watch` で `ambientLightColor`, `ambientLightIntensity`, `directionalLightColor`, `directionalLightIntensity`, `directionalLightPosition` を監視。
+- `AmbientLight` と `DirectionalLight` は `onMounted` 時に生成し `scene.add`。
+- 各 prop 変更時は `.color.set()` / `.intensity` / `.position.set()` で差分更新（ライトの再生成は不要）。
+- `DirectionalLight` のデフォルト位置 `[1, 1, 1]` はモデル斜め上前方を照らす一般的な初期値。
+
+### 4. VRM Loader (useVrmLoader)
 
 - `modelData` の watch で `GLTFLoader` + `VRMLoaderPlugin` を用いてパース（VRM 1.0 のみ）。
 - ロード前後に `model:loading` / `model:loaded` を emit。
 - 既存モデルがある場合は `VRMUtils.deepDispose()` でリソース解放後に差し替え。
 - ロード後、`autoPositionY()` でモデルの足元を `y=0` に揃える。
 
-### 4. VRMA Loader (useVrmAnimation)
+### 5. VRMA Loader (useVrmAnimation)
 
 - `@pixiv/three-vrm-animation` を使用。
 - `animationData` の watch、または `playAnimation()` 呼び出しで処理を実行。
@@ -135,19 +147,24 @@ VRM / VRMA の `ArrayBuffer` はいずれも GLB（glTF Binary）形式。ロー
 - **配列（ArrayBuffer[]）**: 各バッファに対して `loadVRMAnimation` を並列実行（`Promise.all`）し、全クリップを同一 `AnimationMixer` に登録。各 `clipAction` の `weight` を `animationWeights` prop または均等配分で設定して再生。
 - 既存の `AnimationMixer` は差し替え時に `mixer.stopAllAction()` → `mixer.uncacheRoot()` → 再生成の順で破棄。
 
-### 5. カメラ制御 (useThreeCamera)
+### 6. カメラ制御 (useThreeCamera)
 
+- `onMounted` 時に `cameraOptions`（`fov`, `near`, `far`）と canvas の `aspect` で `THREE.PerspectiveCamera` を生成。
+- `cameraOptions` の watch: カメラを再生成し、`resetCamera()` で初期位置を再計算。
 - 初期カメラ位置: VRM の `BoundingBox` から全身が収まる距離を自動計算。
-- props（`cameraDistance`, `cameraPitch`, `cameraYaw`, `cameraPanX`, `cameraPanY`）の watch でカメラ位置を更新。
+- props（`cameraDistance`, `cameraEuler`, `cameraOffset`）の watch でカメラ位置を更新。
 - `resetCamera()` で初期計算値に戻す（`defineExpose` で公開）。
 
-### 6. Animation Loop
+### 7. Animation Loop
 
 - `requestAnimationFrame` 内で `mixer.update(delta)` を実行。
 - `onUnmounted` で `cancelAnimationFrame` し、renderer / scene リソースを一括 dispose。
 
 ## 6. 注意事項 (Constraints & Tips)
 
+- **キャンバスサイズのフォールバック**: HTML 仕様上 `<canvas>` のデフォルトサイズは `300×150px` だが、`ResizeObserver` がコンテナサイズを `0×0` と返す場合（親要素に CSS サイズ未指定）、`renderer.setSize(0, 0)` となりキャンバスが非表示になる。`width` / `height` prop のフォールバック値（デフォルト `300×533`）で回避する。利用者側で親要素に `width: 100%; height: 100%` 等を設定すればフォールバックは使用されない。
+- **キャンバスサイズのフォールバック**: HTML 仕様上 `<canvas>` のデフォルトサイズは `300×150px` だが、`ResizeObserver` がコンテナサイズを `0×0` と返す場合（親要素に CSS サイズ未指定）、`renderer.setSize(0, 0)` となりキャンバスが非表示になる。`width` / `height` prop のフォールバック値（デフォルト `300×533`）で回避する。利用者側で親要素に `width: 100%; height: 100%` 等を設定すればフォールバックは使用されない。
+- **ライト色フォーマット**: `ambientLightColor` / `directionalLightColor` は `THREE.Color.set()` に渡すため、CSS カラー文字列（`'#ff0000'`, `'red'`）・16進数文字列（`'0xff0000'`）がすべて有効。不正な値は Three.js が無視するため、prop レベルでのバリデーションは行わない。
 - **GLB バリデーション**: ローダーに渡す前にマジックバイト・バージョン・JSON チャンク型を検証する。不正なバッファはパーサーに渡さず即 `error` emit する。
 - **VRM 1.0 限定**: `extensions.VRMC_vrm` が存在しないモデルはエラー emit して処理を中断する。`extensions.VRM`（VRM 0.x）のみの場合は専用メッセージで通知する。
 - **Texture Memory**: 背景画像を頻繁に変更する場合、古いテクスチャを `texture.dispose()` しないとメモリリークの原因になる。
@@ -172,9 +189,7 @@ function parseGlbJson(buffer: ArrayBuffer): Record<string, unknown> {
     throw new Error('Invalid GLB: wrong magic bytes (not a glTF binary)');
   }
   if (view.getUint32(4, true) !== GLB_VERSION) {
-    throw new Error(
-      `Invalid GLB: unsupported version ${view.getUint32(4, true)}`,
-    );
+    throw new Error(`Invalid GLB: unsupported version ${view.getUint32(4, true)}`);
   }
   const jsonChunkLength = view.getUint32(12, true);
   if (view.getUint32(16, true) !== CHUNK_TYPE_JSON) {
@@ -211,11 +226,7 @@ export function validateVrma(buffer: ArrayBuffer): void {
 export function useVrmAnimation() {
   const mixer = shallowRef<THREE.AnimationMixer | null>(null);
 
-  const loadVRMA = async (
-    buffers: ArrayBuffer | ArrayBuffer[],
-    vrm: VRM,
-    weights?: number[],
-  ) => {
+  const loadVRMA = async (buffers: ArrayBuffer | ArrayBuffer[], vrm: VRM, weights?: number[]) => {
     // 既存 mixer の破棄
     if (mixer.value) {
       mixer.value.stopAllAction();
@@ -223,7 +234,7 @@ export function useVrmAnimation() {
     }
 
     const arr = Array.isArray(buffers) ? buffers : [buffers];
-    const anims = await Promise.all(arr.map((buf) => loadVRMAnimation(buf)));
+    const anims = await Promise.all(arr.map(buf => loadVRMAnimation(buf)));
 
     mixer.value = new THREE.AnimationMixer(vrm.scene);
 
