@@ -17,7 +17,7 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 - **VRM バージョン**: VRM 1.0（`VRMC_vrm`）のみを対象とする。0.x は対象外。
 - **Animation (VRMA)**: ArrayBuffer で受け取った VRMA データを `@pixiv/three-vrm-animation` でパースし、既存の VRM モデルに流し込む。
   - `ArrayBuffer` 単体: 単一クリップを再生。
-  - `ArrayBuffer[]`: 複数クリップを `THREE.AnimationMixer` 上で `weight` ブレンドして同時再生。ウェイトは `animationWeights` prop で指定。省略または配列長不一致の場合は均等配分（`1 / N`）にフォールバック。合計が `1.0` 超の場合は `error` emit して処理を中断。
+  - `ArrayBuffer[]`: 複数クリップを `THREE.AnimationMixer` 上で `weight` ブレンドして同時再生。ウェイトは `animationWeights` prop で指定。省略または配列長不一致の場合は均等配分（`1 / N`）にフォールバック。合計が `1.0` 超の場合は `animation:error` emit して処理を中断。
 - **Background**:
   - 透過: `alpha: true` 設定と `setClearColor(0, 0)` による制御。
   - 座標 (Grid): `GridHelper` の動的な追加/削除。
@@ -28,58 +28,97 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 
 ### A. Props (Input)
 
-| Prop                      | Type                                 | Default     | Description                                                                                                                            |
-| ------------------------- | ------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| modelData                 | ArrayBuffer                          | null        | VRM 1.0 モデルバイナリ                                                                                                                 |
-| animationData             | ArrayBuffer \| ArrayBuffer[] \| null | null        | VRMA アニメーションバイナリ。単体で単一再生、配列でブレンド再生。変更時に自動再生（watch）。                                           |
-| animationWeights          | number[] \| null                     | null        | `animationData` が配列の場合の各クリップのブレンドウェイト。省略時または長さ不一致時は均等配分。合計が `1.0` 超の場合は `error` emit。 |
-| bgTransparent             | boolean                              | false       | キャンバス背景を透過させるか                                                                                                           |
-| bgImage                   | string \| null                       | null        | 背景画像の URL。`scene.background` に適用。                                                                                            |
-| showGrid                  | boolean                              | false       | 地面の座標グリッドを表示するか                                                                                                         |
-| maxWidth                  | number \| null                       | null        | キャンバスの最大幅（px）。null で制限なし。                                                                                            |
-| maxHeight                 | number \| null                       | null        | キャンバスの最大高さ（px）。null で制限なし。                                                                                          |
-| aspectRatio               | number                               | 9/16        | キャンバスのアスペクト比（width / height）                                                                                             |
-| cameraDistance            | number                               | auto        | カメラとモデルの距離（ズーム）                                                                                                         |
-| cameraEuler               | [number, number, number]             | [0, 0, 0]   | カメラの回転（ラジアン）。`[x, y, z]` = `[pitch, yaw, roll]` の順。`THREE.Euler` にそのまま渡す。                                      |
-| cameraOffset              | [number, number, number]             | [0, 0, 0]   | カメラのオフセット（パン）。`[x, y, z]` の順。`THREE.Vector3` にそのまま渡す。                                                         |
-| ambientLightColor         | string                               | `'#ffffff'` | 環境光の色。CSS カラー文字列または16進数文字列。`THREE.AmbientLight` の `color` に渡す。                                               |
-| ambientLightIntensity     | number                               | 0.5         | 環境光の強度。                                                                                                                         |
-| directionalLightColor     | string                               | `'#ffffff'` | 平行光源の色。CSS カラー文字列または16進数文字列。`THREE.DirectionalLight` の `color` に渡す。                                         |
-| directionalLightIntensity | number                               | 1.0         | 平行光源の強度。                                                                                                                       |
-| directionalLightPosition  | [number, number, number]             | [1, 1, 1]   | 平行光源の位置。`[x, y, z]` の順。`THREE.DirectionalLight.position.set(x, y, z)` に渡す。                                              |
+| Prop                      | Type                                 | Default     | Description                                                                                                                                      |
+| ------------------------- | ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| modelData                 | ArrayBuffer                          | null        | VRM 1.0 モデルバイナリ                                                                                                                           |
+| animationData             | ArrayBuffer \| ArrayBuffer[] \| null | null        | VRMA アニメーションバイナリ。単体で単一再生、配列でブレンド再生。変更時に自動再生（watch）。                                                     |
+| animationWeights          | number[] \| null                     | null        | `animationData` が配列の場合の各クリップのブレンドウェイト。省略時または長さ不一致時は均等配分。合計が `1.0` 超の場合は `animation:error` emit。 |
+| bgTransparent             | boolean                              | false       | キャンバス背景を透過させるか                                                                                                                     |
+| bgImage                   | string \| null                       | null        | 背景画像の URL。`scene.background` に適用。                                                                                                      |
+| showGrid                  | boolean                              | false       | 地面の座標グリッドを表示するか                                                                                                                   |
+| maxWidth                  | number \| null                       | null        | キャンバスの最大幅（px）。null で制限なし。                                                                                                      |
+| maxHeight                 | number \| null                       | null        | キャンバスの最大高さ（px）。null で制限なし。                                                                                                    |
+| aspectRatio               | number                               | 9/16        | キャンバスのアスペクト比（width / height）                                                                                                       |
+| cameraDistance            | number                               | auto        | カメラとモデルの距離（ズーム）                                                                                                                   |
+| cameraEuler               | [number, number, number]             | [0, 0, 0]   | カメラの回転（ラジアン）。`[x, y, z]` = `[pitch, yaw, roll]` の順。`THREE.Euler` にそのまま渡す。                                                |
+| cameraOffset              | [number, number, number]             | [0, 0, 0]   | カメラのオフセット（パン）。`[x, y, z]` の順。`THREE.Vector3` にそのまま渡す。                                                                   |
+| cameraLookAt              | [number, number, number]             | [0, 0.9, 0] | カメラの注視点。`[x, y, z]` の順。`camera.lookAt()` に渡す。デフォルト `y=0.9` は VRM キャラクターの概ね首元の高さ。                             |
+| ambientLightColor         | string                               | `'#ffffff'` | 環境光の色。CSS カラー文字列または16進数文字列。`THREE.AmbientLight` の `color` に渡す。                                                         |
+| ambientLightIntensity     | number                               | 0.5         | 環境光の強度。                                                                                                                                   |
+| directionalLightColor     | string                               | `'#ffffff'` | 平行光源の色。CSS カラー文字列または16進数文字列。`THREE.DirectionalLight` の `color` に渡す。                                                   |
+| directionalLightIntensity | number                               | 1.0         | 平行光源の強度。                                                                                                                                 |
+| directionalLightPosition  | [number, number, number]             | [1, 1, 1]   | 平行光源の位置。`[x, y, z]` の順。`THREE.DirectionalLight.position.set(x, y, z)` に渡す。                                                        |
 
-> **注**: カメラの初期値は VRM モデル全身が中央に収まる位置を自動計算する。カメラリセットは `resetCamera()` を `defineExpose` で公開する。`cameraEuler` は `new THREE.Euler(x, y, z)` に直接渡すラジアン値（`[pitch, yaw, roll]` 順）。`cameraOffset` は `new THREE.Vector3(x, y, z)` に直接渡すワールド座標オフセット。`cameraOptions` 変更時は `THREE.PerspectiveCamera` を再生成した後、`resetCamera()` で初期位置を再計算する。
+> [!WARNING]
+> カメラの初期値は VRM モデル全身が中央に収まる位置を自動計算する。
+> カメラリセットは `resetCamera()` を `defineExpose` で公開する。
+> `cameraEuler` は `new THREE.Euler(x, y, z)` に直接渡すラジアン値（`[pitch, yaw, roll]` 順）。
+> `cameraOffset` は `new THREE.Vector3(x, y, z)` に直接渡すワールド座標オフセット。
+> `cameraLookAt` は `camera.lookAt(x, y, z)` に渡す注視点（デフォルト `y=0.9` で首元を向く）。
+> `cameraOptions` 変更時は `THREE.PerspectiveCamera` を再生成した後、`resetCamera()` で初期位置を再計算する。
 
 ### B. Emits (Output)
 
-| Event             | Payload                        | Description                                                 |
-| ----------------- | ------------------------------ | ----------------------------------------------------------- |
-| model:loading     | –                              | VRM モデルの読み込み開始                                    |
-| model:loaded      | VRM                            | VRM モデルの読み込み完了                                    |
-| model:unloaded    | –                              | VRM モデルのアンロード                                      |
-| animation:loading | –                              | VRMA アニメーションの読み込み開始                           |
-| animation:loaded  | VRMAnimation \| VRMAnimation[] | VRMA アニメーションの読み込み完了（配列渡し時は配列で返す） |
-| error             | Error                          | 読み込みエラー                                              |
+| Event                    | Payload                                                                | Description                                                    |
+| ------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| model:loading            | –                                                                      | VRM モデルの読み込み開始                                       |
+| model:loaded             | VRM                                                                    | VRM モデルの読み込み完了                                       |
+| model:unloaded           | –                                                                      | VRM モデルのアンロード                                         |
+| model:error              | Error                                                                  | VRM モデルの読み込み・バリデーションエラー                     |
+| animation:loading        | –                                                                      | VRMA アニメーションの読み込み開始                              |
+| animation:loaded         | VRMAnimation \| VRMAnimation[]                                         | VRMA アニメーションの読み込み完了（配列渡し時は配列で返す）    |
+| animation:start          | –                                                                      | アニメーション再生開始（`playAnimation()` 実行時）             |
+| animation:pause          | –                                                                      | アニメーション一時停止（`pauseAnimation()` 実行時）            |
+| animation:resume         | –                                                                      | アニメーション再開（`resumeAnimation()` 実行時）               |
+| animation:stop           | –                                                                      | アニメーション停止＆ポーズリセット（`stopAnimation()` 実行時） |
+| animation:end            | –                                                                      | アニメーションクリップが終端に達した時（ループオフ時のみ）     |
+| animation:error          | Error                                                                  | VRMA 読み込み・バリデーション・ウェイトエラー                  |
+| camera:change            | `{ position: THREE.Vector3; lookAt: THREE.Vector3; distance: number }` | カメラの position / lookAt / distance のいずれかが変わった時   |
+| camera:options-change    | `{ fov: number; near: number; far: number }`                           | `cameraOptions` prop が変わりカメラを再生成した時              |
+| light:ambient-change     | `{ color: string; intensity: number }`                                 | 環境光の color または intensity が変わった時                   |
+| light:directional-change | `{ color: string; intensity: number; position: THREE.Vector3 }`        | 平行光源の color / intensity / position のいずれかが変わった時 |
+| error                    | Error                                                                  | Three.js レンダラー・シーン等のシステムレベルエラー            |
 
-> `isLoading` 状態は `model:loading` / `model:loaded` イベントで親が管理する。emit ペイロードの型（`VRM`, `VRMAnimation`）は `@pixiv/three-vrm` / `@pixiv/three-vrm-animation` の型をそのまま使用する。
+> [!NOTE]
+> `isLoading` 状態は `model:loading` / `model:loaded` イベントで親が管理する。
+> emit ペイロードの型（`VRM`, `VRMAnimation`）は `@pixiv/three-vrm` / `@pixiv/three-vrm-animation` の型をそのまま使用する。
 
 ### C. Exposed Methods (defineExpose)
 
-| Method                                                               | Return            | Description                                                  |
-| -------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------ |
-| playAnimation(buf: ArrayBuffer \| ArrayBuffer[], weights?: number[]) | Promise\<void\>   | 手動でアニメーションを差し替えて再生。配列時はブレンド再生。 |
-| stopAnimation()                                                      | void              | アニメーションを停止しポーズをリセット                       |
-| resetCamera()                                                        | void              | カメラを初期位置（全身表示）にリセット                       |
-| captureScreenshot(format?)                                           | Promise\<string\> | 現在フレームを dataURL で返す                                |
+#### アニメーション・カメラ操作
 
-> `captureScreenshot` は dataURL（デフォルト `image/png`）を返す。引数 `format` で MIME タイプを変更可能。
+| Method                                                               | Return            | Description                                                       |
+| -------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------- |
+| playAnimation(buf: ArrayBuffer \| ArrayBuffer[], weights?: number[]) | Promise\<void\>   | 手動でアニメーションを差し替えて再生。配列時はブレンド再生。      |
+| pauseAnimation()                                                     | void              | アニメーションを一時停止（`mixer.timeScale = 0`）。ポーズは維持。 |
+| resumeAnimation()                                                    | void              | 一時停止中のアニメーションを再開（`mixer.timeScale = 1`）。       |
+| stopAnimation()                                                      | void              | アニメーションを停止しポーズをリセット                            |
+| resetCamera()                                                        | void              | カメラを初期位置（全身表示）にリセット                            |
+| captureScreenshot(format?)                                           | Promise\<string\> | 現在フレームを dataURL で返す                                     |
+
+#### Three.js インスタンスへの直接アクセス
+
+コンポーネントを経由せず Three.js を直接操作するためのゲッター。いずれも `null`（未初期化時）を返す可能性があるため、呼び出し元で null チェックが必要。
+
+| Getter        | Return                          | Description                          |
+| ------------- | ------------------------------- | ------------------------------------ |
+| getScene()    | THREE.Scene \| null             | シーンインスタンス                   |
+| getCamera()   | THREE.PerspectiveCamera \| null | カメラインスタンス                   |
+| getRenderer() | THREE.WebGLRenderer \| null     | レンダラーインスタンス               |
+| getMixer()    | THREE.AnimationMixer \| null    | アニメーションミキサーインスタンス   |
+| getVrm()      | VRM \| null                     | 現在ロード済みの VRM インスタンス    |
+| getCanvas()   | HTMLCanvasElement \| null       | コンポーネント内部の `<canvas>` 要素 |
+
+> [!NOTE]
+> `captureScreenshot` は dataURL（デフォルト `image/png`）を返す。
+> 引数 `format` で MIME タイプを変更可能。
 
 ## 4. パッケージ設計 (Package Design)
 
 - **エントリポイント**: メインコンポーネントは `VrmCanvas.vue`。パッケージからは `VrmCanvas` コンポーネントと各コンポーザブル（`useVrmLoader`, `useVrmAnimation`, `useThreeScene` 等）を named export する。
 - **ビルド形式**: ESM（`.mjs`）と CJS（`.cjs`）の両方を出力。
 - **型定義**: `tsc --declaration` で `.d.ts` を生成。公開 API（emits のペイロード・`defineExpose` の戻り値）には Three.js / `@pixiv/three-vrm` の型をそのまま使用する（`VRM`, `VRMAnimation`, `THREE.AnimationMixer` 等を独自ラップしない）。利用者は `@types/three` を別途インストールする必要がある。
-- **peerDependencies**: `three`, `@pixiv/three-vrm`, `@pixiv/three-vrm-animation`, `vue ^3.3`。バンドルには含めない。
+- **peerDependencies**: `three`, `@pixiv/three-vrm`, `@pixiv/three-vrm-animation`, `vue >=3.5`。バンドルには含めない。
 - **peerDevDependencies**: `@types/three`（型定義の参照に必要）。
 - **exports フィールド**:
 
@@ -111,7 +150,7 @@ VRM / VRMA の `ArrayBuffer` はいずれも GLB（glTF Binary）形式。ロー
 | VRMA 確認       | JSON チャンクをパースし `extensions.VRMC_vrm_animation` が存在すること                                                    |
 
 - バリデーション関数は `src/utils/validateGlb.ts` に切り出し、`useVrmLoader` / `useVrmAnimation` から呼び出す。
-- バリデーション失敗時は `Error` を throw し、呼び出し元で `error` emit に変換する。
+- バリデーション失敗時は `Error` を throw し、呼び出し元で VRM 系は `model:error`、VRMA 系は `animation:error` emit に変換する。GLB 形式自体の破損（マジックバイト不正等）も同様。
 
 ### 1. キャンバスサイズ管理
 
@@ -152,24 +191,36 @@ VRM / VRMA の `ArrayBuffer` はいずれも GLB（glTF Binary）形式。ロー
 - `onMounted` 時に `cameraOptions`（`fov`, `near`, `far`）と canvas の `aspect` で `THREE.PerspectiveCamera` を生成。
 - `cameraOptions` の watch: カメラを再生成し、`resetCamera()` で初期位置を再計算。
 - 初期カメラ位置: VRM の `BoundingBox` から全身が収まる距離を自動計算。
-- props（`cameraDistance`, `cameraEuler`, `cameraOffset`）の watch でカメラ位置を更新。
+- props（`cameraDistance`, `cameraEuler`, `cameraOffset`, `cameraLookAt`）の watch でカメラ位置を更新。`cameraLookAt` 変更時は `camera.lookAt(...cameraLookAt)` を呼び出す。
 - `resetCamera()` で初期計算値に戻す（`defineExpose` で公開）。
 
-### 7. Animation Loop
+### 7. Post-processing (useThreeComposer)
 
-- `requestAnimationFrame` 内で `mixer.update(delta)` を実行。
-- `onUnmounted` で `cancelAnimationFrame` し、renderer / scene リソースを一括 dispose。
+- `shaderPass` prop が `null` の場合は `EffectComposer` を生成せず、通常の `renderer.render(scene, camera)` で描画。
+- `shaderPass` prop に `ShaderPass` インスタンスが渡された場合:
+  - `EffectComposer` を生成し `RenderPass(scene, camera)` を先頭に追加。
+  - `shaderPass` を追加し、最後に `OutputPass` を追加。
+  - アニメーションループの `renderer.render()` を `composer.render()` に切り替える。
+- `shaderPass` watch で `null` に戻った場合は `composer.dispose()` し、通常描画に戻す。
+- `ResizeObserver` によるサイズ変更時は `composer.setSize()` も同期する。
+- **将来構想**: 複数 `ShaderPass` の配列対応（`shaderPasses: ShaderPass[]`）は現段階では未実装。
+
+### 8. Animation Loop
+
+- `requestAnimationFrame` 内で `mixer.update(delta)` を実行。ポストプロセス有効時は `composer.render()`、無効時は `renderer.render(scene, camera)` で描画。
+- `onUnmounted` で `cancelAnimationFrame` し、renderer / composer / scene リソースを一括 dispose。
 
 ## 6. 注意事項 (Constraints & Tips)
 
-- **キャンバスサイズのフォールバック**: HTML 仕様上 `<canvas>` のデフォルトサイズは `300×150px` だが、`ResizeObserver` がコンテナサイズを `0×0` と返す場合（親要素に CSS サイズ未指定）、`renderer.setSize(0, 0)` となりキャンバスが非表示になる。`width` / `height` prop のフォールバック値（デフォルト `300×533`）で回避する。利用者側で親要素に `width: 100%; height: 100%` 等を設定すればフォールバックは使用されない。
+- **ShaderPass / EffectComposer**: `shaderPass` prop を渡すと内部で `EffectComposer` を生成し、`renderer.render()` の代わりに `composer.render()` を屋内ループで呼び出す。コンポーザーの対象レンダラーには `preserveDrawingBuffer: true` が必要な場合があるため `captureScreenshot()` の動作を要検証。`shaderPass` に `null` を渡せば通常描画に戻る。
+- **ShaderPass / EffectComposer**: `shaderPass` prop を渡すと内部で `EffectComposer` を生成し、`renderer.render()` の代わりに `composer.render()` を屋内ループで呼び出す。コンポーザーの対象レンダラーには `preserveDrawingBuffer: true` が必要な場合があるため `captureScreenshot()` の動作を要検証。`shaderPass` に `null` を渡せば通常描画に戻る。
 - **キャンバスサイズのフォールバック**: HTML 仕様上 `<canvas>` のデフォルトサイズは `300×150px` だが、`ResizeObserver` がコンテナサイズを `0×0` と返す場合（親要素に CSS サイズ未指定）、`renderer.setSize(0, 0)` となりキャンバスが非表示になる。`width` / `height` prop のフォールバック値（デフォルト `300×533`）で回避する。利用者側で親要素に `width: 100%; height: 100%` 等を設定すればフォールバックは使用されない。
 - **ライト色フォーマット**: `ambientLightColor` / `directionalLightColor` は `THREE.Color.set()` に渡すため、CSS カラー文字列（`'#ff0000'`, `'red'`）・16進数文字列（`'0xff0000'`）がすべて有効。不正な値は Three.js が無視するため、prop レベルでのバリデーションは行わない。
-- **GLB バリデーション**: ローダーに渡す前にマジックバイト・バージョン・JSON チャンク型を検証する。不正なバッファはパーサーに渡さず即 `error` emit する。
-- **VRM 1.0 限定**: `extensions.VRMC_vrm` が存在しないモデルはエラー emit して処理を中断する。`extensions.VRM`（VRM 0.x）のみの場合は専用メッセージで通知する。
+- **GLB バリデーション**: ローダーに渡す前にマジックバイト・バージョン・JSON チャンク型を検証する。VRM バッファ不正は `model:error`、VRMA バッファ不正は `animation:error` を emit し、パーサーには渡さない。
+- **VRM 1.0 限定**: `extensions.VRMC_vrm` が存在しないモデルは `model:error` emit して処理を中断する。`extensions.VRM`（VRM 0.x）のみの場合は専用メッセージで通知する。
 - **Texture Memory**: 背景画像を頻繁に変更する場合、古いテクスチャを `texture.dispose()` しないとメモリリークの原因になる。
 - **Grid とモデル位置**: グリッド表示時にアバターが地面（y=0）に埋まらないよう、ロード後に足元の Y 位置を自動補正する。
-- **アニメーションミキシング**: `animationData: ArrayBuffer[]` ＋ `animationWeights: number[]` で対応。ウェイトの合計が `1.0` を超える場合は不正な入力として `error` を emit し、処理を中断する。
+- **アニメーションミキシング**: `animationData: ArrayBuffer[]` ＋ `animationWeights: number[]` で対応。ウェイトの合計が `1.0` を超える場合は不正な入力として `animation:error` を emit し、処理を中断する。
 
 ## 7. コード構造のイメージ
 
