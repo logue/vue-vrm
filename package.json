@@ -1,7 +1,15 @@
 {
   "name": "vue-vrm",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vrm viewer component for Vue 3.",
+  "keywords": [
+    "vrm",
+    "vrma",
+    "three.js",
+    "vue",
+    "animation",
+    "vue-component"
+  ],
   "license": "MIT",
   "type": "module",
   "author": {
@@ -17,14 +25,14 @@
   "bugs": {
     "url": "https://github.com/logue/vue-vrm/issues"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.es.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "default": "./dist/index.es.js"
     }
   },
   "files": [
@@ -33,11 +41,14 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@10.33.3",
   "scripts": {
-    "build": "rsbuild build",
+    "build": "rsbuild build && mv dist/static/js/index.es.js dist/index.es.js && pnpm run build:types && rm -rf dist/static dist/favicon.png",
+    "build:types": "dts-bundle-generator --project tsconfig.build.json --out-file dist/index.d.ts src/lib.ts",
+    "build:docs": "BUILD_TARGET=demo rsbuild build",
     "check": "biome check --write",
-    "dev": "rsbuild --open",
+    "dev": "BUILD_TARGET=demo rsbuild --open",
+    "dev:docs": "BUILD_TARGET=demo rsbuild --open",
     "format": "biome format --write",
     "lint": "eslint .",
     "lint:oxlint": "oxlint . --fix",
@@ -52,9 +63,9 @@
     "vue": ">=3.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.13",
-    "@pixiv/three-vrm": ">=3.5.0",
-    "@pixiv/three-vrm-animation": ">=3.5.0",
+    "@biomejs/biome": "^2.4.14",
+    "@pixiv/three-vrm": "^3.5.2",
+    "@pixiv/three-vrm-animation": "^3.5.2",
     "@rsbuild/core": "^2.0.3",
     "@rsbuild/plugin-vue": "^1.2.7",
     "@rstest/adapter-rsbuild": "^0.2.6",
@@ -63,18 +74,19 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/vue": "^8.1.0",
     "@tsconfig/node-lts": "^24.0.0",
-    "@types/three": ">=0.184.0",
+    "@types/three": "^0.184.0",
     "@vue/eslint-config-typescript": "^14.7.0",
-    "eslint": "^10.2.1",
+    "dts-bundle-generator": "^9.5.1",
+    "eslint": "^10.3.0",
     "eslint-plugin-oxlint": "^1.62.0",
     "eslint-plugin-vue": "^10.9.0",
-    "globals": "^17.5.0",
+    "globals": "^17.6.0",
     "happy-dom": "^20.9.0",
     "oxlint": "^1.62.0",
     "prettier": "^3.8.3",
-    "three": ">=0.184.0",
+    "three": "^0.184.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.1",
+    "typescript-eslint": "^8.59.2",
     "vue": "^3.5.33"
   }
 }

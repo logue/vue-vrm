@@ -22,7 +22,7 @@ describe('createMixerWithClips - weight validation', () => {
     const vrm = makeFakeVrm();
     const animations = [{}, {}] as VRMAnimation[];
     expect(() => createMixerWithClips(vrm, animations, [0.7, 0.5])).toThrow(
-      /合計が 1\.0 を超えています/
+      /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/
     );
   });
 

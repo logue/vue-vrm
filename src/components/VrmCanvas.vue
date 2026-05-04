@@ -392,6 +392,9 @@ async function handleAnimationData(
     const buffers = Array.isArray(data) ? data : [data];
     const animations = await Promise.all(buffers.map(b => loadVRMAnimation(b)));
     mixer.value = createMixerWithClips(vrm.value, animations, weights);
+    if (!mixer.value) {
+      throw new Error('[VrmCanvas] Failed to create AnimationMixer.');
+    }
     mixer.value.addEventListener('finished', () => {
       if (!props.loop) emit('animation:end');
     });
@@ -667,7 +670,7 @@ function stopAnimation(): void {
  */
 async function captureScreenshot(format = 'image/png'): Promise<string> {
   if (!renderer.value || !scene.value || !camera.value) {
-    throw new Error('Renderer is not initialized.');
+    throw new Error('[VrmCanvas] Renderer is not initialized.');
   }
   // Force a render so the drawing buffer is fresh.
   if (composer.value) composer.value.render(0);
@@ -706,9 +709,9 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="containerRef" class="vrm-canvas-container" :style="containerStyle">
+  <figure ref="containerRef" class="vrm-canvas-container" :style="containerStyle">
     <canvas ref="canvasRef" class="vrm-canvas" />
-  </div>
+  </figure>
 </template>
 
 <style scoped>

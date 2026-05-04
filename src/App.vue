@@ -1,13 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import VrmCanvas from '@/components/VrmCanvas.vue';
 
+const isDocsDemo = __DEMO_BUILD__;
 const modelData = ref<ArrayBuffer | null>(null);
 const animationData = ref<ArrayBuffer | ArrayBuffer[] | null>(null);
 const showGrid = ref(true);
 const bgTransparent = ref(false);
 const isLoading = ref(false);
+
+async function loadAvatarSample(): Promise<void> {
+  isLoading.value = true;
+  try {
+    const response = await fetch('/assets/AvatarSample_A.vrm');
+    if (!response.ok) {
+      throw new Error(`Failed to load sample VRM: ${response.status}`);
+    }
+    modelData.value = await response.arrayBuffer();
+  } finally {
+    isLoading.value = false;
+  }
+}
 
 async function onModelFile(e: Event): Promise<void> {
   const file = (e.target as HTMLInputElement).files?.[0];
@@ -34,6 +48,12 @@ function onError(err: Error): void {
   console.error(err);
   alert(err.message);
 }
+
+onMounted(() => {
+  if (isDocsDemo) {
+    void loadAvatarSample().catch(onError);
+  }
+});
 </script>
 
 <template>
@@ -41,6 +61,7 @@ function onError(err: Error): void {
     <header class="header">
       <h1>vue-vrm demo</h1>
       <div class="controls">
+        <button v-if="isDocsDemo" type="button" @click="loadAvatarSample">Sample VRM</button>
         <label>
           VRM:
           <input type="file" accept=".vrm,.glb" @change="onModelFile" />
@@ -98,6 +119,15 @@ function onError(err: Error): void {
   flex-wrap: wrap;
   align-items: center;
   font-size: 0.9rem;
+}
+
+.controls button {
+  border: 1px solid #777;
+  background: #222;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
 }
 
 .stage {

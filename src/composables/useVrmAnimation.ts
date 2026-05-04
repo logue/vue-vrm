@@ -26,7 +26,7 @@ export async function loadVRMAnimation(buffer: ArrayBuffer): Promise<VRMAnimatio
   const gltf = await loader.parseAsync(buffer, '');
   const animations = (gltf.userData as { vrmAnimations?: VRMAnimation[] }).vrmAnimations;
   if (!animations || animations.length === 0) {
-    throw new Error('Failed to extract VRMAnimation from GLB.');
+    throw new Error('[VrmCanvas] Failed to extract VRMAnimation from GLB.');
   }
   return animations[0];
 }
@@ -68,7 +68,7 @@ export function createMixerWithClips(
   const w = useEqual ? animations.map(() => 1 / n) : (weights ?? []).slice(0, n);
   const total = w.reduce((sum, v) => sum + v, 0);
   if (total > 1 + Number.EPSILON) {
-    throw new Error(`animationWeights の合計が 1.0 を超えています: ${total.toFixed(4)}`);
+    throw new Error(`[VrmCanvas] The sum of animationWeights exceeds 1.0: ${total.toFixed(4)}`);
   }
 
   const mixer = new THREE.AnimationMixer(vrm.scene);

@@ -21,7 +21,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   const gltf = await loader.parseAsync(buffer, '');
   const vrm = (gltf.userData as { vrm?: VRM }).vrm;
   if (!vrm) {
-    throw new Error('Failed to extract VRM from GLB.');
+    throw new Error('[VrmCanvas] Failed to extract VRM from GLB.');
   }
 
   // Optimize for performance.
