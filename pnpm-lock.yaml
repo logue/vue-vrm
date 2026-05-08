@@ -24,8 +24,8 @@ importers:
         specifier: ^1.2.7
         version: 1.2.7(@rsbuild/core@2.0.5)(@rspack/core@2.0.2(@swc/helpers@0.5.21))(@vue/compiler-sfc@3.5.34)(vue@3.5.34(typescript@6.0.3))
       '@rslint/core':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.5.2
+        version: 0.5.2
       '@rstest/adapter-rsbuild':
         specifier: ^0.2.6
         version: 0.2.6(@rsbuild/core@2.0.5)(@rstest/core@0.9.10(happy-dom@20.9.0))
@@ -277,8 +277,8 @@ packages:
       '@rsbuild/core':
         optional: true
 
-  '@rslint/core@0.5.1':
-    resolution: {integrity: sha512-UGcalhkpNvm4zN7E2DiQsuwM10LMi3CazOiANVevf5hn+NB7WKEMWYKn3bFySptg7Ll042IKMUlIXaFQjWs9lQ==, tarball: https://registry.npmjs.org/@rslint/core/-/core-0.5.1.tgz}
+  '@rslint/core@0.5.2':
+    resolution: {integrity: sha512-RDP0uvg0ni1AXl/Jq9LglY8QmSIuM4HN4Lx9Pef6xL1QZrgXkQJ5GKPlBjkbMDu7Zdlfjo1L5D1S0cttaEjBHA==, tarball: https://registry.npmjs.org/@rslint/core/-/core-0.5.2.tgz}
     hasBin: true
     peerDependencies:
       jiti: ^2.0.0
@@ -286,33 +286,33 @@ packages:
       jiti:
         optional: true
 
-  '@rslint/darwin-arm64@0.5.1':
-    resolution: {integrity: sha512-grbPKhrRv0BTKvdByIIlS5avc4ttF9vylaStJh/TTYS96cTkjCcTv7RAUv/ZI3VSaSZdRBcW4f6wW9pPWpt41w==, tarball: https://registry.npmjs.org/@rslint/darwin-arm64/-/darwin-arm64-0.5.1.tgz}
+  '@rslint/darwin-arm64@0.5.2':
+    resolution: {integrity: sha512-gu7WyZnyZt9x/TMC+jtf0LYTC0Zq9Fq38utef5dcm8iVbdZNqt+EnwrOqVFaqI1ikYC18IOi9aIe7/bxVZp/aA==, tarball: https://registry.npmjs.org/@rslint/darwin-arm64/-/darwin-arm64-0.5.2.tgz}
     cpu: [arm64]
     os: [darwin]
 
-  '@rslint/darwin-x64@0.5.1':
-    resolution: {integrity: sha512-v7P5AYWzm4Xrly5nl5yXSAyHn6j9pwZyFFUTD9UCOodZMEVmBxW3WxdL9iq8PfnG5n8GXHqTqBSYwWfG1WWD0g==, tarball: https://registry.npmjs.org/@rslint/darwin-x64/-/darwin-x64-0.5.1.tgz}
+  '@rslint/darwin-x64@0.5.2':
+    resolution: {integrity: sha512-sxvIAWldUBd/EeK+PkQhgVbRq6VwHBmUNxKNWyng5zL0gWu02X8ynhyzDgWfUKPXH7BgebSItQBfa4+qFQXhUw==, tarball: https://registry.npmjs.org/@rslint/darwin-x64/-/darwin-x64-0.5.2.tgz}
     cpu: [x64]
     os: [darwin]
 
-  '@rslint/linux-arm64@0.5.1':
-    resolution: {integrity: sha512-czDNVvgea0LpTlqaRvZHulJn8RmmDso2DufIWedxIA9yfK+nEK4H0tANNVQL4NBTHiv/6cqQw8NveP3KD5I93g==, tarball: https://registry.npmjs.org/@rslint/linux-arm64/-/linux-arm64-0.5.1.tgz}
+  '@rslint/linux-arm64@0.5.2':
+    resolution: {integrity: sha512-D8cmoMDqzwZqELtxbVZDX0jGMXkSwAejvOL9D1GXoFAxq74xuT/s0UdfbkzZtAAvIFrwa8PGskPXv3X/1w2WbA==, tarball: https://registry.npmjs.org/@rslint/linux-arm64/-/linux-arm64-0.5.2.tgz}
     cpu: [arm64]
     os: [linux]
 
-  '@rslint/linux-x64@0.5.1':
-    resolution: {integrity: sha512-D0isbtok26OSjSQkWDDfTWPLQDqrufbTbiihMFxkDlIRKDGcU9HvnfTlEmgnwzkxt6Jm7CBZZiXdFtyhPgnWEg==, tarball: https://registry.npmjs.org/@rslint/linux-x64/-/linux-x64-0.5.1.tgz}
+  '@rslint/linux-x64@0.5.2':
+    resolution: {integrity: sha512-b4Nato9LgkPX7OydaeXexUUvkfm4+tRAvp46T4xhe76k136/ziImRPBcM/G7pBNyaV5Rd6qp6CiYW330Q+0Gnw==, tarball: https://registry.npmjs.org/@rslint/linux-x64/-/linux-x64-0.5.2.tgz}
     cpu: [x64]
     os: [linux]
 
-  '@rslint/win32-arm64@0.5.1':
-    resolution: {integrity: sha512-XnU369fuTR9EqFhRMmbg+rHO3T/gwC+VV2AC1HAvZ62/pgNjFQmlK6IEsU293sgXHOUnRIQ6IsC9J0imyrCMXQ==, tarball: https://registry.npmjs.org/@rslint/win32-arm64/-/win32-arm64-0.5.1.tgz}
+  '@rslint/win32-arm64@0.5.2':
+    resolution: {integrity: sha512-3pfpABHaBv+Z551cKOX+pVllmGFJc7dLHDs2XignLxZ89xsxomlAx8CLhkaDECUkoBM7gj4/oQr57t9Ndhe3Lw==, tarball: https://registry.npmjs.org/@rslint/win32-arm64/-/win32-arm64-0.5.2.tgz}
     cpu: [arm64]
     os: [win32]
 
-  '@rslint/win32-x64@0.5.1':
-    resolution: {integrity: sha512-7++ELodvfVPFDSYEMVWb7OA+BD2JeONXtwXP/vmbrcawBTff7E/6VREB8dGPYCNh/ypBuSQ2WYXUtYAxQxwSiQ==, tarball: https://registry.npmjs.org/@rslint/win32-x64/-/win32-x64-0.5.1.tgz}
+  '@rslint/win32-x64@0.5.2':
+    resolution: {integrity: sha512-MnIp0ofyg7AXP+bgt1VW1ejJszkgyFKHJvSqZ3QePOllWKXA7Nhj4lMIluIcTN1D4C0f00+6POYOeIjSwI+aRQ==, tarball: https://registry.npmjs.org/@rslint/win32-x64/-/win32-x64-0.5.2.tgz}
     cpu: [x64]
     os: [win32]
 
@@ -1323,34 +1323,34 @@ snapshots:
       - '@vue/compiler-sfc'
       - vue
 
-  '@rslint/core@0.5.1':
+  '@rslint/core@0.5.2':
     dependencies:
       picomatch: 4.0.4
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@rslint/darwin-arm64': 0.5.1
-      '@rslint/darwin-x64': 0.5.1
-      '@rslint/linux-arm64': 0.5.1
-      '@rslint/linux-x64': 0.5.1
-      '@rslint/win32-arm64': 0.5.1
-      '@rslint/win32-x64': 0.5.1
+      '@rslint/darwin-arm64': 0.5.2
+      '@rslint/darwin-x64': 0.5.2
+      '@rslint/linux-arm64': 0.5.2
+      '@rslint/linux-x64': 0.5.2
+      '@rslint/win32-arm64': 0.5.2
+      '@rslint/win32-x64': 0.5.2
 
-  '@rslint/darwin-arm64@0.5.1':
+  '@rslint/darwin-arm64@0.5.2':
     optional: true
 
-  '@rslint/darwin-x64@0.5.1':
+  '@rslint/darwin-x64@0.5.2':
     optional: true
 
-  '@rslint/linux-arm64@0.5.1':
+  '@rslint/linux-arm64@0.5.2':
     optional: true
 
-  '@rslint/linux-x64@0.5.1':
+  '@rslint/linux-x64@0.5.2':
     optional: true
 
-  '@rslint/win32-arm64@0.5.1':
+  '@rslint/win32-arm64@0.5.2':
     optional: true
 
-  '@rslint/win32-x64@0.5.1':
+  '@rslint/win32-x64@0.5.2':
     optional: true
 
   '@rspack/binding-darwin-arm64@2.0.2':

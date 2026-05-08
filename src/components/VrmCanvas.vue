@@ -51,15 +51,11 @@ type Props = {
   bgImage?: string | null;
   /** Whether to show the grid helper. */
   showGrid?: boolean;
-  /** The width of the canvas. */
+  /** The width of the canvas in pixels. */
   width?: number;
-  /** The height of the canvas. */
-  height?: number;
-  /** The maximum width of the canvas. */
+  /** The maximum width of the canvas in pixels. */
   maxWidth?: number | null;
-  /** The maximum height of the canvas. */
-  maxHeight?: number | null;
-  /** The aspect ratio (width / height) to maintain. Overrides maxWidth/maxHeight if set. */
+  /** The aspect ratio (width / height) to maintain. Height is derived from width and this ratio. */
   aspectRatio?: number;
   /** Options for configuring the camera. */
   cameraOptions?: CameraOptions;
@@ -87,11 +83,9 @@ const props = withDefaults(defineProps<Props>(), {
   bgTransparent: false,
   bgImage: null,
   showGrid: false,
-  width: 300,
-  height: 533,
+  width: 480,
   maxWidth: null,
-  maxHeight: null,
-  aspectRatio: 9 / 16,
+  aspectRatio: 3 / 4,
   cameraOptions: () => ({ fov: 30, near: 0.1, far: 100 }),
   cameraDistance: null,
   cameraEuler: () => [0, 0, 0],
@@ -238,23 +232,18 @@ function resetCamera(): void {
 // ---------- Sizing ----------
 function computeCanvasSize(): { width: number; height: number } {
   const container = containerRef.value;
-  let cw = container?.clientWidth ?? 0;
-  let ch = container?.clientHeight ?? 0;
+  let width = container?.clientWidth ?? 0;
 
-  if (cw <= 0 || ch <= 0) {
-    cw = props.width;
-    ch = props.height;
+  if (width <= 0) {
+    width = props.width;
   }
-  if (props.maxWidth != null) cw = Math.min(cw, props.maxWidth);
-  if (props.maxHeight != null) ch = Math.min(ch, props.maxHeight);
+  if (props.maxWidth != null) width = Math.min(width, props.maxWidth);
 
-  // Maintain aspect ratio (width / height).
-  const ratio = props.aspectRatio;
-  if (ratio > 0) {
-    if (cw / ch > ratio) cw = ch * ratio;
-    else ch = cw / ratio;
-  }
-  return { width: Math.max(1, Math.floor(cw)), height: Math.max(1, Math.floor(ch)) };
+  // Derive height from width and aspect ratio.
+  const ratio = props.aspectRatio > 0 ? props.aspectRatio : 9 / 16;
+  const height = width / ratio;
+
+  return { width: Math.max(1, Math.floor(width)), height: Math.max(1, Math.floor(height)) };
 }
 
 function updateSize(): void {
@@ -612,7 +601,7 @@ watch(
 );
 
 watch(
-  () => [props.maxWidth, props.maxHeight, props.aspectRatio, props.width, props.height],
+  () => [props.maxWidth, props.aspectRatio, props.width],
   () => updateSize()
 );
 
@@ -681,8 +670,12 @@ async function captureScreenshot(format = 'image/png'): Promise<string> {
 
 const containerStyle = computed(() => {
   const style: Record<string, string> = {};
+  const width = props.width;
+  const ratio = props.aspectRatio > 0 ? props.aspectRatio : 9 / 16;
+  const height = width / ratio;
+  style.width = `${width}px`;
+  style.height = `${height}px`;
   if (props.maxWidth != null) style.maxWidth = `${props.maxWidth}px`;
-  if (props.maxHeight != null) style.maxHeight = `${props.maxHeight}px`;
   return style;
 });
 
@@ -717,12 +710,13 @@ defineExpose({
 <style scoped>
 .vrm-canvas-container {
   position: relative;
-  width: 100%;
-  height: 100%;
+  margin: 0;
   overflow: hidden;
 }
 
 .vrm-canvas {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>
