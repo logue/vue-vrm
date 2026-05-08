@@ -41,7 +41,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@10.33.3",
+  "packageManager": "pnpm@11.0.8",
   "scripts": {
     "build": "rsbuild build && mv dist/static/js/index.es.js dist/index.es.js && pnpm run build:types && rm -rf dist/static dist/favicon.png",
     "build:types": "dts-bundle-generator --project tsconfig.build.json --out-file dist/index.d.ts src/lib.ts",
@@ -50,8 +50,7 @@
     "dev": "BUILD_TARGET=demo rsbuild --open",
     "dev:docs": "BUILD_TARGET=demo rsbuild --open",
     "format": "biome format --write",
-    "lint": "eslint .",
-    "lint:oxlint": "oxlint . --fix",
+    "lint": "rslint .",
     "preview": "rsbuild preview",
     "test": "rstest",
     "test:watch": "rstest --watch"
@@ -66,27 +65,21 @@
     "@biomejs/biome": "^2.4.14",
     "@pixiv/three-vrm": "^3.5.2",
     "@pixiv/three-vrm-animation": "^3.5.2",
-    "@rsbuild/core": "^2.0.3",
+    "@rsbuild/core": "^2.0.5",
     "@rsbuild/plugin-vue": "^1.2.7",
+    "@rslint/core": "^0.5.1",
     "@rstest/adapter-rsbuild": "^0.2.6",
     "@rstest/core": "^0.9.10",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/vue": "^8.1.0",
     "@tsconfig/node-lts": "^24.0.0",
-    "@types/three": "^0.184.0",
-    "@vue/eslint-config-typescript": "^14.7.0",
+    "@types/three": "^0.184.1",
     "dts-bundle-generator": "^9.5.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-oxlint": "^1.62.0",
-    "eslint-plugin-vue": "^10.9.0",
-    "globals": "^17.6.0",
     "happy-dom": "^20.9.0",
-    "oxlint": "^1.62.0",
     "prettier": "^3.8.3",
     "three": "^0.184.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.2",
-    "vue": "^3.5.33"
+    "vue": "^3.5.34"
   }
 }

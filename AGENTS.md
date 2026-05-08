@@ -84,7 +84,7 @@ Always run `pnpm lint` and `pnpm build` before committing. These are also enforc
   > **Exception**: test files under `src/**/__tests__/` may use `../` to import the component under test (e.g., `import MyComponent from '../MyComponent.vue'`). This is intentional and the ESLint rule is disabled for that scope.
 
 - The `~` alias maps to `node_modules` (e.g., `~/some-lib/style.css`).
-- **Import order** (enforced by oxlint, auto-fixed by `pnpm lint`):
+- **Import order** (enforced by rslint, auto-fixed by `pnpm lint`):
   1. Node built-ins
   2. Vue core (`vue`, `vue-router`, `@vue/*`, `@rsbuild/*`)
   3. External packages
@@ -103,14 +103,15 @@ Always run `pnpm lint` and `pnpm build` before committing. These are also enforc
 
 ## Tools
 
+### Rslint
+
+- Run `pnpm run lint` to lint your code
+- The configuration is in `rslint.config.ts`
+
 ### Rstest
 
 - Run `pnpm run test` to run tests
 - Run `pnpm run test:watch` to run tests in watch mode
-
-### ESLint + oxlint
-
-- Run `pnpm run lint` to lint your code (ESLint + oxlint)
 
 ### Biome
 
