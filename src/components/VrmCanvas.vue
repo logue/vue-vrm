@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -34,6 +35,35 @@ type LightOptions = {
   color: string;
   /** The intensity of the light. */
   intensity: number;
+};
+
+type CameraInteractionOptions = {
+  /** Enables camera orbit interaction when this option object is provided. */
+  enabled?: boolean;
+  /** Enables orbit rotation around the target. */
+  rotate?: boolean;
+  /** Enables panning. */
+  pan?: boolean;
+  /** Enables zooming (dolly). */
+  zoom?: boolean;
+  /** Enables roll interaction with Q/E keys while canvas is focused. */
+  roll?: boolean;
+  /** Orbit rotation speed. */
+  rotateSpeed?: number;
+  /** Pan speed. */
+  panSpeed?: number;
+  /** Zoom speed. */
+  zoomSpeed?: number;
+  /** Enables damping for smoother interaction. */
+  damping?: boolean;
+  /** Damping factor when damping is enabled. */
+  dampingFactor?: number;
+  /** Minimum camera distance from target. */
+  minDistance?: number;
+  /** Maximum camera distance from target. */
+  maxDistance?: number;
+  /** Roll speed in radians per key press. */
+  rollSpeed?: number;
 };
 
 type Props = {
@@ -73,6 +103,8 @@ type Props = {
   directionalLight?: LightOptions & { position: Vec3 };
   /** An optional postprocessing shader pass to apply. */
   shaderPass?: ShaderPass | null;
+  /** Optional camera interaction controls. */
+  cameraInteraction?: CameraInteractionOptions | null;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -93,7 +125,8 @@ const props = withDefaults(defineProps<Props>(), {
   cameraLookAt: () => [0, 0.9, 0],
   ambientLight: () => ({ color: '#ffffff', intensity: 0.5 }),
   directionalLight: () => ({ color: '#ffffff', intensity: 1, position: [1, 1, 1] as Vec3 }),
-  shaderPass: null
+  shaderPass: null,
+  cameraInteraction: null
 });
 
 const emit = defineEmits<{
@@ -156,6 +189,7 @@ const bgTexture = shallowRef<THREE.Texture | null>(null);
 const composer = shallowRef<EffectComposer | null>(null);
 const renderPass = shallowRef<RenderPass | null>(null);
 const outputPass = shallowRef<OutputPass | null>(null);
+const orbitControls = shallowRef<OrbitControls | null>(null);
 
 const vrm = shallowRef<VRM | null>(null);
 const mixer = shallowRef<THREE.AnimationMixer | null>(null);
@@ -173,6 +207,91 @@ function emitError(scope: 'model' | 'animation' | 'system', err: unknown): void 
   if (scope === 'model') emit('model:error', e);
   else if (scope === 'animation') emit('animation:error', e);
   else emit('error', e);
+}
+
+function getCurrentLookAt(): THREE.Vector3 {
+  if (orbitControls.value) {
+    return orbitControls.value.target.clone();
+  }
+  return new THREE.Vector3(...props.cameraLookAt);
+}
+
+function emitCameraChange(lookAt?: THREE.Vector3): void {
+  if (!camera.value) return;
+  const target = lookAt ?? getCurrentLookAt();
+  emit('camera:change', {
+    position: camera.value.position.clone(),
+    lookAt: target.clone(),
+    distance: camera.value.position.distanceTo(target)
+  });
+}
+
+function handleControlsChange(): void {
+  emitCameraChange();
+}
+
+function handleCanvasPointerDown(): void {
+  if (!canvasRef.value) return;
+  canvasRef.value.focus();
+}
+
+function rollCamera(direction: 1 | -1): void {
+  if (!camera.value || !orbitControls.value) return;
+  if (!(props.cameraInteraction?.roll ?? false)) return;
+  const step = props.cameraInteraction?.rollSpeed ?? 0.03;
+  const forward = new THREE.Vector3();
+  camera.value.getWorldDirection(forward);
+  camera.value.up.applyAxisAngle(forward, step * direction).normalize();
+  camera.value.lookAt(orbitControls.value.target);
+  orbitControls.value.update();
+  emitCameraChange();
+}
+
+function handleCanvasKeydown(event: KeyboardEvent): void {
+  if (event.key === 'q' || event.key === 'Q') {
+    event.preventDefault();
+    rollCamera(-1);
+  }
+  if (event.key === 'e' || event.key === 'E') {
+    event.preventDefault();
+    rollCamera(1);
+  }
+}
+
+function disposeOrbitControls(): void {
+  if (!orbitControls.value) return;
+  orbitControls.value.removeEventListener('change', handleControlsChange);
+  orbitControls.value.dispose();
+  orbitControls.value = null;
+}
+
+function setupOrbitControls(): void {
+  disposeOrbitControls();
+  if (canvasRef.value) {
+    canvasRef.value.tabIndex = -1;
+  }
+  if (!camera.value || !renderer.value) return;
+  if (!props.cameraInteraction || props.cameraInteraction.enabled === false) return;
+
+  const controls = new OrbitControls(camera.value, renderer.value.domElement);
+  controls.enableRotate = props.cameraInteraction.rotate ?? true;
+  controls.enablePan = props.cameraInteraction.pan ?? true;
+  controls.enableZoom = props.cameraInteraction.zoom ?? true;
+  controls.rotateSpeed = props.cameraInteraction.rotateSpeed ?? 1;
+  controls.panSpeed = props.cameraInteraction.panSpeed ?? 1;
+  controls.zoomSpeed = props.cameraInteraction.zoomSpeed ?? 1;
+  controls.enableDamping = props.cameraInteraction.damping ?? true;
+  controls.dampingFactor = props.cameraInteraction.dampingFactor ?? 0.08;
+  controls.minDistance = props.cameraInteraction.minDistance ?? 0.1;
+  controls.maxDistance = props.cameraInteraction.maxDistance ?? Number.POSITIVE_INFINITY;
+  controls.target.copy(initialCameraTarget.value);
+  controls.update();
+  controls.addEventListener('change', handleControlsChange);
+  orbitControls.value = controls;
+
+  if (canvasRef.value) {
+    canvasRef.value.tabIndex = props.cameraInteraction.roll ? 0 : -1;
+  }
 }
 
 function applyCameraTransform(): void {
@@ -194,14 +313,14 @@ function applyCameraTransform(): void {
   const offset = new THREE.Vector3(0, 0, dist).applyEuler(euler);
   camera.value.position.copy(target).add(offset);
 
-  const lookAt = new THREE.Vector3(...props.cameraLookAt);
+  const lookAt = orbitControls.value ? target.clone() : new THREE.Vector3(...props.cameraLookAt);
   camera.value.lookAt(lookAt);
+  if (orbitControls.value) {
+    orbitControls.value.target.copy(lookAt);
+    orbitControls.value.update();
+  }
 
-  emit('camera:change', {
-    position: camera.value.position.clone(),
-    lookAt: lookAt.clone(),
-    distance: dist
-  });
+  emitCameraChange(lookAt);
 }
 
 function computeFitDistance(target: THREE.Object3D, fovDeg: number): number {
@@ -226,6 +345,7 @@ function resetCamera(): void {
     const fov = camera.value.fov;
     initialCameraDistance.value = computeFitDistance(vrm.value.scene, fov);
   }
+  camera.value.up.set(0, 1, 0);
   applyCameraTransform();
 }
 
@@ -253,6 +373,7 @@ function updateSize(): void {
   if (composer.value) composer.value.setSize(width, height);
   camera.value.aspect = width / height;
   camera.value.updateProjectionMatrix();
+  orbitControls.value?.update();
 }
 
 // ---------- Background / Grid ----------
@@ -413,6 +534,7 @@ function tick(timestamp: number): void {
   const dt = clock.getDelta();
   if (mixer.value) mixer.value.update(dt);
   if (vrm.value) vrm.value.update(dt);
+  orbitControls.value?.update();
   if (composer.value) {
     composer.value.render(dt);
   } else if (renderer.value && scene.value && camera.value) {
@@ -470,6 +592,9 @@ onMounted(() => {
   // Composer (if shaderPass provided).
   rebuildComposer();
 
+  // Optional camera interaction controls.
+  setupOrbitControls();
+
   // Sizing.
   updateSize();
   resizeObserver = new ResizeObserver(() => updateSize());
@@ -509,6 +634,7 @@ onUnmounted(() => {
     composer.value.dispose();
     composer.value = null;
   }
+  disposeOrbitControls();
   if (renderer.value) {
     renderer.value.dispose();
     renderer.value = null;
@@ -598,6 +724,12 @@ watch(
 watch(
   () => props.shaderPass,
   () => rebuildComposer()
+);
+
+watch(
+  () => props.cameraInteraction,
+  () => setupOrbitControls(),
+  { deep: true }
 );
 
 watch(
@@ -697,13 +829,20 @@ defineExpose({
   /** Returns the currently loaded `VRM` instance, or `null` when no model is loaded. */
   getVrm: (): VRM | null => vrm.value,
   /** Returns the internal `<canvas>` element, or `null` before mount. */
-  getCanvas: (): HTMLCanvasElement | null => canvasRef.value
+  getCanvas: (): HTMLCanvasElement | null => canvasRef.value,
+  /** Resets camera position and orientation. */
+  resetCameraPose: (): void => resetCamera()
 });
 </script>
 
 <template>
   <figure ref="containerRef" class="vrm-canvas-container" :style="containerStyle">
-    <canvas ref="canvasRef" class="vrm-canvas" />
+    <canvas
+      ref="canvasRef"
+      class="vrm-canvas"
+      @keydown="handleCanvasKeydown"
+      @pointerdown="handleCanvasPointerDown"
+    />
   </figure>
 </template>
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import VrmCanvas from '@/components/VrmCanvas.vue';
+import { resetVrmCanvasCamera } from '@/lib';
+import type { VrmCanvasExposed } from '@/lib';
 
 const isDocsDemo = __DEMO_BUILD__;
 const modelData = ref<ArrayBuffer | null>(null);
@@ -9,6 +11,32 @@ const animationData = ref<ArrayBuffer | ArrayBuffer[] | null>(null);
 const showGrid = ref(true);
 const bgTransparent = ref(false);
 const isLoading = ref(false);
+const vrmCanvasRef = ref<VrmCanvasExposed | null>(null);
+
+const cameraInteractionEnabled = ref(true);
+const cameraRotate = ref(true);
+const cameraPan = ref(true);
+const cameraZoom = ref(true);
+const cameraRoll = ref(true);
+
+const cameraInteraction = computed(() => {
+  if (!cameraInteractionEnabled.value) return null;
+  return {
+    enabled: true,
+    rotate: cameraRotate.value,
+    pan: cameraPan.value,
+    zoom: cameraZoom.value,
+    roll: cameraRoll.value,
+    damping: true,
+    dampingFactor: 0.08,
+    rotateSpeed: 1,
+    panSpeed: 1,
+    zoomSpeed: 1,
+    minDistance: 0.5,
+    maxDistance: 20,
+    rollSpeed: 0.03
+  };
+});
 
 async function loadAvatarSample(): Promise<void> {
   isLoading.value = true;
@@ -49,6 +77,10 @@ function onError(err: Error): void {
   isLoading.value = false;
   console.error(err);
   alert(err.message);
+}
+
+function onResetCamera(): void {
+  resetVrmCanvasCamera(vrmCanvasRef.value);
 }
 
 onMounted(() => {
@@ -123,6 +155,17 @@ onMounted(() => {
               accept=".vrma,.glb"
               @change="onAnimationFile"
             />
+            <div class="form-text">
+              Due to licensing restrictions, a VRMA file is not available. Please download it from
+              <a
+                href="https://vroid.booth.pm/items/5512385"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                here
+              </a>
+              and load it yourself.
+            </div>
           </div>
           <div class="form-check form-switch">
             <input
@@ -146,15 +189,101 @@ onMounted(() => {
             />
             <label class="form-check-label" for="checkBgTransparent">Transparent Background</label>
           </div>
+
+          <hr />
+          <h2 class="h6">Camera Interaction</h2>
+          <div class="form-check form-switch">
+            <input
+              v-model="cameraInteractionEnabled"
+              class="form-check-input"
+              type="checkbox"
+              value=""
+              id="checkCameraInteraction"
+              switch
+            />
+            <label class="form-check-label" for="checkCameraInteraction">Enable Interaction</label>
+          </div>
+          <div class="form-check form-switch">
+            <input
+              v-model="cameraRotate"
+              :disabled="!cameraInteractionEnabled"
+              class="form-check-input"
+              type="checkbox"
+              id="checkCameraRotate"
+              switch
+            />
+            <label class="form-check-label" for="checkCameraRotate">Orbit Rotate</label>
+          </div>
+          <div class="form-check form-switch">
+            <input
+              v-model="cameraPan"
+              :disabled="!cameraInteractionEnabled"
+              class="form-check-input"
+              type="checkbox"
+              id="checkCameraPan"
+              switch
+            />
+            <label class="form-check-label" for="checkCameraPan">
+              Pan
+              <small>
+                (Right mouse button and drag or
+                <kbd>Ctrl</kbd>
+                + Left mouse button and drag)
+              </small>
+            </label>
+          </div>
+          <div class="form-check form-switch">
+            <input
+              v-model="cameraZoom"
+              :disabled="!cameraInteractionEnabled"
+              class="form-check-input"
+              type="checkbox"
+              id="checkCameraZoom"
+              switch
+            />
+            <label class="form-check-label" for="checkCameraZoom">
+              Zoom
+              <small>(Mouse wheel)</small>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input
+              v-model="cameraRoll"
+              :disabled="!cameraInteractionEnabled"
+              class="form-check-input"
+              type="checkbox"
+              id="checkCameraRoll"
+              switch
+            />
+            <label class="form-check-label" for="checkCameraRoll">
+              Roll (
+              <kbd>Q</kbd>
+              /
+              <kbd>E</kbd>
+              )
+            </label>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm" @click="onResetCamera">
+            Reset Camera
+          </button>
+          <p class="text-body-secondary small mt-2 mb-0">
+            Click the canvas to focus, then press
+            <kbd>Q</kbd>
+            /
+            <kbd>E</kbd>
+            for roll.
+          </p>
         </div>
         <div class="col">
           <div v-if="isLoading" class="alert alert-primary" role="alert">Loading...</div>
           <figure class="mx-auto">
             <VrmCanvas
+              ref="vrmCanvasRef"
               :model-data="modelData"
               :animation-data="animationData"
               :show-grid="showGrid"
               :bg-transparent="bgTransparent"
+              :camera-interaction="cameraInteraction"
               class="img-fluid img-thumbnail"
               @model:loading="onLoading"
               @model:loaded="onLoaded"
