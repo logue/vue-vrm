@@ -25,11 +25,14 @@
     /* type checking */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "skipLibCheck": false,
+    "ignoreDeprecations": "6.0",
 
     /* path aliases */
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["node", "vue", "./src/env.d.ts"]
   },
-  "include": ["src/lib.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/env.d.ts"]
 }
