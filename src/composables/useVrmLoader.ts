@@ -1,6 +1,6 @@
+import { type VRM, VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { VRMLoaderPlugin, VRMUtils, type VRM } from '@pixiv/three-vrm';
 
 import { validateVrm } from '@/utils/validateGlb';
 
@@ -16,7 +16,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   validateVrm(buffer);
 
   const loader = new GLTFLoader();
-  loader.register(parser => new VRMLoaderPlugin(parser));
+  loader.register((parser) => new VRMLoaderPlugin(parser));
 
   const gltf = await loader.parseAsync(buffer, '');
   const vrm = (gltf.userData as { vrm?: VRM }).vrm;
@@ -29,7 +29,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   VRMUtils.combineSkeletons(gltf.scene);
 
   // Disable frustum culling to keep skinned meshes visible.
-  vrm.scene.traverse(obj => {
+  vrm.scene.traverse((obj) => {
     obj.frustumCulled = false;
   });
 

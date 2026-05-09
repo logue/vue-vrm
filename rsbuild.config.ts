@@ -24,7 +24,6 @@ export default defineConfig({
   output: {
     distPath: isDemo ? 'docs' : 'dist',
     filenameHash: isDemo,
-    format: isDemo ? undefined : 'esm',
     filename: isDemo
       ? undefined
       : {

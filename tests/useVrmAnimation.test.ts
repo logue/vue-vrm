@@ -1,14 +1,12 @@
+import type { VRM } from '@pixiv/three-vrm';
+import type { VRMAnimation } from '@pixiv/three-vrm-animation';
 import { describe, expect, test } from '@rstest/core';
 import * as THREE from 'three';
-
 import {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation
+  loadVRMAnimation,
 } from '../src/composables/useVrmAnimation';
-
-import type { VRM } from '@pixiv/three-vrm';
-import type { VRMAnimation } from '@pixiv/three-vrm-animation';
 
 /** Build a fake VRM-like object with just enough surface for the mixer. */
 function makeFakeVrm(): VRM {
@@ -22,7 +20,7 @@ describe('createMixerWithClips - weight validation', () => {
     const vrm = makeFakeVrm();
     const animations = [{}, {}] as VRMAnimation[];
     expect(() => createMixerWithClips(vrm, animations, [0.7, 0.5])).toThrow(
-      /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/
+      /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/,
     );
   });
 
@@ -45,7 +43,9 @@ describe('createMixerWithClips - weight validation', () => {
   test('falls back to equal split when weights contain non-finite values', () => {
     const vrm = makeFakeVrm();
     const animations: VRMAnimation[] = [];
-    expect(() => createMixerWithClips(vrm, animations, [Number.NaN])).not.toThrow();
+    expect(() =>
+      createMixerWithClips(vrm, animations, [Number.NaN]),
+    ).not.toThrow();
   });
 });
 
@@ -59,7 +59,9 @@ describe('disposeMixer', () => {
 
 describe('loadVRMAnimation - input validation', () => {
   test('rejects buffers that are not GLB', async () => {
-    await expect(loadVRMAnimation(new ArrayBuffer(4))).rejects.toThrow(/too small|magic|GLB/);
+    await expect(loadVRMAnimation(new ArrayBuffer(4))).rejects.toThrow(
+      /too small|magic|GLB/,
+    );
   });
 
   test('rejects GLB without VRMC_vrm_animation extension', async () => {
@@ -79,6 +81,8 @@ describe('loadVRMAnimation - input validation', () => {
     for (let i = 0; i < padding; i++) {
       view.setUint8(20 + jsonBytes.length + i, 0x20);
     }
-    await expect(loadVRMAnimation(buffer)).rejects.toThrow(/VRMC_vrm_animation/);
+    await expect(loadVRMAnimation(buffer)).rejects.toThrow(
+      /VRMC_vrm_animation/,
+    );
   });
 });

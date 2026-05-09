@@ -1,11 +1,11 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { VRM } from '@pixiv/three-vrm';
 import {
-  VRMAnimationLoaderPlugin,
   createVRMAnimationClip,
-  type VRMAnimation
+  type VRMAnimation,
+  VRMAnimationLoaderPlugin,
 } from '@pixiv/three-vrm-animation';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { validateVrma } from '@/utils/validateGlb';
 
@@ -17,14 +17,17 @@ import { validateVrma } from '@/utils/validateGlb';
  * @returns The loaded VRMAnimation instance.
  * @throws If the buffer is not a valid VRMA GLB or if parsing fails.
  */
-export async function loadVRMAnimation(buffer: ArrayBuffer): Promise<VRMAnimation> {
+export async function loadVRMAnimation(
+  buffer: ArrayBuffer,
+): Promise<VRMAnimation> {
   validateVrma(buffer);
 
   const loader = new GLTFLoader();
-  loader.register(parser => new VRMAnimationLoaderPlugin(parser));
+  loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
   const gltf = await loader.parseAsync(buffer, '');
-  const animations = (gltf.userData as { vrmAnimations?: VRMAnimation[] }).vrmAnimations;
+  const animations = (gltf.userData as { vrmAnimations?: VRMAnimation[] })
+    .vrmAnimations;
   if (!animations || animations.length === 0) {
     throw new Error('[VrmCanvas] Failed to extract VRMAnimation from GLB.');
   }
@@ -59,16 +62,20 @@ export async function loadVRMAnimation(buffer: ArrayBuffer): Promise<VRMAnimatio
 export function createMixerWithClips(
   vrm: VRM,
   animations: VRMAnimation[],
-  weights?: number[] | null
+  weights?: number[] | null,
 ): THREE.AnimationMixer {
   const n = animations.length;
   const lengthOk = weights?.length === n;
-  const allFinite = weights?.every(v => Number.isFinite(v)) ?? false;
+  const allFinite = weights?.every((v) => Number.isFinite(v)) ?? false;
   const useEqual = !lengthOk || !allFinite;
-  const w = useEqual ? animations.map(() => 1 / n) : (weights ?? []).slice(0, n);
+  const w = useEqual
+    ? animations.map(() => 1 / n)
+    : (weights ?? []).slice(0, n);
   const total = w.reduce((sum, v) => sum + v, 0);
   if (total > 1 + Number.EPSILON) {
-    throw new Error(`[VrmCanvas] The sum of animationWeights exceeds 1.0: ${total.toFixed(4)}`);
+    throw new Error(
+      `[VrmCanvas] The sum of animationWeights exceeds 1.0: ${total.toFixed(4)}`,
+    );
   }
 
   const mixer = new THREE.AnimationMixer(vrm.scene);

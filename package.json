@@ -41,7 +41,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@11.0.8",
+  "packageManager": "pnpm@11.0.9",
   "scripts": {
     "build": "rsbuild build && mv dist/static/js/index.es.js dist/index.es.js && pnpm run build:types && rm -rf dist/static dist/favicon.png",
     "build:types": "dts-bundle-generator --project tsconfig.build.json --out-file dist/index.d.ts src/lib.ts",
@@ -66,7 +66,7 @@
     "@pixiv/three-vrm": "^3.5.2",
     "@pixiv/three-vrm-animation": "^3.5.2",
     "@rsbuild/core": "^2.0.5",
-    "@rsbuild/plugin-vue": "^1.2.7",
+    "@rsbuild/plugin-vue": "^1.2.8",
     "@rslint/core": "^0.5.2",
     "@rstest/adapter-rsbuild": "^0.2.6",
     "@rstest/core": "^0.9.10",

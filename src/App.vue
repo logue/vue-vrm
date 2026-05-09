@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue';
 
 import VrmCanvas from '@/components/VrmCanvas.vue';
-import { resetVrmCanvasCamera } from '@/lib';
 import type { VrmCanvasExposed } from '@/lib';
+import { resetVrmCanvasCamera } from '@/lib';
 
 const isDocsDemo = __DEMO_BUILD__;
 const modelData = ref<ArrayBuffer | null>(null);
@@ -34,7 +34,7 @@ const cameraInteraction = computed(() => {
     zoomSpeed: 1,
     minDistance: 0.5,
     maxDistance: 20,
-    rollSpeed: 0.03
+    rollSpeed: 0.03,
   };
 });
 

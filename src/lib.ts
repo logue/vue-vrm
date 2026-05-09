@@ -5,7 +5,9 @@ export type VrmCanvasExposed = {
   resetCameraPose?: () => void;
 };
 
-export function resetVrmCanvasCamera(instance: VrmCanvasExposed | null | undefined): void {
+export function resetVrmCanvasCamera(
+  instance: VrmCanvasExposed | null | undefined,
+): void {
   if (!instance) return;
   if (instance.resetCameraPose) {
     instance.resetCameraPose();
@@ -14,10 +16,10 @@ export function resetVrmCanvasCamera(instance: VrmCanvasExposed | null | undefin
   instance.resetCamera();
 }
 
-export { loadVrm, autoPositionY, disposeVrm } from './composables/useVrmLoader';
 export {
-  loadVRMAnimation,
   createMixerWithClips,
-  disposeMixer
+  disposeMixer,
+  loadVRMAnimation,
 } from './composables/useVrmAnimation';
+export { autoPositionY, disposeVrm, loadVrm } from './composables/useVrmLoader';
 export { validateVrm, validateVrma } from './utils/validateGlb';
