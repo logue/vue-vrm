@@ -22,5 +22,5 @@ export {
   loadVRMAnimation,
 } from './composables/useVrmAnimation';
 export { autoPositionY, disposeVrm, loadVrm } from './composables/useVrmLoader';
-export { validateVrm, validateVrma } from './utils/validateGlb';
 export { default as meta } from './Meta';
+export { validateVrm, validateVrma } from './utils/validateGlb';

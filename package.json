@@ -25,13 +25,14 @@
   "bugs": {
     "url": "https://github.com/logue/vue-vrm/issues"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "default": "./dist/index.js"
     }
   },
@@ -46,10 +47,10 @@
     "build": "pnpm run build:lib",
     "build:lib": "rslib build && pnpm run build:types",
     "build:types": "dts-bundle-generator --project tsconfig.build.json --out-file dist/index.d.ts src/lib.ts",
-    "build:docs": "BUILD_TARGET=demo rsbuild build",
+    "build:docs": "rsbuild build",
     "check": "biome check --write",
-    "dev": "BUILD_TARGET=demo rsbuild --open",
-    "dev:docs": "BUILD_TARGET=demo rsbuild --open",
+    "dev": "rsbuild --open",
+    "dev:docs": "rsbuild --open",
     "format": "biome format --write",
     "lint": "rslint .",
     "preview": "rsbuild preview",
@@ -59,10 +60,11 @@
   "peerDependencies": {
     "@pixiv/three-vrm": ">=3.5.0",
     "@pixiv/three-vrm-animation": ">=3.5.0",
-    "three": ">=0.184.0"
+    "three": ">=0.184.0",
+    "vue": ">=3.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.14",
+    "@biomejs/biome": "^2.4.15",
     "@pixiv/three-vrm": "^3.5.2",
     "@pixiv/three-vrm-animation": "^3.5.2",
     "@rsbuild/core": "^2.0.5",
@@ -77,6 +79,7 @@
     "@tsconfig/node-lts": "^24.0.0",
     "@types/node": "^25.6.2",
     "@types/three": "^0.184.1",
+    "@vueuse/core": "^14.3.0",
     "dts-bundle-generator": "^9.5.1",
     "happy-dom": "^20.9.0",
     "prettier": "^3.8.3",

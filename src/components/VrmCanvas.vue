@@ -11,7 +11,7 @@ import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation
+  loadVRMAnimation,
 } from '@/composables/useVrmAnimation';
 import { autoPositionY, disposeVrm, loadVrm } from '@/composables/useVrmLoader';
 
@@ -126,10 +126,10 @@ const props = withDefaults(defineProps<Props>(), {
   directionalLight: () => ({
     color: '#ffffff',
     intensity: 1,
-    position: [1, 1, 1] as Vec3
+    position: [1, 1, 1] as Vec3,
   }),
   shaderPass: null,
-  cameraInteraction: null
+  cameraInteraction: null,
 });
 
 const emit = defineEmits<{
@@ -166,7 +166,7 @@ const emit = defineEmits<{
       lookAt: THREE.Vector3;
       /* The new camera distance. */
       distance: number;
-    }
+    },
   ];
   /**
    * Emitted when the camera options change (fov, near, far).
@@ -174,7 +174,9 @@ const emit = defineEmits<{
    */
   'camera:options-change': [payload: CameraOptions];
   'light:ambient-change': [payload: LightOptions];
-  'light:directional-change': [payload: LightOptions & { position: THREE.Vector3 }];
+  'light:directional-change': [
+    payload: LightOptions & { position: THREE.Vector3 },
+  ];
   error: [error: Error];
 }>();
 
@@ -198,14 +200,19 @@ const vrm = shallowRef<VRM | null>(null);
 const mixer = shallowRef<THREE.AnimationMixer | null>(null);
 
 const initialCameraDistance = ref<number>(0);
-const initialCameraTarget = shallowRef<THREE.Vector3>(new THREE.Vector3(0, 0.9, 0));
+const initialCameraTarget = shallowRef<THREE.Vector3>(
+  new THREE.Vector3(0, 0.9, 0),
+);
 
 const clock = new THREE.Timer();
 let rafId = 0;
 let resizeObserver: ResizeObserver | null = null;
 
 // ---------- Helpers ----------
-function emitError(scope: 'model' | 'animation' | 'system', err: unknown): void {
+function emitError(
+  scope: 'model' | 'animation' | 'system',
+  err: unknown,
+): void {
   const e = err instanceof Error ? err : new Error(String(err));
   if (scope === 'model') emit('model:error', e);
   else if (scope === 'animation') emit('animation:error', e);
@@ -225,7 +232,7 @@ function emitCameraChange(lookAt?: THREE.Vector3): void {
   emit('camera:change', {
     position: camera.value.position.clone(),
     lookAt: target.clone(),
-    distance: camera.value.position.distanceTo(target)
+    distance: camera.value.position.distanceTo(target),
   });
 }
 
@@ -274,7 +281,8 @@ function setupOrbitControls(): void {
     canvasRef.value.tabIndex = -1;
   }
   if (!camera.value || !renderer.value) return;
-  if (!props.cameraInteraction || props.cameraInteraction.enabled === false) return;
+  if (!props.cameraInteraction || props.cameraInteraction.enabled === false)
+    return;
 
   const controls = new OrbitControls(camera.value, renderer.value.domElement);
   controls.enableRotate = props.cameraInteraction.rotate ?? true;
@@ -286,7 +294,8 @@ function setupOrbitControls(): void {
   controls.enableDamping = props.cameraInteraction.damping ?? true;
   controls.dampingFactor = props.cameraInteraction.dampingFactor ?? 0.08;
   controls.minDistance = props.cameraInteraction.minDistance ?? 0.1;
-  controls.maxDistance = props.cameraInteraction.maxDistance ?? Number.POSITIVE_INFINITY;
+  controls.maxDistance =
+    props.cameraInteraction.maxDistance ?? Number.POSITIVE_INFINITY;
   controls.target.copy(initialCameraTarget.value);
   controls.update();
   controls.addEventListener('change', handleControlsChange);
@@ -303,7 +312,7 @@ function applyCameraTransform(): void {
   const target = new THREE.Vector3(
     initialCameraTarget.value.x + props.cameraOffset[0],
     initialCameraTarget.value.y + props.cameraOffset[1],
-    initialCameraTarget.value.z + props.cameraOffset[2]
+    initialCameraTarget.value.z + props.cameraOffset[2],
   );
 
   // Camera position: target + (0, 0, dist) rotated by cameraEuler.
@@ -311,12 +320,14 @@ function applyCameraTransform(): void {
     props.cameraEuler[0],
     props.cameraEuler[1],
     props.cameraEuler[2],
-    'XYZ'
+    'XYZ',
   );
   const offset = new THREE.Vector3(0, 0, dist).applyEuler(euler);
   camera.value.position.copy(target).add(offset);
 
-  const lookAt = orbitControls.value ? target.clone() : new THREE.Vector3(...props.cameraLookAt);
+  const lookAt = orbitControls.value
+    ? target.clone()
+    : new THREE.Vector3(...props.cameraLookAt);
   camera.value.lookAt(lookAt);
   if (orbitControls.value) {
     orbitControls.value.target.copy(lookAt);
@@ -368,7 +379,7 @@ function computeCanvasSize(): { width: number; height: number } {
 
   return {
     width: Math.max(1, Math.floor(width)),
-    height: Math.max(1, Math.floor(height))
+    height: Math.max(1, Math.floor(height)),
   };
 }
 
@@ -400,13 +411,13 @@ function applyBackground(): void {
     const loader = new THREE.TextureLoader();
     loader.load(
       props.bgImage,
-      tex => {
+      (tex) => {
         if (bgTexture.value) bgTexture.value.dispose();
         bgTexture.value = tex;
         if (scene.value) scene.value.background = tex;
       },
       undefined,
-      err => emitError('system', err)
+      (err) => emitError('system', err),
     );
   } else {
     if (bgTexture.value) {
@@ -495,7 +506,7 @@ async function handleModelData(buffer: ArrayBuffer | null): Promise<void> {
 
 async function handleAnimationData(
   data: ArrayBuffer | ArrayBuffer[] | null,
-  weights: number[] | null
+  weights: number[] | null,
 ): Promise<void> {
   if (mixer.value) {
     disposeMixer(mixer.value);
@@ -506,7 +517,9 @@ async function handleAnimationData(
   emit('animation:loading');
   try {
     const buffers = Array.isArray(data) ? data : [data];
-    const animations = await Promise.all(buffers.map(b => loadVRMAnimation(b)));
+    const animations = await Promise.all(
+      buffers.map((b) => loadVRMAnimation(b)),
+    );
     mixer.value = createMixerWithClips(vrm.value, animations, weights);
     if (!mixer.value) {
       throw new Error('[VrmCanvas] Failed to create AnimationMixer.');
@@ -518,11 +531,13 @@ async function handleAnimationData(
     mixer.value.timeScale = 1;
     // Apply loop mode to all registered actions via the (undocumented)
     // `_actions` array exposed by AnimationMixer.
-    const actions = (mixer.value as unknown as { _actions: THREE.AnimationAction[] })._actions;
+    const actions = (
+      mixer.value as unknown as { _actions: THREE.AnimationAction[] }
+    )._actions;
     for (const a of actions) {
       a.setLoop(
         props.loop ? THREE.LoopRepeat : THREE.LoopOnce,
-        props.loop ? Number.POSITIVE_INFINITY : 1
+        props.loop ? Number.POSITIVE_INFINITY : 1,
       );
       a.clampWhenFinished = !props.loop;
     }
@@ -557,7 +572,7 @@ onMounted(() => {
     canvas: canvasRef.value,
     antialias: true,
     alpha: true,
-    preserveDrawingBuffer: true
+    preserveDrawingBuffer: true,
   });
   r.setPixelRatio(window.devicePixelRatio);
   r.outputColorSpace = THREE.SRGBColorSpace;
@@ -569,7 +584,12 @@ onMounted(() => {
 
   // Camera.
   const opts = props.cameraOptions ?? {};
-  const cam = new THREE.PerspectiveCamera(opts.fov ?? 30, 1, opts.near ?? 0.1, opts.far ?? 100);
+  const cam = new THREE.PerspectiveCamera(
+    opts.fov ?? 30,
+    1,
+    opts.near ?? 0.1,
+    opts.far ?? 100,
+  );
   camera.value = cam;
   initialCameraTarget.value = new THREE.Vector3(...props.cameraLookAt);
   initialCameraDistance.value = 3;
@@ -578,14 +598,14 @@ onMounted(() => {
   // Lights.
   const al = new THREE.AmbientLight(
     new THREE.Color(props.ambientLight.color),
-    props.ambientLight.intensity
+    props.ambientLight.intensity,
   );
   ambientLightRef.value = al;
   s.add(al);
 
   const dl = new THREE.DirectionalLight(
     new THREE.Color(props.directionalLight.color),
-    props.directionalLight.intensity
+    props.directionalLight.intensity,
   );
   dl.position.set(...props.directionalLight.position);
   directionalLightRef.value = dl;
@@ -655,26 +675,26 @@ onUnmounted(() => {
 // ---------- Watchers ----------
 watch(
   () => props.modelData,
-  buf => {
+  (buf) => {
     void handleModelData(buf ?? null);
-  }
+  },
 );
 
 watch(
   () => [props.animationData, props.animationWeights] as const,
   ([data, weights]) => {
     void handleAnimationData(data ?? null, weights ?? null);
-  }
+  },
 );
 
 watch(
   () => [props.bgTransparent, props.bgImage],
-  () => applyBackground()
+  () => applyBackground(),
 );
 
 watch(
   () => props.showGrid,
-  () => applyGrid()
+  () => applyGrid(),
 );
 
 watch(
@@ -685,7 +705,7 @@ watch(
     ambientLightRef.value.intensity = props.ambientLight.intensity;
     emit('light:ambient-change', { ...props.ambientLight });
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
@@ -697,21 +717,26 @@ watch(
     directionalLightRef.value.position.set(...props.directionalLight.position);
     emit('light:directional-change', {
       ...props.directionalLight,
-      position: directionalLightRef.value.position.clone()
+      position: directionalLightRef.value.position.clone(),
     });
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
-  () => [props.cameraDistance, props.cameraEuler, props.cameraOffset, props.cameraLookAt],
+  () => [
+    props.cameraDistance,
+    props.cameraEuler,
+    props.cameraOffset,
+    props.cameraLookAt,
+  ],
   () => applyCameraTransform(),
-  { deep: true }
+  { deep: true },
 );
 
 watch(
   () => props.cameraOptions,
-  opts => {
+  (opts) => {
     if (!camera.value || !renderer.value) return;
     const fov = opts?.fov ?? 30;
     const near = opts?.near ?? 0.1;
@@ -724,23 +749,23 @@ watch(
     rebuildComposer();
     emit('camera:options-change', { fov, near, far });
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
   () => props.shaderPass,
-  () => rebuildComposer()
+  () => rebuildComposer(),
 );
 
 watch(
   () => props.cameraInteraction,
   () => setupOrbitControls(),
-  { deep: true }
+  { deep: true },
 );
 
 watch(
   () => [props.maxWidth, props.aspectRatio, props.width],
-  () => updateSize()
+  () => updateSize(),
 );
 
 // ---------- Exposed API ----------
@@ -753,7 +778,10 @@ watch(
  * @param buf - A single VRMA `ArrayBuffer` or an array of them.
  * @param weights - Optional per-clip blend weights. Must sum to ≤ 1.0.
  */
-async function playAnimation(buf: ArrayBuffer | ArrayBuffer[], weights?: number[]): Promise<void> {
+async function playAnimation(
+  buf: ArrayBuffer | ArrayBuffer[],
+  weights?: number[],
+): Promise<void> {
   await handleAnimationData(buf, weights ?? null);
 }
 
@@ -806,7 +834,7 @@ async function captureScreenshot(format = 'image/png'): Promise<string> {
   return canvas.toDataURL(format);
 }
 
-const containerStyle = computed(() => {
+const _containerStyle = computed(() => {
   const style: Record<string, string> = {};
   const width = props.width;
   const ratio = props.aspectRatio > 0 ? props.aspectRatio : 9 / 16;
@@ -837,7 +865,7 @@ defineExpose({
   /** Returns the internal `<canvas>` element, or `null` before mount. */
   getCanvas: (): HTMLCanvasElement | null => canvasRef.value,
   /** Resets camera position and orientation. */
-  resetCameraPose: (): void => resetCamera()
+  resetCameraPose: (): void => resetCamera(),
 });
 </script>
 
