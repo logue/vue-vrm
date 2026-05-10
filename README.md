@@ -1,5 +1,7 @@
 # vue-vrm
 
+English | [日本語](README.ja.md)
+
 <div align="center">
   <img width="256" height="256" alt="vue-vrm" src="https://github.com/user-attachments/assets/8257613a-bd29-48b7-ad0c-3625431599bc" />
 </div>
@@ -9,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/vue-vrm.svg)](https://www.npmjs.com/package/vue-vrm)
 [![Open in unpkg](https://img.shields.io/badge/Open%20in-unpkg-blue)](https://uiwjs.github.io/npm-unpkg/#/pkg/vue-vrm/file/README.md)
 
-Vue 3 component library for rendering VRM 1.0 avatars with three.js. It supports VRM loading, VRMA playback, camera controls, screenshots, and low-level helper utilities for working with VRM and VRMA buffers.
+Vue 3 component library for rendering [VRM avatars](https://vrm.dev/en) with [three.js](https://threejs.org/). It supports [VRM 1.0](https://vrm.dev/en/vrm1/) loading, [VRMA](https://vrm.dev/en/vrma/) playback, camera controls, screenshots, and low-level helper utilities for working with VRM and VRMA buffers.
 
 ## Features
 
@@ -21,9 +23,8 @@ Vue 3 component library for rendering VRM 1.0 avatars with three.js. It supports
 - Utility exports for validating and loading VRM / VRMA assets outside the component
 
 > [!IMPORTANT]
-> This library accepts `ArrayBuffer` instead of file paths to prevent VRM/VRMA files from
-> appearing in source code, source maps, or browser network logs due to **licensing restrictions**.
-> Store files on a server (e.g., [Amazon S3](https://aws.amazon.com/s3/), [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/)) and retrieve dynamically via API calls (such as [VRoid Hub API](https://developer.vroid.com/en/api/)).
+> This library is designed to accept only an `ArrayBuffer` instead of a file path to prevent VRM/VRMA files from appearing in source code, source maps, or browser network logs, thus violating **license restrictions**.
+> Store files on a object storage (e.g., [Amazon S3](https://aws.amazon.com/s3/), [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/)) and retrieve dynamically via API calls (such as [VRoid Hub API](https://developer.vroid.com/en/api/)).
 
 ## Requirements
 
@@ -126,7 +127,7 @@ function resetCamera(): void {
 
 ## Implementation Examples
 
-For real-world usage patterns, see the following examples:
+For real-world usage patterns, see the following examples (Both use [Cloudflare Workers](https://developers.cloudflare.com/workers/)):
 
 - [VRoid Hub API Integration](https://github.com/logue/v.logue.dev/blob/master/functions/api/vrm/%5Bavatar_id%5D.ts) — Loading VRM avatars from VRoid Hub using their API
 - [Cloudflare Workers Example](https://github.com/logue/v.logue.dev/blob/master/functions/api/assets/%5B%5Bpath%5D%5D.ts) — Serving VRM assets via Cloudflare Workers
@@ -231,7 +232,7 @@ import {
 
 ## Notes
 
-- Only VRM 1.0 is supported. VRM 0.x buffers are rejected during validation.
+- Only VRM 1.0 is supported. [VRM 0.x](https://vrm.dev/univrm/) buffers are rejected during validation.
 - `animationWeights` must not sum to more than `1.0`.
 - `cameraInteraction.roll` works with the `Q` and `E` keys when the canvas has focus.
 - Passing `null` to `modelData` unloads the current model.
@@ -270,6 +271,8 @@ export default config;
 ```
 
 ## Development
+
+This project uses the [Rspack](https://rspack.rs/) stack, not [Vite](https://vite.dev/).
 
 ```sh
 pnpm install
