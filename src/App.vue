@@ -43,7 +43,7 @@ const cameraInteraction = computed(() => {
 async function loadAvatarSample(): Promise<void> {
   isLoading.value = true;
   try {
-    const response = await fetch('/assets/AvatarSample_A.vrm');
+    const response = await fetch('./assets/AvatarSample_A.vrm');
     if (!response.ok) {
       throw new Error(`Failed to load sample VRM: ${response.status}`);
     }
