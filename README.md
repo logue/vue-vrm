@@ -1,5 +1,9 @@
 # vue-vrm
 
+<div align="center">
+  <img width="256" height="256" alt="vue-vrm" src="https://github.com/user-attachments/assets/8257613a-bd29-48b7-ad0c-3625431599bc" />
+</div>
+
 [![jsdelivr CDN](https://data.jsdelivr.com/v1/package/npm/vue-vrm/badge)](https://www.jsdelivr.com/package/npm/vue-vrm)
 [![NPM Downloads](https://img.shields.io/npm/dm/vue-vrm.svg?style=flat)](https://www.npmjs.com/package/vue-vrm)
 [![npm version](https://img.shields.io/npm/v/vue-vrm.svg)](https://www.npmjs.com/package/vue-vrm)
