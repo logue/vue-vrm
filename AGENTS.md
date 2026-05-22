@@ -98,6 +98,7 @@ Always run `pnpm lint` and `pnpm build` before committing. These are also enforc
 ## Docs
 
 - Rsbuild: <https://rsbuild.rs/llms.txt>
+- Rslib: <https://rslib.rs/llms.txt>
 - Rspack: <https://rspack.rs/llms.txt>
 - Rstest: <https://rstest.rs/llms.txt>
 
