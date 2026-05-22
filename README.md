@@ -24,6 +24,7 @@ Vue 3 component library for rendering [VRM avatars](https://vrm.dev/en) with [th
 
 > [!IMPORTANT]
 > This library is designed to accept only an `ArrayBuffer` instead of a file path to prevent VRM/VRMA files from appearing in source code, source maps, or browser network logs, thus violating **license restrictions**.
+>
 > Store files on a object storage (e.g., [Amazon S3](https://aws.amazon.com/s3/), [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/)) and retrieve dynamically via API calls (such as [VRoid Hub API](https://developer.vroid.com/en/api/)).
 
 ## Requirements

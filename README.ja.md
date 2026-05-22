@@ -16,13 +16,14 @@
 - `ArrayBuffer` から VRM 1.0 モデルをレンダリングする Vue 3 コンポーネント
 - 単一または複数のアニメーションクリップでの VRMA 再生
 - カメラ、ライト、背景、グリッド、およびオプションのシェーダーパスを設定可能
-- 回転、パン、ズーム、ロールを含むオプションのオービットスタイルカメラインタラクション
+- 回転、パン、ズーム、ロールを含むオプションの追尾カメラインタラクション
 - 再生制御、カメラリセット、およびスクリーンショットの公開メソッド
 - コンポーネント外での VRM / VRMA アセット検証と読み込みのためのユーティリティエクスポート
 
 > [!IMPORTANT]
 > 本ライブラリは、VRM/VRMA ファイルがソースコード、ソースマップ、またはブラウザのネットワークログに表示され**ライセンス制限**に抵触することを防ぐため、ファイルパスの代わりに `ArrayBuffer` のみを受け取る実装になっています。
-> ファイルは（[Amazon S3](https://aws.amazon.com/jp/s3/)、[Cloudflare R2](https://www.cloudflare.com/ja-jp/developer-platform/products/r2/) など）のようなオブジェクトストレージに保存した上で、API（[VRoid Hub API](https://developer.vroid.com/api/) など）経由で動的に取得するようにしてください。
+>
+> 安全のためファイルは（[Amazon S3](https://aws.amazon.com/jp/s3/)、[Cloudflare R2](https://www.cloudflare.com/ja-jp/developer-platform/products/r2/) など）のようなオブジェクトストレージに保存した上で、API（[VRoid Hub API](https://developer.vroid.com/api/) など）経由で動的に取得するようにしてください。
 
 ## 要件
 
