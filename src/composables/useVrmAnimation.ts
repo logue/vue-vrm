@@ -6,7 +6,7 @@ import {
 } from '@pixiv/three-vrm-animation';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
+import type { HumanoidBoneType } from '@/types/HumanoidBoneType';
 import { validateVrma } from '@/utils/validateGlb';
 
 /**
@@ -79,6 +79,11 @@ export function createMixerWithClips(
   }
 
   const mixer = new THREE.AnimationMixer(vrm.scene);
+
+  // Reduce the chance of T-pose by applying a neutral pose if there is no idle animation (i.e. only one animation with weight 1).
+  if (!mixer) {
+    applyNeutralPose(vrm);
+  }
   animations.forEach((anim, i) => {
     const clip = createVRMAnimationClip(anim, vrm);
     const action = mixer.clipAction(clip);
@@ -98,4 +103,30 @@ export function disposeMixer(mixer: THREE.AnimationMixer): void {
   mixer.stopAllAction();
   const root = mixer.getRoot();
   if (root) mixer.uncacheRoot(root as THREE.Object3D);
+}
+
+/**
+ * Apply a neutral pose to the given VRM instance.
+ * This is useful to prevent the T-pose when there is no idle animation.
+ *
+ * @param vrm The VRM instance to apply the neutral pose to.
+ */
+export function applyNeutralPose(vrm: VRM) {
+  const h: any = (vrm as any).humanoid;
+  const setRotZ = (bone: HumanoidBoneType, z: number) => {
+    const n = h?.getBoneNode?.(bone);
+    if (n) n.rotation.z = z;
+  };
+  const setRotX = (bone: HumanoidBoneType, x: number) => {
+    const n = h?.getBoneNode?.(bone);
+    if (n) n.rotation.x = x;
+  };
+
+  setRotZ('leftUpperArm', -0.6);
+  setRotZ('rightUpperArm', 0.6);
+  setRotZ('leftLowerArm', -0.15);
+  setRotZ('rightLowerArm', 0.15);
+  setRotX('leftLowerLeg', 0.06);
+  setRotX('rightLowerLeg', 0.06);
+  setRotX('neck', -0.05);
 }

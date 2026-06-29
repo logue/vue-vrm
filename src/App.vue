@@ -36,7 +36,7 @@ const cameraInteraction = computed(() => {
     zoomSpeed: 1,
     minDistance: 0.5,
     maxDistance: 20,
-    rollSpeed: 0.03
+    rollSpeed: 0.03,
   };
 });
 
