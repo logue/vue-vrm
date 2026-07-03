@@ -1,0 +1,5 @@
+minimumReleaseAgeExclude:
+  - '@rsbuild/core@2.1.4'
+  - '@rsbuild/plugin-vue@2.0.1'
+patchedDependencies:
+  '@pixiv/three-vrm@3.5.4': patches/@pixiv__three-vrm@3.5.4.patch

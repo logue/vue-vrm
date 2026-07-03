@@ -9,10 +9,10 @@ const toggleDark = useToggle(isDark);
 
 watch(
   () => isDark.value,
-  (dark) => {
+  dark => {
     document.documentElement.dataset.bsTheme = dark ? 'dark' : 'light';
   },
-  { immediate: true },
+  { immediate: true }
 );
 </script>
 

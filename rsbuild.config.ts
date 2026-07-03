@@ -18,11 +18,11 @@ export default defineConfig({
     define: {
       __DEMO_BUILD__: JSON.stringify(true),
       __APP_VERSION__: JSON.stringify(packageJson.version),
-      __BUILD_DATE__: JSON.stringify(buildDate),
+      __BUILD_DATE__: JSON.stringify(buildDate)
     },
     entry: {
-      index: './src/index.ts',
-    },
+      index: './src/index.ts'
+    }
   },
   output: {
     distPath: 'docs',
@@ -31,20 +31,20 @@ export default defineConfig({
     copy: [
       {
         from: './src/assets',
-        to: 'assets',
-      },
-    ],
+        to: 'assets'
+      }
+    ]
   },
   html: {
     template: './src/index.html',
-    title: 'VRM Viewer Demo - Vue VRM',
+    title: 'VRM Viewer Demo - Vue VRM'
   },
   tools: {
-    htmlPlugin: undefined,
+    htmlPlugin: undefined
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
-    },
-  },
+      '@': resolve(__dirname, 'src')
+    }
+  }
 });

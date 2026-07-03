@@ -1,31 +1,97 @@
-export default [
+import { defineConfig, importPlugin, js, ts } from '@rslint/core';
+
+const APP_FILES = ['**/*.{ts,mts,tsx,js,mjs,jsx}'];
+const TEST_FILES = ['**/*.{test,spec}.{ts,mts,tsx,js,mjs,jsx}'];
+
+export default defineConfig([
   {
-    ignores: [
-      '**/dist/**',
-      '**/dist-ssr/**',
-      '**/coverage/**',
-      '**/node_modules/**',
-    ],
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**']
   },
+
+  // Base JavaScript / TypeScript recommended sets.
+  js.configs.recommended,
+  ts.configs.recommended,
+
   {
-    files: ['**/*.{ts,mts,tsx,js,mjs,jsx}'],
-    rules: {
-      correctness: 'error',
-      typescript: 'warn',
-      style: 'warn',
+    ...importPlugin.configs.recommended,
+    files: APP_FILES,
+    settings: {
+      'import/resolver': {
+        node: true,
+        typescript: true,
+        'eslint-import-resolver-custom-alias': {
+          alias: {
+            '@': './src',
+            '~': './node_modules'
+          },
+          extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue']
+        }
+      }
     },
-  },
-  {
-    files: ['**/*.vue'],
     rules: {
-      correctness: 'error',
-      vue: 'warn',
-    },
+      ...importPlugin.configs.recommended.rules,
+
+      // Keep project lint behavior aligned with the previous baseline.
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
+      '@typescript-eslint/consistent-generic-constructors': ['error', 'type-annotation'],
+
+      // Ignore intentionally unused identifiers with underscore prefix.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true
+        }
+      ],
+
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'off',
+
+      // Using parent traversal is prohibited in app code. Use @/ alias instead.
+      'import/no-relative-parent-imports': ['error', { ignore: ['^@/', '^~/'] }],
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'parent', 'sibling', 'index', 'object', 'type'],
+          pathGroups: [
+            {
+              pattern:
+                '{vue,vue-router,vuex,@/stores,vue-i18n,pinia,@rsbuild,@rstest,@rstest/**,@rslint/**,@vue/**}',
+              group: 'external',
+              position: 'before'
+            },
+            {
+              pattern: '{@/**}',
+              group: 'internal',
+              position: 'before'
+            }
+          ],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          alphabetize: {
+            order: 'asc'
+          },
+          'newlines-between': 'always'
+        }
+      ]
+    }
   },
+
   {
-    files: ['**/*.test.ts', '**/*.test.js', '**/*.spec.ts', '**/*.spec.js'],
+    // Test files intentionally import from parent directories.
+    files: TEST_FILES,
     rules: {
-      vitest: 'warn',
-    },
-  },
-];
+      'import/no-relative-parent-imports': 'off'
+    }
+  }
+
+  // NOTE: Rslint currently does not lint .vue SFC, markdown, or vitest/a11y plugin
+  // rules in this project setup. Those checks should be covered by dedicated tools.
+]);

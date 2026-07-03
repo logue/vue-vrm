@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
-import type * as THREE from 'three';
 import type { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import type * as THREE from 'three/webgpu';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 import { useCanvasSize } from '@/composables/useCanvasSize';
@@ -14,7 +14,7 @@ import type {
   CameraInteractionOptions,
   CameraOptions,
   LightOptions,
-  Vec3,
+  Vec3
 } from '@/types/VrmCanvasOptions';
 
 /**
@@ -81,10 +81,10 @@ const props = withDefaults(defineProps<Props>(), {
   directionalLight: () => ({
     color: '#ffffff',
     intensity: 1,
-    position: [1, 1, 1] as Vec3,
+    position: [1, 1, 1] as Vec3
   }),
   shaderPass: null,
-  cameraInteraction: null,
+  cameraInteraction: null
 });
 
 const emit = defineEmits<{
@@ -121,7 +121,7 @@ const emit = defineEmits<{
       lookAt: THREE.Vector3;
       /* The new camera distance. */
       distance: number;
-    },
+    }
   ];
   /**
    * Emitted when the camera options change (fov, near, far).
@@ -129,9 +129,7 @@ const emit = defineEmits<{
    */
   'camera:options-change': [payload: CameraOptions];
   'light:ambient-change': [payload: LightOptions];
-  'light:directional-change': [
-    payload: LightOptions & { position: THREE.Vector3 },
-  ];
+  'light:directional-change': [payload: LightOptions & { position: THREE.Vector3 }];
   error: [error: Error];
 }>();
 
@@ -152,15 +150,14 @@ const sceneApi = useVrmScene(
     showGrid: () => props.showGrid,
     ambientLight: () => props.ambientLight,
     directionalLight: () => props.directionalLight,
-    shaderPass: () => props.shaderPass,
+    shaderPass: () => props.shaderPass
   },
   { getCamera: () => cameraApi.camera.value },
   {
-    onError: (err) => emit('error', toError(err)),
-    onAmbientLightChange: (payload) => emit('light:ambient-change', payload),
-    onDirectionalLightChange: (payload) =>
-      emit('light:directional-change', payload),
-  },
+    onError: err => emit('error', toError(err)),
+    onAmbientLightChange: payload => emit('light:ambient-change', payload),
+    onDirectionalLightChange: payload => emit('light:directional-change', payload)
+  }
 );
 
 const cameraApi = useVrmCamera(
@@ -171,19 +168,19 @@ const cameraApi = useVrmCamera(
     cameraEuler: () => props.cameraEuler,
     cameraOffset: () => props.cameraOffset,
     cameraLookAt: () => props.cameraLookAt,
-    cameraInteraction: () => props.cameraInteraction,
+    cameraInteraction: () => props.cameraInteraction
   },
   {
     getRenderer: () => sceneApi.renderer.value,
-    getFitTarget: () => modelApi.vrm.value?.scene ?? null,
+    getFitTarget: () => modelApi.vrm.value?.scene ?? null
   },
   {
-    onCameraChange: (payload) => emit('camera:change', payload),
-    onCameraOptionsChange: (payload) => {
+    onCameraChange: payload => emit('camera:change', payload),
+    onCameraOptionsChange: payload => {
       sceneApi.rebuildComposer();
       emit('camera:options-change', payload);
-    },
-  },
+    }
+  }
 );
 
 const modelApi = useVrmModel(
@@ -191,33 +188,33 @@ const modelApi = useVrmModel(
     modelData: () => props.modelData,
     animationData: () => props.animationData,
     animationWeights: () => props.animationWeights,
-    loop: () => props.loop,
+    loop: () => props.loop
   },
   { getScene: () => sceneApi.scene.value },
   {
     onModelLoading: () => emit('model:loading'),
-    onModelLoaded: (vrm) => emit('model:loaded', vrm),
+    onModelLoaded: vrm => emit('model:loaded', vrm),
     onModelUnloaded: () => emit('model:unloaded'),
-    onModelError: (err) => emit('model:error', toError(err)),
+    onModelError: err => emit('model:error', toError(err)),
     onAnimationLoading: () => emit('animation:loading'),
-    onAnimationLoaded: (animation) => emit('animation:loaded', animation),
+    onAnimationLoaded: animation => emit('animation:loaded', animation),
     onAnimationStart: () => emit('animation:start'),
     onAnimationEnd: () => emit('animation:end'),
-    onAnimationError: (err) => emit('animation:error', toError(err)),
+    onAnimationError: err => emit('animation:error', toError(err)),
     onAnimationPause: () => emit('animation:pause'),
     onAnimationResume: () => emit('animation:resume'),
     onAnimationStop: () => emit('animation:stop'),
-    afterModelLoaded: () => cameraApi.resetCamera(),
-  },
+    afterModelLoaded: () => cameraApi.resetCamera()
+  }
 );
 
 const canvasSizeApi = useCanvasSize(containerRef, {
   width: () => props.width,
   maxWidth: () => props.maxWidth,
-  aspectRatio: () => props.aspectRatio,
+  aspectRatio: () => props.aspectRatio
 });
 
-const renderLoop = useRenderLoop((dt) => {
+const renderLoop = useRenderLoop(dt => {
   modelApi.update(dt);
   cameraApi.update();
   sceneApi.render(dt, cameraApi.camera.value);
@@ -229,8 +226,9 @@ function handleCanvasPointerDown(): void {
 }
 
 // ---------- Lifecycle ----------
-onMounted(() => {
-  sceneApi.init();
+onMounted(async () => {
+  // WebGPURenderer requires an async init before the first render.
+  await sceneApi.init();
   // The camera must exist before the composer's RenderPass is built.
   cameraApi.init();
   sceneApi.rebuildComposer();
@@ -269,10 +267,7 @@ watch(canvasSizeApi.size, ({ width, height }) => {
  * @param buf - A single VRMA `ArrayBuffer` or an array of them.
  * @param weights - Optional per-clip blend weights. Must sum to ≤ 1.0.
  */
-async function playAnimation(
-  buf: ArrayBuffer | ArrayBuffer[],
-  weights?: number[],
-): Promise<void> {
+async function playAnimation(buf: ArrayBuffer | ArrayBuffer[], weights?: number[]): Promise<void> {
   await modelApi.loadAnimation(buf, weights ?? null);
 }
 
@@ -284,11 +279,7 @@ async function playAnimation(
  * @returns A data URL string of the captured frame.
  */
 async function captureScreenshot(format = 'image/png'): Promise<string> {
-  if (
-    !sceneApi.renderer.value ||
-    !sceneApi.scene.value ||
-    !cameraApi.camera.value
-  ) {
+  if (!sceneApi.renderer.value || !sceneApi.scene.value || !cameraApi.camera.value) {
     throw new Error('[VrmCanvas] Renderer is not initialized.');
   }
   // Force a render so the drawing buffer is fresh.
@@ -307,8 +298,8 @@ defineExpose({
   getScene: (): THREE.Scene | null => sceneApi.scene.value,
   /** Returns the `PerspectiveCamera` instance, or `null` before mount. */
   getCamera: (): THREE.PerspectiveCamera | null => cameraApi.camera.value,
-  /** Returns the `WebGLRenderer` instance, or `null` before mount. */
-  getRenderer: (): THREE.WebGLRenderer | null => sceneApi.renderer.value,
+  /** Returns the `WebGPURenderer` instance, or `null` before mount. */
+  getRenderer: (): THREE.WebGPURenderer | null => sceneApi.renderer.value,
   /** Returns the `AnimationMixer` instance, or `null` when no animation is active. */
   getMixer: (): THREE.AnimationMixer | null => modelApi.mixer.value,
   /** Returns the currently loaded `VRM` instance, or `null` when no model is loaded. */
@@ -316,7 +307,7 @@ defineExpose({
   /** Returns the internal `<canvas>` element, or `null` before mount. */
   getCanvas: (): HTMLCanvasElement | null => canvasRef.value,
   /** Resets camera position and orientation. */
-  resetCameraPose: (): void => cameraApi.resetCamera(),
+  resetCameraPose: (): void => cameraApi.resetCamera()
 });
 </script>
 

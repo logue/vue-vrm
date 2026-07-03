@@ -1,37 +1,11 @@
-import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import type { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import * as THREE from 'three/webgpu';
+
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
-import type { LightOptions, Vec3 } from '@/types/VrmCanvasOptions';
-
-/**
- * Reactive getters for the scene-related props of VrmCanvas.
- */
-export type VrmSceneOptions = {
-  bgTransparent: () => boolean;
-  bgImage: () => string | null;
-  showGrid: () => boolean;
-  ambientLight: () => LightOptions;
-  directionalLight: () => LightOptions & { position: Vec3 };
-  shaderPass: () => ShaderPass | null;
-};
-
-export type VrmSceneDeps = {
-  /** Returns the current camera, used to (re)build the postprocessing composer. */
-  getCamera: () => THREE.PerspectiveCamera | null;
-};
-
-export type VrmSceneCallbacks = {
-  onError?: (err: unknown) => void;
-  onAmbientLightChange?: (payload: LightOptions) => void;
-  onDirectionalLightChange?: (
-    payload: LightOptions & { position: THREE.Vector3 },
-  ) => void;
-};
-
+import type { VrmSceneCallbacks, VrmSceneDeps, VrmSceneOptions } from '@/types/VrmSceneTypes';
 /**
  * Manage the Three.js scene: renderer, scene graph, lights, background,
  * grid helper, and the optional postprocessing composer.
@@ -45,18 +19,18 @@ export function useVrmScene(
   canvasRef: Ref<HTMLCanvasElement | null>,
   options: VrmSceneOptions,
   deps: VrmSceneDeps,
-  callbacks: VrmSceneCallbacks = {},
+  callbacks: VrmSceneCallbacks = {}
 ): {
-  renderer: ShallowRef<THREE.WebGLRenderer | null>;
+  renderer: ShallowRef<THREE.WebGPURenderer | null>;
   scene: ShallowRef<THREE.Scene | null>;
   composer: ShallowRef<EffectComposer | null>;
-  init: () => void;
+  init: () => Promise<void>;
   dispose: () => void;
   setSize: (width: number, height: number) => void;
   rebuildComposer: () => void;
   render: (dt: number, camera: THREE.PerspectiveCamera | null) => void;
 } {
-  const renderer = shallowRef<THREE.WebGLRenderer | null>(null);
+  const renderer = shallowRef<THREE.WebGPURenderer | null>(null);
   const scene = shallowRef<THREE.Scene | null>(null);
   const ambientLightRef = shallowRef<THREE.AmbientLight | null>(null);
   const directionalLightRef = shallowRef<THREE.DirectionalLight | null>(null);
@@ -84,13 +58,13 @@ export function useVrmScene(
       const loader = new THREE.TextureLoader();
       loader.load(
         bgImage,
-        (tex) => {
+        tex => {
           if (bgTexture.value) bgTexture.value.dispose();
           bgTexture.value = tex;
           if (scene.value) scene.value.background = tex;
         },
         undefined,
-        (err) => callbacks.onError?.(err),
+        err => callbacks.onError?.(err)
       );
     } else {
       if (bgTexture.value) {
@@ -127,7 +101,11 @@ export function useVrmScene(
     const shaderPass = options.shaderPass();
     if (!shaderPass) return;
 
-    const c = new EffectComposer(renderer.value);
+    // EffectComposer's types still assume the legacy WebGLRenderer, but at
+    // runtime it only calls methods also present on the unified WebGPURenderer.
+    const c = new EffectComposer(
+      renderer.value as unknown as ConstructorParameters<typeof EffectComposer>[0]
+    );
     const rp = new RenderPass(scene.value, camera);
     const op = new OutputPass();
     c.addPass(rp);
@@ -156,15 +134,18 @@ export function useVrmScene(
    * Does not build the composer — call `rebuildComposer()` once the camera
    * (owned by the caller) exists, since the composer's RenderPass needs it.
    */
-  function init(): void {
+  async function init(): Promise<void> {
     if (!canvasRef.value) return;
 
-    const r = new THREE.WebGLRenderer({
+    const r = new THREE.WebGPURenderer({
       canvas: canvasRef.value,
       antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: true,
+      alpha: true
     });
+    // MToonNodeMaterial is a Node material; it can only be rendered by the
+    // unified WebGPURenderer (WebGPU with automatic WebGL2 fallback), which
+    // requires an async init before the first render.
+    await r.init();
     r.setPixelRatio(window.devicePixelRatio);
     r.outputColorSpace = THREE.SRGBColorSpace;
     renderer.value = r;
@@ -173,17 +154,14 @@ export function useVrmScene(
     scene.value = s;
 
     const ambientLight = options.ambientLight();
-    const al = new THREE.AmbientLight(
-      new THREE.Color(ambientLight.color),
-      ambientLight.intensity,
-    );
+    const al = new THREE.AmbientLight(new THREE.Color(ambientLight.color), ambientLight.intensity);
     ambientLightRef.value = al;
     s.add(al);
 
     const directionalLight = options.directionalLight();
     const dl = new THREE.DirectionalLight(
       new THREE.Color(directionalLight.color),
-      directionalLight.intensity,
+      directionalLight.intensity
     );
     dl.position.set(...directionalLight.position);
     directionalLightRef.value = dl;
@@ -219,12 +197,12 @@ export function useVrmScene(
 
   watch(
     () => [options.bgTransparent(), options.bgImage()],
-    () => applyBackground(),
+    () => applyBackground()
   );
 
   watch(
     () => options.showGrid(),
-    () => applyGrid(),
+    () => applyGrid()
   );
 
   watch(
@@ -236,7 +214,7 @@ export function useVrmScene(
       ambientLightRef.value.intensity = ambientLight.intensity;
       callbacks.onAmbientLightChange?.({ ...ambientLight });
     },
-    { deep: true },
+    { deep: true }
   );
 
   watch(
@@ -249,15 +227,15 @@ export function useVrmScene(
       directionalLightRef.value.position.set(...directionalLight.position);
       callbacks.onDirectionalLightChange?.({
         ...directionalLight,
-        position: directionalLightRef.value.position.clone(),
+        position: directionalLightRef.value.position.clone()
       });
     },
-    { deep: true },
+    { deep: true }
   );
 
   watch(
     () => options.shaderPass(),
-    () => rebuildComposer(),
+    () => rebuildComposer()
   );
 
   return {
@@ -268,6 +246,6 @@ export function useVrmScene(
     dispose,
     setSize,
     rebuildComposer,
-    render,
+    render
   };
 }

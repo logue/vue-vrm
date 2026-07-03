@@ -1,25 +1,6 @@
 import { type ComputedRef, computed, type Ref, ref } from 'vue';
 
-/**
- * Reactive getters for the size-related props of VrmCanvas.
- */
-export type CanvasSizeOptions = {
-  /** The requested width of the canvas in pixels. */
-  width: () => number;
-  /** The maximum width of the canvas in pixels. */
-  maxWidth: () => number | null;
-  /** The aspect ratio (width / height) to maintain. */
-  aspectRatio: () => number;
-};
-
-/**
- * Computed pixel size of the canvas.
- */
-export type CanvasSize = {
-  width: number;
-  height: number;
-};
-
+import type { CanvasSize, CanvasSizeOptions } from '@/types/CanvasSizeTypes';
 /**
  * Manage DOM sizing for VrmCanvas: derives the renderer's pixel size from the
  * container's measured width (via ResizeObserver) and exposes the CSS style
@@ -31,7 +12,7 @@ export type CanvasSize = {
  */
 export function useCanvasSize(
   containerRef: Ref<HTMLElement | null>,
-  options: CanvasSizeOptions,
+  options: CanvasSizeOptions
 ): {
   size: ComputedRef<CanvasSize>;
   containerStyle: ComputedRef<Record<string, string>>;
@@ -54,7 +35,7 @@ export function useCanvasSize(
 
     return {
       width: Math.max(1, Math.floor(width)),
-      height: Math.max(1, Math.floor(height)),
+      height: Math.max(1, Math.floor(height))
     };
   });
 

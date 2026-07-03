@@ -1,38 +1,9 @@
 {
-  "extends": "@tsconfig/node-lts",
-  "compilerOptions": {
-    "lib": [
-      "es2024",
-      "ESNext.Array",
-      "ESNext.Collection",
-      "ESNext.Iterator",
-      "ESNext.Promise",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "jsx": "preserve",
-    "module": "esnext",
-    "noEmit": true,
-    "jsxImportSource": "vue",
-
-    /* modules */
-    "moduleDetection": "force",
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-
-    /* type checking */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "skipLibCheck": false,
-    "ignoreDeprecations": "6.0",
-
-    /* path aliases */
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "types": ["node", "vue", "./src/env.d.ts"]
-  },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/env.d.ts"]
+  "$schema": "https://json.schemastore.org/tsconfig.json",
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.rstest.json" }
+  ]
 }

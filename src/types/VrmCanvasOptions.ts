@@ -4,11 +4,11 @@ export type Vec3 = [number, number, number];
 /** Options for configuring the camera. */
 export type CameraOptions = {
   /** Field of view in degrees. */
-  fov?: number;
+  fov: number;
   /** Near clipping plane distance. */
-  near?: number;
+  near: number;
   /** Far clipping plane distance. */
-  far?: number;
+  far: number;
 };
 
 /** Options for configuring a light (color and intensity). */
@@ -22,29 +22,29 @@ export type LightOptions = {
 /** Options for configuring camera orbit interaction (OrbitControls). */
 export type CameraInteractionOptions = {
   /** Enables camera orbit interaction when this option object is provided. */
-  enabled?: boolean;
+  enabled: boolean;
   /** Enables orbit rotation around the target. */
-  rotate?: boolean;
+  rotate: boolean;
   /** Enables panning. */
-  pan?: boolean;
+  pan: boolean;
   /** Enables zooming (dolly). */
-  zoom?: boolean;
+  zoom: boolean;
   /** Enables roll interaction with Q/E keys while canvas is focused. */
-  roll?: boolean;
+  roll: boolean;
   /** Orbit rotation speed. */
-  rotateSpeed?: number;
+  rotateSpeed: number;
   /** Pan speed. */
-  panSpeed?: number;
+  panSpeed: number;
   /** Zoom speed. */
-  zoomSpeed?: number;
+  zoomSpeed: number;
   /** Enables damping for smoother interaction. */
-  damping?: boolean;
+  damping: boolean;
   /** Damping factor when damping is enabled. */
-  dampingFactor?: number;
+  dampingFactor: number;
   /** Minimum camera distance from target. */
-  minDistance?: number;
+  minDistance: number;
   /** Maximum camera distance from target. */
-  maxDistance?: number;
+  maxDistance: number;
   /** Roll speed in radians per key press. */
-  rollSpeed?: number;
+  rollSpeed: number;
 };

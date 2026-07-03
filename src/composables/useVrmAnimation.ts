@@ -1,12 +1,11 @@
-import type { VRM } from '@pixiv/three-vrm';
+import type { VRM, VRMHumanBoneName } from '@pixiv/three-vrm';
 import {
   createVRMAnimationClip,
   type VRMAnimation,
-  VRMAnimationLoaderPlugin,
+  VRMAnimationLoaderPlugin
 } from '@pixiv/three-vrm-animation';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { HumanoidBoneType } from '@/types/HumanoidBoneType';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as THREE from 'three/webgpu';
 import { validateVrma } from '@/utils/validateGlb';
 
 /**
@@ -17,17 +16,14 @@ import { validateVrma } from '@/utils/validateGlb';
  * @returns The loaded VRMAnimation instance.
  * @throws If the buffer is not a valid VRMA GLB or if parsing fails.
  */
-export async function loadVRMAnimation(
-  buffer: ArrayBuffer,
-): Promise<VRMAnimation> {
+export async function loadVRMAnimation(buffer: ArrayBuffer): Promise<VRMAnimation | undefined> {
   validateVrma(buffer);
 
   const loader = new GLTFLoader();
-  loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+  loader.register(parser => new VRMAnimationLoaderPlugin(parser));
 
   const gltf = await loader.parseAsync(buffer, '');
-  const animations = (gltf.userData as { vrmAnimations?: VRMAnimation[] })
-    .vrmAnimations;
+  const animations = (gltf.userData as { vrmAnimations?: VRMAnimation[] }).vrmAnimations;
   if (!animations || animations.length === 0) {
     throw new Error('[VrmCanvas] Failed to extract VRMAnimation from GLB.');
   }
@@ -62,20 +58,16 @@ export async function loadVRMAnimation(
 export function createMixerWithClips(
   vrm: VRM,
   animations: VRMAnimation[],
-  weights?: number[] | null,
+  weights?: number[] | null
 ): THREE.AnimationMixer {
   const n = animations.length;
   const lengthOk = weights?.length === n;
-  const allFinite = weights?.every((v) => Number.isFinite(v)) ?? false;
+  const allFinite = weights?.every(v => Number.isFinite(v)) ?? false;
   const useEqual = !lengthOk || !allFinite;
-  const w = useEqual
-    ? animations.map(() => 1 / n)
-    : (weights ?? []).slice(0, n);
+  const w = useEqual ? animations.map(() => 1 / n) : (weights ?? []).slice(0, n);
   const total = w.reduce((sum, v) => sum + v, 0);
   if (total > 1 + Number.EPSILON) {
-    throw new Error(
-      `[VrmCanvas] The sum of animationWeights exceeds 1.0: ${total.toFixed(4)}`,
-    );
+    throw new Error(`[VrmCanvas] The sum of animationWeights exceeds 1.0: ${total.toFixed(4)}`);
   }
 
   const mixer = new THREE.AnimationMixer(vrm.scene);
@@ -87,7 +79,7 @@ export function createMixerWithClips(
   animations.forEach((anim, i) => {
     const clip = createVRMAnimationClip(anim, vrm);
     const action = mixer.clipAction(clip);
-    action.weight = w[i];
+    action.weight = w[i] ?? 0;
     action.play();
   });
   return mixer;
@@ -112,13 +104,13 @@ export function disposeMixer(mixer: THREE.AnimationMixer): void {
  * @param vrm The VRM instance to apply the neutral pose to.
  */
 export function applyNeutralPose(vrm: VRM) {
-  const h: any = (vrm as any).humanoid;
-  const setRotZ = (bone: HumanoidBoneType, z: number) => {
-    const n = h?.getBoneNode?.(bone);
+  const h = vrm.humanoid;
+  const setRotZ = (bone: VRMHumanBoneName, z: number) => {
+    const n = h?.getNormalizedBoneNode?.(bone);
     if (n) n.rotation.z = z;
   };
-  const setRotX = (bone: HumanoidBoneType, x: number) => {
-    const n = h?.getBoneNode?.(bone);
+  const setRotX = (bone: VRMHumanBoneName, x: number) => {
+    const n = h?.getNormalizedBoneNode?.(bone);
     if (n) n.rotation.x = x;
   };
 

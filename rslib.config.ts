@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-
 import { pluginVue } from '@rsbuild/plugin-vue';
 import { defineConfig } from '@rslib/core';
 
@@ -16,52 +15,59 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8')) as {
 };
 
 const buildDate = new Date().toISOString();
+const bannerText = `/**
+* ${pkg.name}
+*
+* @description ${pkg.description}
+* @author ${pkg.author.name} <${pkg.author.email}>
+* @copyright 2019-2026 By Masashi Yoshikawa All rights reserved.
+* @license ${pkg.license}
+* @version ${pkg.version}
+* @see {@link ${pkg.homepage}}
+*/
+`;
 
 export default defineConfig({
+  plugins: [pluginVue()],
   lib: [
     {
-      // Modern ESM build for modern bundlers and environments
       format: 'esm',
-      dts: false,
-      syntax: 'esnext',
-    },
-    {
-      // Legacy CommonJS build for Node.js and older bundlers
-      format: 'cjs',
-      dts: false,
-      syntax: 'es2015',
-    },
-    {
+      syntax: 'es2021',
+      dts: true,
       banner: {
-        js: `/**
- * ${pkg.name}
- *
- * @description ${pkg.description}
- * @author ${pkg.author.name} <${pkg.author.email}>
- * @copyright 2026 By Masashi Yoshikawa All rights reserved.
- * @license ${pkg.license}
- * @version ${pkg.version}
- * @see {@link ${pkg.homepage}}
- */
-`,
+        js: bannerText
       },
+      output: {
+        filename: {
+          js: 'index.es.js'
+        },
+        sourceMap: true
+      }
     },
+    {
+      format: 'umd',
+      syntax: 'es2021',
+      umdName: 'Reverb',
+      banner: {
+        js: bannerText
+      },
+      output: {
+        filename: {
+          js: 'index.umd.js'
+        },
+        cleanDistPath: false,
+        minify: true,
+        sourceMap: true
+      }
+    }
   ],
-  plugins: [pluginVue()],
   source: {
     entry: {
-      index: './src/lib.ts',
+      index: './src/lib.ts'
     },
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
-      __BUILD_DATE__: JSON.stringify(buildDate),
-    },
-  },
-  output: {
-    target: 'web',
-    minify: true,
-    distPath: {
-      root: './dist',
-    },
-  },
+      __BUILD_DATE__: JSON.stringify(buildDate)
+    }
+  }
 });
