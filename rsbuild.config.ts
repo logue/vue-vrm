@@ -16,12 +16,11 @@ export default defineConfig({
   plugins: [pluginVue()],
   source: {
     define: {
-      __DEMO_BUILD__: JSON.stringify(true),
       __APP_VERSION__: JSON.stringify(packageJson.version),
       __BUILD_DATE__: JSON.stringify(buildDate)
     },
     entry: {
-      index: './src/index.ts'
+      index: './src/docs/index.ts'
     }
   },
   output: {
@@ -30,13 +29,13 @@ export default defineConfig({
     filenameHash: true,
     copy: [
       {
-        from: './src/assets',
+        from: './src/docs/assets',
         to: 'assets'
       }
     ]
   },
   html: {
-    template: './src/index.html',
+    template: './src/docs/index.html',
     title: 'VRM Viewer Demo - Vue VRM'
   },
   tools: {

@@ -20,7 +20,7 @@ const bannerText = `/**
 *
 * @description ${pkg.description}
 * @author ${pkg.author.name} <${pkg.author.email}>
-* @copyright 2019-2026 By Masashi Yoshikawa All rights reserved.
+* @copyright 2026 By Masashi Yoshikawa All rights reserved.
 * @license ${pkg.license}
 * @version ${pkg.version}
 * @see {@link ${pkg.homepage}}
@@ -47,7 +47,7 @@ export default defineConfig({
     {
       format: 'umd',
       syntax: 'es2021',
-      umdName: 'Reverb',
+      umdName: 'VueVrm',
       banner: {
         js: bannerText
       },
@@ -63,7 +63,7 @@ export default defineConfig({
   ],
   source: {
     entry: {
-      index: './src/lib.ts'
+      index: './src/index.ts'
     },
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),

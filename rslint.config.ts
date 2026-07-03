@@ -5,7 +5,7 @@ const TEST_FILES = ['**/*.{test,spec}.{ts,mts,tsx,js,mjs,jsx}'];
 
 export default defineConfig([
   {
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**']
+    ignores: ['**/dist/**', '**/docs/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**']
   },
 
   // Base JavaScript / TypeScript recommended sets.

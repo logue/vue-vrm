@@ -25,15 +25,15 @@
   "bugs": {
     "url": "https://github.com/logue/vue-vrm/issues"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "default": "./dist/index.es.js"
     }
   },
   "files": [
@@ -45,7 +45,7 @@
   "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "rslib --watch",
-    "dev:docs": "rsbuild",
+    "dev:docs": "rsbuild --open",
     "preview": "rsbuild preview",
     "lint": "run-s lint:*",
     "lint:check": "biome check --write",
@@ -54,7 +54,7 @@
     "build": "run-s build:lib build:dts",
     "build:docs": "rsbuild build",
     "build:lib": "rslib build",
-    "build:dts": "dts-bundle-generator --project ./tsconfig.app.json --no-banner -o dist/index.d.ts src/lib.ts",
+    "build:dts": "dts-bundle-generator --project ./tsconfig.app.json --no-banner -o dist/index.d.ts src/index.ts",
     "test": "rstest",
     "test:watch": "rstest --watch",
     "version": "auto-changelog -p && git add CHANGELOG.md",
@@ -74,7 +74,7 @@
     "@pixiv/three-vrm-materials-mtoon": "^3.5.4",
     "@rsbuild/core": "^2.1.4",
     "@rsbuild/plugin-vue": "^2.0.1",
-    "@rslib/core": "^0.23.1",
+    "@rslib/core": "^0.23.2",
     "@rslint/core": "^0.6.4",
     "@rstest/adapter-rsbuild": "^0.10.6",
     "@rstest/core": "^0.10.6",

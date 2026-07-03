@@ -22,58 +22,52 @@ import type {
  */
 type Props = {
   /** The VRM model data as an ArrayBuffer. */
-  modelData?: ArrayBuffer | null;
+  modelData: ArrayBuffer;
   /** The VRM animation data as an ArrayBuffer or an array of ArrayBuffers. */
-  animationData?: ArrayBuffer | ArrayBuffer[] | null;
+  animationData: ArrayBuffer | ArrayBuffer[];
   /** The weights for each animation. */
-  animationWeights?: number[] | null;
+  animationWeights: number[];
   /** Whether the animation should loop. */
-  loop?: boolean;
+  loop: boolean;
   /** Whether the background should be transparent. */
-  bgTransparent?: boolean;
+  bgTransparent: boolean;
   /** The background image URL. */
-  bgImage?: string | null;
+  bgImage: string;
   /** Whether to show the grid helper. */
-  showGrid?: boolean;
+  showGrid: boolean;
   /** The width of the canvas in pixels. */
-  width?: number;
+  width: number;
   /** The maximum width of the canvas in pixels. */
-  maxWidth?: number | null;
+  maxWidth: number;
   /** The aspect ratio (width / height) to maintain. Height is derived from width and this ratio. */
-  aspectRatio?: number;
+  aspectRatio: number;
   /** Options for configuring the camera. */
-  cameraOptions?: CameraOptions;
+  cameraOptions: CameraOptions;
   /** The distance of the camera from the target. */
-  cameraDistance?: number | null;
+  cameraDistance: number;
   /** The Euler angles (Yaw, Pitch, Roll) for the camera rotation. */
-  cameraEuler?: Vec3;
+  cameraEuler: Vec3;
   /** The offset of the camera from the target. */
-  cameraOffset?: Vec3;
+  cameraOffset: Vec3;
   /** The point the camera is looking at. */
-  cameraLookAt?: Vec3;
+  cameraLookAt: Vec3;
   /** Options for the ambient light (color and intensity). */
-  ambientLight?: LightOptions;
+  ambientLight: LightOptions;
   /** Options for the directional light (color, intensity, and position). */
-  directionalLight?: LightOptions & { position: Vec3 };
+  directionalLight: LightOptions & { position: Vec3 };
   /** An optional postprocessing shader pass to apply. */
-  shaderPass?: ShaderPass | null;
+  shaderPass: ShaderPass;
   /** Optional camera interaction controls. */
-  cameraInteraction?: CameraInteractionOptions | null;
+  cameraInteraction: CameraInteractionOptions;
 };
 
-const props = withDefaults(defineProps<Props>(), {
-  modelData: null,
-  animationData: null,
-  animationWeights: null,
+const props = withDefaults(defineProps<Partial<Props>>(), {
   loop: true,
   bgTransparent: false,
-  bgImage: null,
   showGrid: false,
   width: 480,
-  maxWidth: null,
   aspectRatio: 3 / 4,
   cameraOptions: () => ({ fov: 30, near: 0.1, far: 100 }),
-  cameraDistance: null,
   cameraEuler: () => [0, 0, 0],
   cameraOffset: () => [0, 0, 0],
   cameraLookAt: () => [0, 0.9, 0],
@@ -82,9 +76,7 @@ const props = withDefaults(defineProps<Props>(), {
     color: '#ffffff',
     intensity: 1,
     position: [1, 1, 1] as Vec3
-  }),
-  shaderPass: null,
-  cameraInteraction: null
+  })
 });
 
 const emit = defineEmits<{
@@ -146,11 +138,11 @@ const sceneApi = useVrmScene(
   canvasRef,
   {
     bgTransparent: () => props.bgTransparent,
-    bgImage: () => props.bgImage,
+    bgImage: () => props.bgImage ?? null,
     showGrid: () => props.showGrid,
     ambientLight: () => props.ambientLight,
     directionalLight: () => props.directionalLight,
-    shaderPass: () => props.shaderPass
+    shaderPass: () => props.shaderPass ?? null
   },
   { getCamera: () => cameraApi.camera.value },
   {
@@ -164,11 +156,11 @@ const cameraApi = useVrmCamera(
   canvasRef,
   {
     cameraOptions: () => props.cameraOptions,
-    cameraDistance: () => props.cameraDistance,
+    cameraDistance: () => props.cameraDistance ?? null,
     cameraEuler: () => props.cameraEuler,
     cameraOffset: () => props.cameraOffset,
     cameraLookAt: () => props.cameraLookAt,
-    cameraInteraction: () => props.cameraInteraction
+    cameraInteraction: () => props.cameraInteraction ?? null
   },
   {
     getRenderer: () => sceneApi.renderer.value,
@@ -185,9 +177,9 @@ const cameraApi = useVrmCamera(
 
 const modelApi = useVrmModel(
   {
-    modelData: () => props.modelData,
-    animationData: () => props.animationData,
-    animationWeights: () => props.animationWeights,
+    modelData: () => props.modelData ?? null,
+    animationData: () => props.animationData ?? null,
+    animationWeights: () => props.animationWeights ?? null,
     loop: () => props.loop
   },
   { getScene: () => sceneApi.scene.value },
@@ -210,7 +202,7 @@ const modelApi = useVrmModel(
 
 const canvasSizeApi = useCanvasSize(containerRef, {
   width: () => props.width,
-  maxWidth: () => props.maxWidth,
+  maxWidth: () => props.maxWidth ?? null,
   aspectRatio: () => props.aspectRatio
 });
 

@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-
-import type { VrmCanvasExposed } from '@/lib';
-import { resetVrmCanvasCamera } from '@/lib';
-
+import VrmCanvas from '@/components/VrmCanvas.vue';
+import { resetVrmCanvasCamera, type VrmCanvasExposed } from '@/index';
 import ToggleTheme from './components/ToggleTheme.vue';
-import VrmCanvas from './components/VrmCanvas.vue';
 
-const isDocsDemo = __DEMO_BUILD__;
-const modelData = ref<ArrayBuffer | null>(null);
-const animationData = ref<ArrayBuffer | ArrayBuffer[] | null>(null);
+const modelData = ref<ArrayBuffer>();
+const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
 const showGrid = ref(true);
 const bgTransparent = ref(false);
 const isLoading = ref(false);
@@ -22,7 +18,7 @@ const cameraZoom = ref(true);
 const cameraRoll = ref(true);
 
 const cameraInteraction = computed(() => {
-  if (!cameraInteractionEnabled.value) return null;
+  if (!cameraInteractionEnabled.value) return;
   return {
     enabled: true,
     rotate: cameraRotate.value,
@@ -86,9 +82,7 @@ function onResetCamera(): void {
 }
 
 onMounted(() => {
-  if (isDocsDemo) {
-    loadAvatarSample().catch(onError);
-  }
+  loadAvatarSample().catch(onError);
 });
 </script>
 
@@ -146,12 +140,7 @@ onMounted(() => {
                 accept=".vrm,.glb"
                 @change="onModelFile"
               />
-              <button
-                v-if="isDocsDemo"
-                type="button"
-                class="btn btn-secondary"
-                @click="loadAvatarSample"
-              >
+              <button type="button" class="btn btn-secondary" @click="loadAvatarSample">
                 Sample VRM
               </button>
             </div>
