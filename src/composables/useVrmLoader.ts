@@ -1,4 +1,9 @@
-import { MToonMaterialLoaderPlugin, type VRM, VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import {
+  MToonMaterialLoaderPlugin,
+  type VRM,
+  VRMLoaderPlugin,
+  VRMUtils,
+} from '@pixiv/three-vrm';
 import { MToonNodeMaterial } from '@pixiv/three-vrm/nodes';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three/webgpu';
@@ -16,18 +21,18 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   validateVrm(buffer);
 
   const loader = new GLTFLoader();
-  loader.register(parser => new VRMLoaderPlugin(parser));
+  loader.register((parser) => new VRMLoaderPlugin(parser));
   // Register a VRMLoaderPlugin
-  loader.register(parser => {
+  loader.register((parser) => {
     // create a WebGPU compatible MToonMaterialLoaderPlugin
     const mtoonMaterialPlugin = new MToonMaterialLoaderPlugin(parser, {
       // set the material type to MToonNodeMaterial
-      materialType: MToonNodeMaterial
+      materialType: MToonNodeMaterial,
     });
 
     return new VRMLoaderPlugin(parser, {
       // Specify the MToonMaterialLoaderPlugin to use in the VRMLoaderPlugin instance
-      mtoonMaterialPlugin
+      mtoonMaterialPlugin,
     });
   });
   const gltf = await loader.parseAsync(buffer, '');
@@ -41,7 +46,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   VRMUtils.combineSkeletons(gltf.scene);
 
   // Disable frustum culling to keep skinned meshes visible.
-  vrm.scene.traverse(obj => {
+  vrm.scene.traverse((obj) => {
     obj.frustumCulled = false;
   });
 

@@ -1,49 +1,56 @@
+/** For build documentation site use. */
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
-const buildDate = new Date().toISOString();
-
-console.log('Injected version:', packageJson.version);
-console.log('Injected build date:', buildDate);
+import { createRequire } from 'node:module';
 
 import { defineConfig } from '@rsbuild/core';
+import { pluginTypeCheck } from '@rsbuild/plugin-type-check';
 import { pluginVue } from '@rsbuild/plugin-vue';
+import { pluginVueDevTools } from '@vue-devtools-rstack/rsbuild';
 
-// Docs: https://rsbuild.rs/config/
-// Demo build configuration - for library build, see rslib.config.ts
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8')) as {
+  name: string;
+  version: string;
+};
+const buildDate = new Date().toISOString();
+
 export default defineConfig({
-  plugins: [pluginVue()],
-  source: {
-    define: {
-      __APP_VERSION__: JSON.stringify(packageJson.version),
-      __BUILD_DATE__: JSON.stringify(buildDate)
-    },
-    entry: {
-      index: './src/docs/index.ts'
-    }
-  },
+  plugins: [
+    pluginTypeCheck({
+      tsCheckerOptions: {
+        // vue-tsc-api is a drop-in replacement for vue-tsc that uses
+        // the TypeScript API directly, which is faster and more efficient
+        // than spawning a separate process.
+        typescript: {
+          // point to the installed `typescript` package so the plugin
+          // can read `typescript.version` correctly
+          typescriptPath: createRequire(import.meta.url).resolve('typescript'),
+        },
+      },
+    }),
+    pluginVue(),
+    pluginVueDevTools(),
+  ],
   output: {
-    distPath: 'docs',
-    assetPrefix: './',
+    distPath: {
+      root: 'docs',
+    },
     filenameHash: true,
-    copy: [
-      {
-        from: './src/docs/assets',
-        to: 'assets'
-      }
-    ]
+  },
+  server: {
+    historyApiFallback: false,
   },
   html: {
-    template: './src/docs/index.html',
-    title: 'VRM Viewer Demo - Vue VRM'
+    template: './index.html',
   },
-  tools: {
-    htmlPlugin: undefined
+  source: {
+    tsconfigPath: './tsconfig.rsbuild.json',
+    include: ['./src'],
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+      __BUILD_DATE__: JSON.stringify(buildDate),
+    },
+    entry: {
+      index: './src-docs/index.ts',
+    },
   },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, 'src')
-    }
-  }
 });

@@ -1,20 +1,37 @@
-import { defineConfig, importPlugin, js, ts } from '@rslint/core';
+import {
+  defineConfig,
+  importPlugin,
+  promisePlugin,
+  rstestPlugin,
+  ts,
+  unicornPlugin,
+} from '@rslint/core';
 
-const APP_FILES = ['**/*.{ts,mts,tsx,js,mjs,jsx}'];
+const APP_FILES = [
+  '**/*.{ts,mts,tsx,js,mjs,jsx,json,jsonc,yml,yaml,vue,astro,svelte}',
+];
 const TEST_FILES = ['**/*.{test,spec}.{ts,mts,tsx,js,mjs,jsx}'];
 
 export default defineConfig([
   {
-    ignores: ['**/dist/**', '**/docs/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**']
+    ignores: [
+      '**/dist/**',
+      '**/dist-ssr/**',
+      '**/docs/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+    ],
   },
 
-  // Base JavaScript / TypeScript recommended sets.
-  js.configs.recommended,
+  // Base TypeScript recommended sets.
   ts.configs.recommended,
+  promisePlugin.configs.recommended,
+  unicornPlugin.configs.recommended,
 
   {
     ...importPlugin.configs.recommended,
     files: APP_FILES,
+    plugins: ['@typescript-eslint', 'import', 'promise', 'unicorn'],
     settings: {
       'import/resolver': {
         node: true,
@@ -22,11 +39,23 @@ export default defineConfig([
         'eslint-import-resolver-custom-alias': {
           alias: {
             '@': './src',
-            '~': './node_modules'
+            '~': './node_modules',
           },
-          extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue']
-        }
-      }
+          extensions: [
+            '.js',
+            '.ts',
+            '.json',
+            '.jsonc',
+            '.yml',
+            '.yaml',
+            '.jsx',
+            '.tsx',
+            '.vue',
+            '.svelte',
+            '.astro',
+          ],
+        },
+      },
     },
     rules: {
       ...importPlugin.configs.recommended.rules,
@@ -36,7 +65,10 @@ export default defineConfig([
       '@typescript-eslint/triple-slash-reference': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
-      '@typescript-eslint/consistent-generic-constructors': ['error', 'type-annotation'],
+      '@typescript-eslint/consistent-generic-constructors': [
+        'error',
+        'type-annotation',
+      ],
 
       // Ignore intentionally unused identifiers with underscore prefix.
       '@typescript-eslint/no-unused-vars': [
@@ -48,50 +80,54 @@ export default defineConfig([
           caughtErrorsIgnorePattern: '^_',
           destructuredArrayIgnorePattern: '^_',
           varsIgnorePattern: '^_',
-          ignoreRestSiblings: true
-        }
+          ignoreRestSiblings: true,
+        },
       ],
 
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-empty-object-type': 'off',
-
       // Using parent traversal is prohibited in app code. Use @/ alias instead.
-      'import/no-relative-parent-imports': ['error', { ignore: ['^@/', '^~/'] }],
+      'import/no-relative-parent-imports': [
+        'error',
+        { ignore: ['^@/', '^~/'] },
+      ],
       'import/order': [
         'error',
         {
-          groups: ['builtin', 'external', 'parent', 'sibling', 'index', 'object', 'type'],
+          groups: [
+            'builtin',
+            'external',
+            'parent',
+            'sibling',
+            'index',
+            'object',
+            'type',
+          ],
           pathGroups: [
-            {
-              pattern:
-                '{vue,vue-router,vuex,@/stores,vue-i18n,pinia,@rsbuild,@rstest,@rstest/**,@rslint/**,@vue/**}',
-              group: 'external',
-              position: 'before'
-            },
             {
               pattern: '{@/**}',
               group: 'internal',
-              position: 'before'
-            }
+              position: 'before',
+            },
           ],
           pathGroupsExcludedImportTypes: ['builtin'],
           alphabetize: {
-            order: 'asc'
+            order: 'asc',
           },
-          'newlines-between': 'always'
-        }
-      ]
-    }
+          'newlines-between': 'always',
+        },
+      ],
+      // File names should, in principle, be in PascalCase, with some exceptions.
+      'unicorn/filename-case': 'off',
+    },
   },
 
   {
     // Test files intentionally import from parent directories.
     files: TEST_FILES,
+    plugins: ['@typescript-eslint', 'import', 'promise', 'unicorn', 'rstest'],
     rules: {
-      'import/no-relative-parent-imports': 'off'
-    }
-  }
-
-  // NOTE: Rslint currently does not lint .vue SFC, markdown, or vitest/a11y plugin
-  // rules in this project setup. Those checks should be covered by dedicated tools.
+      ...rstestPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'import/no-relative-parent-imports': 'off',
+    },
+  },
 ]);

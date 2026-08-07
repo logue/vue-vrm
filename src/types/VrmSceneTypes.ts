@@ -23,5 +23,7 @@ export type VrmSceneDeps = {
 export type VrmSceneCallbacks = {
   onError?: (err: unknown) => void;
   onAmbientLightChange?: (payload: LightOptions) => void;
-  onDirectionalLightChange?: (payload: LightOptions & { position: THREE.Vector3 }) => void;
+  onDirectionalLightChange?: (
+    payload: LightOptions & { position: THREE.Vector3 },
+  ) => void;
 };

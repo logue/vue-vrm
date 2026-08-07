@@ -1,6 +1,26 @@
+/** For build library use */
 import { readFileSync } from 'node:fs';
-import { pluginVue } from '@rsbuild/plugin-vue';
+
+import { pluginTypeCheck } from '@rsbuild/plugin-type-check';
 import { defineConfig } from '@rslib/core';
+
+/**
+ * The UMD name is used for the global variable name when the library
+ * is included via a <script> tag.
+ * DO NOT use kebab-case or snake_case for the UMD name.
+ * Use camelCase or PascalCase instead.
+ *
+ * For example, if your library is called "my-library", you might use
+ * "MyLibrary" as the UMD name.
+ * Then, name might be used in the following way:
+ *
+ * @example
+ * <script src="https://cdn.jsdelivr.net/npm/your-library@1.0.0/dist/index.umd.js"></script>
+ * <script>
+ *   const myLibrary = window.umdName;
+ * </script>
+ */
+const umdName = 'VueVrm'; // CHANGE THIS to your library's global variable name.
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8')) as {
   name: string;
@@ -20,7 +40,6 @@ const bannerText = `/**
 *
 * @description ${pkg.description}
 * @author ${pkg.author.name} <${pkg.author.email}>
-* @copyright 2026 By Masashi Yoshikawa All rights reserved.
 * @license ${pkg.license}
 * @version ${pkg.version}
 * @see {@link ${pkg.homepage}}
@@ -28,46 +47,46 @@ const bannerText = `/**
 `;
 
 export default defineConfig({
-  plugins: [pluginVue()],
   lib: [
     {
       format: 'esm',
-      syntax: 'es2021',
-      dts: true,
+      dts: {
+        tsgo: true, // Enable TypeScript 7 native compiler
+        // isolated: true,  // SWC fast_dts
+        bundle: true,
+      },
       banner: {
-        js: bannerText
+        js: bannerText,
       },
       output: {
         filename: {
-          js: 'index.es.js'
+          js: 'index.es.js',
         },
-        sourceMap: true
-      }
+        sourceMap: true,
+      },
     },
     {
       format: 'umd',
-      syntax: 'es2021',
-      umdName: 'VueVrm',
+      umdName,
       banner: {
-        js: bannerText
+        js: bannerText,
       },
       output: {
         filename: {
-          js: 'index.umd.js'
+          js: 'index.umd.js',
         },
         cleanDistPath: false,
         minify: true,
-        sourceMap: true
-      }
-    }
+        sourceMap: true,
+      },
+    },
   ],
   source: {
-    entry: {
-      index: './src/index.ts'
-    },
+    tsconfigPath: './tsconfig.rslib.json',
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
-      __BUILD_DATE__: JSON.stringify(buildDate)
-    }
-  }
+      __BUILD_DATE__: JSON.stringify(buildDate),
+    },
+  },
+  plugins: [pluginTypeCheck()],
 });

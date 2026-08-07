@@ -12,7 +12,7 @@ import type { CanvasSize, CanvasSizeOptions } from '@/types/CanvasSizeTypes';
  */
 export function useCanvasSize(
   containerRef: Ref<HTMLElement | null>,
-  options: CanvasSizeOptions
+  options: CanvasSizeOptions,
 ): {
   size: ComputedRef<CanvasSize>;
   containerStyle: ComputedRef<Record<string, string>>;
@@ -28,14 +28,14 @@ export function useCanvasSize(
       width = options.width();
     }
     const maxWidth = options.maxWidth();
-    if (maxWidth != null) width = Math.min(width, maxWidth);
+    if (maxWidth !== null) width = Math.min(width, maxWidth);
 
     const ratio = options.aspectRatio() > 0 ? options.aspectRatio() : 9 / 16;
     const height = width / ratio;
 
     return {
       width: Math.max(1, Math.floor(width)),
-      height: Math.max(1, Math.floor(height))
+      height: Math.max(1, Math.floor(height)),
     };
   });
 
@@ -47,7 +47,7 @@ export function useCanvasSize(
     style.width = `${width}px`;
     style.height = `${height}px`;
     const maxWidth = options.maxWidth();
-    if (maxWidth != null) style.maxWidth = `${maxWidth}px`;
+    if (maxWidth !== null) style.maxWidth = `${maxWidth}px`;
     return style;
   });
 

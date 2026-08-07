@@ -5,10 +5,14 @@ import { type ShallowRef, shallowRef, watch } from 'vue';
 import {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation
+  loadVRMAnimation,
 } from '@/composables/useVrmAnimation';
 import { autoPositionY, disposeVrm, loadVrm } from '@/composables/useVrmLoader';
-import type { VrmModelCallbacks, VrmModelDeps, VrmModelOptions } from '@/types/VrmModelTypes';
+import type {
+  VrmModelCallbacks,
+  VrmModelDeps,
+  VrmModelOptions,
+} from '@/types/VrmModelTypes';
 /**
  * Manage the loaded VRM model and its AnimationMixer: loading/unloading the
  * model, loading and blending VRMA animations, and playback control.
@@ -20,7 +24,7 @@ import type { VrmModelCallbacks, VrmModelDeps, VrmModelOptions } from '@/types/V
 export function useVrmModel(
   options: VrmModelOptions,
   deps: VrmModelDeps,
-  callbacks: VrmModelCallbacks = {}
+  callbacks: VrmModelCallbacks = {},
 ): {
   vrm: ShallowRef<VRM | null>;
   mixer: ShallowRef<THREE.AnimationMixer | null>;
@@ -28,7 +32,7 @@ export function useVrmModel(
   dispose: () => void;
   loadAnimation: (
     data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null
+    weights: number[] | null,
   ) => Promise<void>;
   pauseAnimation: () => void;
   resumeAnimation: () => void;
@@ -40,18 +44,20 @@ export function useVrmModel(
 
   async function loadAnimation(
     data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null
+    weights: number[] | null,
   ): Promise<void> {
     if (mixer.value) {
       disposeMixer(mixer.value);
       mixer.value = null;
     }
-    if (!data || !vrm.value) return;
+    if (!(data && vrm.value)) return;
 
     callbacks.onAnimationLoading?.();
     try {
       const buffers = Array.isArray(data) ? data : [data];
-      const animations = await Promise.all(buffers.map(b => loadVRMAnimation(b)));
+      const animations = await Promise.all(
+        buffers.map((b) => loadVRMAnimation(b)),
+      );
       mixer.value = createMixerWithClips(vrm.value, animations, weights);
       if (!mixer.value) {
         throw new Error('[VrmCanvas] Failed to create AnimationMixer.');
@@ -62,15 +68,19 @@ export function useVrmModel(
       mixer.value.timeScale = 1;
       // Apply loop mode to all registered actions via the (undocumented)
       // `_actions` array exposed by AnimationMixer.
-      const actions = (mixer.value as unknown as { _actions: THREE.AnimationAction[] })._actions;
+      const actions = (
+        mixer.value as unknown as { _actions: THREE.AnimationAction[] }
+      )._actions;
       for (const a of actions) {
         a.setLoop(
           options.loop() ? THREE.LoopRepeat : THREE.LoopOnce,
-          options.loop() ? Number.POSITIVE_INFINITY : 1
+          options.loop() ? Number.POSITIVE_INFINITY : 1,
         );
         a.clampWhenFinished = !options.loop();
       }
-      callbacks.onAnimationLoaded?.(Array.isArray(data) ? animations : animations[0]);
+      callbacks.onAnimationLoaded?.(
+        Array.isArray(data) ? animations : animations[0],
+      );
       callbacks.onAnimationStart?.();
     } catch (err) {
       callbacks.onAnimationError?.(err);
@@ -158,16 +168,16 @@ export function useVrmModel(
 
   watch(
     () => options.modelData(),
-    buf => {
+    (buf) => {
       void loadModel(buf ?? null);
-    }
+    },
   );
 
   watch(
     () => [options.animationData(), options.animationWeights()] as const,
     ([data, weights]) => {
       void loadAnimation(data ?? null, weights ?? null);
-    }
+    },
   );
 
   return {
@@ -179,6 +189,6 @@ export function useVrmModel(
     pauseAnimation,
     resumeAnimation,
     stopAnimation,
-    update
+    update,
   };
 }

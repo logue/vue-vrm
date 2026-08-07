@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import VrmCanvas from '@/components/VrmCanvas.vue';
-import { resetVrmCanvasCamera, type VrmCanvasExposed } from '@/index';
-import ToggleTheme from './components/ToggleTheme.vue';
+import { computed, onMounted, ref } from "vue";
+import VrmCanvas from "@/components/VrmCanvas.vue";
+import { resetVrmCanvasCamera, type VrmCanvasExposed } from "@/index";
+import ToggleTheme from "./components/ToggleTheme.vue";
 
 const modelData = ref<ArrayBuffer>();
 const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
@@ -32,14 +32,14 @@ const cameraInteraction = computed(() => {
     zoomSpeed: 1,
     minDistance: 0.5,
     maxDistance: 20,
-    rollSpeed: 0.03
+    rollSpeed: 0.03,
   };
 });
 
 async function loadAvatarSample(): Promise<void> {
   isLoading.value = true;
   try {
-    const response = await fetch('./assets/AvatarSample_A.vrm');
+    const response = await fetch("./assets/AvatarSample_A.vrm");
     if (!response.ok) {
       throw new Error(`Failed to load sample VRM: ${response.status}`);
     }
@@ -62,12 +62,12 @@ async function onAnimationFile(e: Event): Promise<void> {
 }
 
 function onLoading(): void {
-  console.log('onLoading');
+  console.log("onLoading");
   isLoading.value = true;
 }
 
 function onLoaded(): void {
-  console.log('onLoaded');
+  console.log("onLoaded");
   isLoading.value = false;
 }
 
@@ -120,9 +120,9 @@ onMounted(() => {
     <div class="container py-3">
       <h1>Vue VRM Demo</h1>
       <p class="lead">
-        A simple demo of loading and displaying VRM models in Vue.js. You can load your own VRM
-        files using the file input on the left, or use the sample VRM provided by clicking the
-        "Sample VRM" button.
+        A simple demo of loading and displaying VRM models in Vue.js. You can
+        load your own VRM files using the file input on the left, or use the
+        sample VRM provided by clicking the "Sample VRM" button.
       </p>
     </div>
   </header>
@@ -140,13 +140,19 @@ onMounted(() => {
                 accept=".vrm,.glb"
                 @change="onModelFile"
               />
-              <button type="button" class="btn btn-secondary" @click="loadAvatarSample">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="loadAvatarSample"
+              >
                 Sample VRM
               </button>
             </div>
           </div>
           <div class="mb-3">
-            <label for="fileVrma" class="form-label">VRMA (VRM Animation) file:</label>
+            <label for="fileVrma" class="form-label"
+              >VRMA (VRM Animation) file:</label
+            >
             <input
               id="fileVrma"
               class="form-control"
@@ -155,7 +161,8 @@ onMounted(() => {
               @change="onAnimationFile"
             />
             <div class="form-text">
-              Due to licensing restrictions, a VRMA file is not available. Please download it from
+              Due to licensing restrictions, a VRMA file is not available.
+              Please download it from
               <a
                 href="https://vroid.booth.pm/items/5512385"
                 target="_blank"
@@ -184,7 +191,9 @@ onMounted(() => {
               id="checkBgTransparent"
               switch
             />
-            <label class="form-check-label" for="checkBgTransparent">Transparent Background</label>
+            <label class="form-check-label" for="checkBgTransparent"
+              >Transparent Background</label
+            >
           </div>
 
           <fieldset class="border p-2">
@@ -210,7 +219,9 @@ onMounted(() => {
                 id="checkCameraRotate"
                 switch
               />
-              <label class="form-check-label" for="checkCameraRotate">Orbit Rotate</label>
+              <label class="form-check-label" for="checkCameraRotate"
+                >Orbit Rotate</label
+              >
               <div class="form-text">Drag.</div>
             </div>
             <div class="form-check form-switch">
@@ -259,7 +270,11 @@ onMounted(() => {
                 for roll.
               </div>
             </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="onResetCamera">
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm"
+              @click="onResetCamera"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -281,7 +296,9 @@ onMounted(() => {
           </fieldset>
         </div>
         <div class="col">
-          <div v-if="isLoading" class="alert alert-primary" role="alert">Loading...</div>
+          <div v-if="isLoading" class="alert alert-primary" role="alert">
+            Loading...
+          </div>
           <figure class="mx-auto">
             <VrmCanvas
               ref="vrmCanvasRef"
@@ -296,7 +313,9 @@ onMounted(() => {
               @model:error="onError"
               @animation:error="onError"
             />
-            <figcaption class="figure-caption text-center">VRM Model Preview</figcaption>
+            <figcaption class="figure-caption text-center">
+              VRM Model Preview
+            </figcaption>
           </figure>
         </div>
       </div>

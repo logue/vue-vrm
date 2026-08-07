@@ -271,7 +271,7 @@ async function playAnimation(buf: ArrayBuffer | ArrayBuffer[], weights?: number[
  * @returns A data URL string of the captured frame.
  */
 async function captureScreenshot(format = 'image/png'): Promise<string> {
-  if (!sceneApi.renderer.value || !sceneApi.scene.value || !cameraApi.camera.value) {
+  if (!((sceneApi.renderer.value && sceneApi.scene.value ) && cameraApi.camera.value)) {
     throw new Error('[VrmCanvas] Renderer is not initialized.');
   }
   // Force a render so the drawing buffer is fresh.

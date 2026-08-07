@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@rstest/core';
 
-import { validateVrm, validateVrma } from '../src/utils/validateGlb';
+import { validateVrm, validateVrma } from '@/utils/validateGlb';
 
 function makeGlb(json: object): ArrayBuffer {
   const jsonStr = JSON.stringify(json);

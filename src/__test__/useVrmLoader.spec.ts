@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@rstest/core';
 
-import { loadVrm } from '../src/composables/useVrmLoader';
+import { loadVrm } from '@/composables/useVrmLoader';
 
 describe('loadVrm - input validation', () => {
   test('rejects buffers that are too small to be GLB', async () => {

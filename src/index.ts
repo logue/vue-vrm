@@ -1,4 +1,5 @@
 export { default as VrmCanvas } from '@/components/VrmCanvas.vue';
+export { Meta } from '@/types/Meta';
 
 export type VrmCanvasExposed = {
   resetCamera: () => void;
@@ -17,8 +18,7 @@ export function resetVrmCanvasCamera(instance?: VrmCanvasExposed): void {
 export {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation
+  loadVRMAnimation,
 } from '@/composables/useVrmAnimation';
 export { autoPositionY, disposeVrm, loadVrm } from '@/composables/useVrmLoader';
-export { default as meta } from '@/Meta';
 export { validateVrm, validateVrma } from '@/utils/validateGlb';

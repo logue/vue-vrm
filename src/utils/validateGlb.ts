@@ -18,7 +18,9 @@ function parseGlbJson(buffer: ArrayBuffer): Record<string, unknown> {
   }
   const view = new DataView(buffer);
   if (view.getUint32(0, true) !== GLB_MAGIC) {
-    throw new Error('[VrmCanvas] Invalid GLB: wrong magic bytes (not a glTF binary)');
+    throw new Error(
+      '[VrmCanvas] Invalid GLB: wrong magic bytes (not a glTF binary)',
+    );
   }
   const version = view.getUint32(4, true);
   if (version !== GLB_VERSION) {
@@ -29,7 +31,9 @@ function parseGlbJson(buffer: ArrayBuffer): Record<string, unknown> {
     throw new Error('[VrmCanvas] Invalid GLB: first chunk is not JSON');
   }
   if (20 + jsonChunkLength > buffer.byteLength) {
-    throw new Error('[VrmCanvas] Invalid GLB: JSON chunk length exceeds buffer');
+    throw new Error(
+      '[VrmCanvas] Invalid GLB: JSON chunk length exceeds buffer',
+    );
   }
   const jsonBytes = new Uint8Array(buffer, 20, jsonChunkLength);
   const text = new TextDecoder().decode(jsonBytes);
@@ -50,7 +54,9 @@ export function validateVrm(buffer: ArrayBuffer): void {
   const json = parseGlbJson(buffer);
   const ext = (json.extensions ?? {}) as Record<string, unknown>;
   if ('VRM' in ext && !('VRMC_vrm' in ext)) {
-    throw new Error('[VrmCanvas] VRM 0.x is not supported. Please use a VRM 1.0 model.');
+    throw new Error(
+      '[VrmCanvas] VRM 0.x is not supported. Please use a VRM 1.0 model.',
+    );
   }
   if (!('VRMC_vrm' in ext)) {
     throw new Error('[VrmCanvas] Invalid VRM: VRMC_vrm extension not found.');
@@ -67,6 +73,8 @@ export function validateVrma(buffer: ArrayBuffer): void {
   const json = parseGlbJson(buffer);
   const ext = (json.extensions ?? {}) as Record<string, unknown>;
   if (!('VRMC_vrm_animation' in ext)) {
-    throw new Error('[VrmCanvas] Invalid VRMA: VRMC_vrm_animation extension not found.');
+    throw new Error(
+      '[VrmCanvas] Invalid VRMA: VRMC_vrm_animation extension not found.',
+    );
   }
 }
