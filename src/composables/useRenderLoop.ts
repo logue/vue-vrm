@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Timer } from 'three';
 
 /**
  * Drive a `requestAnimationFrame` loop and report the elapsed time between
@@ -10,7 +10,7 @@ export function useRenderLoop(callback: (deltaSeconds: number) => void): {
   start: () => void;
   stop: () => void;
 } {
-  const clock = new THREE.Timer();
+  const clock = new Timer();
   let rafId = 0;
 
   function tick(timestamp: number): void {

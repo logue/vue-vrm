@@ -25,25 +25,31 @@ function makeGlb(json: object): ArrayBuffer {
   return buffer;
 }
 
+const tooSmallRegex = /too small/;
+const magicRegex = /magic/;
+const vrm0xRegex = /VRM 0\.x/;
+const missingVrmcVrmRegex = /VRMC_vrm/;
+const missingVrmcVrmAnimationRegex = /VRMC_vrm_animation/;
+
 describe('validateVrm', () => {
   test('rejects too-small buffers', () => {
-    expect(() => validateVrm(new ArrayBuffer(4))).toThrow(/too small/);
+    expect(() => validateVrm(new ArrayBuffer(4))).toThrow(tooSmallRegex);
   });
 
   test('rejects bad magic', () => {
     const buf = makeGlb({ extensions: { VRMC_vrm: {} } });
     new DataView(buf).setUint32(0, 0xdeadbeef, true);
-    expect(() => validateVrm(buf)).toThrow(/magic/);
+    expect(() => validateVrm(buf)).toThrow(magicRegex);
   });
 
   test('rejects VRM 0.x', () => {
     const buf = makeGlb({ extensions: { VRM: {} } });
-    expect(() => validateVrm(buf)).toThrow(/VRM 0\.x/);
+    expect(() => validateVrm(buf)).toThrow(vrm0xRegex);
   });
 
   test('rejects missing VRMC_vrm', () => {
     const buf = makeGlb({ extensions: {} });
-    expect(() => validateVrm(buf)).toThrow(/VRMC_vrm/);
+    expect(() => validateVrm(buf)).toThrow(missingVrmcVrmRegex);
   });
 
   test('accepts valid VRM 1.0', () => {
@@ -55,7 +61,7 @@ describe('validateVrm', () => {
 describe('validateVrma', () => {
   test('rejects missing VRMC_vrm_animation', () => {
     const buf = makeGlb({ extensions: {} });
-    expect(() => validateVrma(buf)).toThrow(/VRMC_vrm_animation/);
+    expect(() => validateVrma(buf)).toThrow(missingVrmcVrmAnimationRegex);
   });
 
   test('accepts valid VRMA', () => {

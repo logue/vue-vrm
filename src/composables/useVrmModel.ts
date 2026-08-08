@@ -1,5 +1,10 @@
 import type { VRM } from '@pixiv/three-vrm';
-import * as THREE from 'three/webgpu';
+import {
+  type AnimationAction,
+  type AnimationMixer,
+  LoopOnce,
+  LoopRepeat,
+} from 'three/webgpu';
 import { type ShallowRef, shallowRef, watch } from 'vue';
 
 import {
@@ -27,7 +32,7 @@ export function useVrmModel(
   callbacks: VrmModelCallbacks = {},
 ): {
   vrm: ShallowRef<VRM | null>;
-  mixer: ShallowRef<THREE.AnimationMixer | null>;
+  mixer: ShallowRef<AnimationMixer | null>;
   init: () => void;
   dispose: () => void;
   loadAnimation: (
@@ -40,7 +45,7 @@ export function useVrmModel(
   update: (dt: number) => void;
 } {
   const vrm = shallowRef<VRM | null>(null);
-  const mixer = shallowRef<THREE.AnimationMixer | null>(null);
+  const mixer = shallowRef<AnimationMixer | null>(null);
 
   async function loadAnimation(
     data: ArrayBuffer | ArrayBuffer[] | null,
@@ -56,7 +61,12 @@ export function useVrmModel(
     try {
       const buffers = Array.isArray(data) ? data : [data];
       const animations = await Promise.all(
-        buffers.map((b) => loadVRMAnimation(b)),
+        buffers.map(async (b) => {
+          const animation = await loadVRMAnimation(b);
+          if (!animation)
+            throw new Error('[VrmCanvas] Animation buffer is null.');
+          return animation;
+        }),
       );
       mixer.value = createMixerWithClips(vrm.value, animations, weights);
       if (!mixer.value) {
@@ -69,15 +79,16 @@ export function useVrmModel(
       // Apply loop mode to all registered actions via the (undocumented)
       // `_actions` array exposed by AnimationMixer.
       const actions = (
-        mixer.value as unknown as { _actions: THREE.AnimationAction[] }
+        mixer.value as unknown as { _actions: AnimationAction[] }
       )._actions;
       for (const a of actions) {
         a.setLoop(
-          options.loop() ? THREE.LoopRepeat : THREE.LoopOnce,
+          options.loop() ? LoopRepeat : LoopOnce,
           options.loop() ? Number.POSITIVE_INFINITY : 1,
         );
         a.clampWhenFinished = !options.loop();
       }
+
       callbacks.onAnimationLoaded?.(
         Array.isArray(data) ? animations : animations[0],
       );
@@ -151,7 +162,7 @@ export function useVrmModel(
   function init(): void {
     const modelData = options.modelData();
     if (modelData) {
-      void loadModel(modelData);
+      loadModel(modelData);
     }
   }
 
@@ -169,14 +180,14 @@ export function useVrmModel(
   watch(
     () => options.modelData(),
     (buf) => {
-      void loadModel(buf ?? null);
+      loadModel(buf ?? null);
     },
   );
 
   watch(
     () => [options.animationData(), options.animationWeights()] as const,
     ([data, weights]) => {
-      void loadAnimation(data ?? null, weights ?? null);
+      loadAnimation(data ?? null, weights ?? null);
     },
   );
 

@@ -1,5 +1,11 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import * as THREE from 'three/webgpu';
+import {
+  Box3,
+  Euler,
+  type Object3D,
+  PerspectiveCamera,
+  Vector3,
+} from 'three/webgpu';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {
@@ -28,7 +34,7 @@ export function useVrmCamera(
   deps: VrmCameraDeps,
   callbacks: VrmCameraCallbacks = {},
 ): {
-  camera: ShallowRef<THREE.PerspectiveCamera | null>;
+  camera: ShallowRef<PerspectiveCamera | null>;
   orbitControls: ShallowRef<OrbitControls | null>;
   init: () => void;
   dispose: () => void;
@@ -37,20 +43,20 @@ export function useVrmCamera(
   update: () => void;
   handleCanvasKeydown: (event: KeyboardEvent) => void;
 } {
-  const camera = shallowRef<THREE.PerspectiveCamera | null>(null);
+  const camera = shallowRef<PerspectiveCamera | null>(null);
   const orbitControls = shallowRef<OrbitControls | null>(null);
 
   const initialCameraDistance = shallowRef<number>(0);
-  const initialCameraTarget = shallowRef<THREE.Vector3>(new THREE.Vector3());
+  const initialCameraTarget = shallowRef<Vector3>(new Vector3());
 
-  function getCurrentLookAt(): THREE.Vector3 {
+  function getCurrentLookAt(): Vector3 {
     if (orbitControls.value) {
       return orbitControls.value.target.clone();
     }
-    return new THREE.Vector3(...options.cameraLookAt());
+    return new Vector3(...options.cameraLookAt());
   }
 
-  function emitCameraChange(lookAt?: THREE.Vector3): void {
+  function emitCameraChange(lookAt?: Vector3): void {
     if (!camera.value) return;
     const target = lookAt ?? getCurrentLookAt();
     callbacks.onCameraChange?.({
@@ -107,7 +113,7 @@ export function useVrmCamera(
     if (!camera.value) return;
     const dist = options.cameraDistance() ?? initialCameraDistance.value;
     const cameraOffset = options.cameraOffset();
-    const target = new THREE.Vector3(
+    const target = new Vector3(
       initialCameraTarget.value.x + cameraOffset[0],
       initialCameraTarget.value.y + cameraOffset[1],
       initialCameraTarget.value.z + cameraOffset[2],
@@ -115,18 +121,18 @@ export function useVrmCamera(
 
     // Camera position: target + (0, 0, dist) rotated by cameraEuler.
     const cameraEuler = options.cameraEuler();
-    const euler = new THREE.Euler(
+    const euler = new Euler(
       cameraEuler[0],
       cameraEuler[1],
       cameraEuler[2],
       'XYZ',
     );
-    const offset = new THREE.Vector3(0, 0, dist).applyEuler(euler);
+    const offset = new Vector3(0, 0, dist).applyEuler(euler);
     camera.value.position.copy(target).add(offset);
 
     const lookAt = orbitControls.value
       ? target.clone()
-      : new THREE.Vector3(...options.cameraLookAt());
+      : new Vector3(...options.cameraLookAt());
     camera.value.lookAt(lookAt);
     if (orbitControls.value) {
       orbitControls.value.target.copy(lookAt);
@@ -136,10 +142,10 @@ export function useVrmCamera(
     emitCameraChange(lookAt);
   }
 
-  function computeFitDistance(target: THREE.Object3D, fovDeg: number): number {
-    const box = new THREE.Box3().setFromObject(target);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
+  function computeFitDistance(target: Object3D, fovDeg: number): number {
+    const box = new Box3().setFromObject(target);
+    const size = box.getSize(new Vector3());
+    const center = box.getCenter(new Vector3());
     initialCameraTarget.value.copy(center);
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = (fovDeg * Math.PI) / 180;
@@ -169,7 +175,7 @@ export function useVrmCamera(
     const cameraInteraction = options.cameraInteraction();
     if (!(cameraInteraction?.roll ?? false)) return;
     const step = cameraInteraction?.rollSpeed ?? 0.03;
-    const forward = new THREE.Vector3();
+    const forward = new Vector3();
     camera.value.getWorldDirection(forward);
     camera.value.up.applyAxisAngle(forward, step * direction).normalize();
     camera.value.lookAt(orbitControls.value.target);
@@ -201,14 +207,14 @@ export function useVrmCamera(
 
   function init(): void {
     const opts = options.cameraOptions();
-    const cam = new THREE.PerspectiveCamera(
+    const cam = new PerspectiveCamera(
       opts.fov ?? 30,
       1,
       opts.near ?? 0.1,
       opts.far ?? 100,
     );
     camera.value = cam;
-    initialCameraTarget.value = new THREE.Vector3(...options.cameraLookAt());
+    initialCameraTarget.value = new Vector3(...options.cameraLookAt());
     initialCameraDistance.value = 3;
     applyCameraTransform();
     setupOrbitControls();

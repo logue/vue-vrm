@@ -271,11 +271,11 @@ async function playAnimation(buf: ArrayBuffer | ArrayBuffer[], weights?: number[
  * @returns A data URL string of the captured frame.
  */
 async function captureScreenshot(format = 'image/png'): Promise<string> {
-  if (!((sceneApi.renderer.value && sceneApi.scene.value ) && cameraApi.camera.value)) {
+  if (!((sceneApi.renderer.value && sceneApi.scene.value) && cameraApi.camera.value)) {
     throw new Error('[VrmCanvas] Renderer is not initialized.');
   }
   // Force a render so the drawing buffer is fresh.
-  sceneApi.render(0, cameraApi.camera.value);
+  await sceneApi.render(0, cameraApi.camera.value);
   return sceneApi.renderer.value.domElement.toDataURL(format);
 }
 
@@ -304,16 +304,9 @@ defineExpose({
 </script>
 
 <template>
-  <figure
-    ref="containerRef"
-    style="position: relative; margin: 0; overflow: hidden"
-    :style="canvasSizeApi.containerStyle.value"
-  >
-    <canvas
-      ref="canvasRef"
-      style="display: block; width: 100%; height: 100%"
-      @keydown="cameraApi.handleCanvasKeydown"
-      @pointerdown="handleCanvasPointerDown"
-    />
+  <figure ref="containerRef" style="position: relative; margin: 0; overflow: hidden"
+    :style="canvasSizeApi.containerStyle.value">
+    <canvas ref="canvasRef" style="display: block; width: 100%; height: 100%" @keydown="cameraApi.handleCanvasKeydown"
+      @pointerdown="handleCanvasPointerDown" />
   </figure>
 </template>

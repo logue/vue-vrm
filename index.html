@@ -11,14 +11,18 @@
       crossorigin="anonymous"
     />
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Y2FW3QEG4"></script>
-    <script>'use strict';
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-2Y2FW3QEG4"
+    ></script>
+    <script>
+      "use strict";
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      function gtag(...args) {
+        dataLayer.push(args);
       }
-      gtag('js', new Date());
-      gtag('config', 'G-2Y2FW3QEG4');
+      gtag("js", new Date());
+      gtag("config", "G-2Y2FW3QEG4");
     </script>
   </head>
   <body class="h-100">

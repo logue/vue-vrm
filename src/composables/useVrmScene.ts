@@ -1,7 +1,18 @@
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import * as THREE from 'three/webgpu';
+import {
+  AmbientLight,
+  Color,
+  DirectionalLight,
+  GridHelper,
+  type PerspectiveCamera,
+  Scene,
+  SRGBColorSpace,
+  type Texture,
+  TextureLoader,
+  WebGPURenderer,
+} from 'three/webgpu';
 
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
@@ -25,21 +36,21 @@ export function useVrmScene(
   deps: VrmSceneDeps,
   callbacks: VrmSceneCallbacks = {},
 ): {
-  renderer: ShallowRef<THREE.WebGPURenderer | null>;
-  scene: ShallowRef<THREE.Scene | null>;
+  renderer: ShallowRef<WebGPURenderer | null>;
+  scene: ShallowRef<Scene | null>;
   composer: ShallowRef<EffectComposer | null>;
   init: () => Promise<void>;
   dispose: () => void;
   setSize: (width: number, height: number) => void;
   rebuildComposer: () => void;
-  render: (dt: number, camera: THREE.PerspectiveCamera | null) => void;
+  render: (dt: number, camera: PerspectiveCamera | null) => void;
 } {
-  const renderer = shallowRef<THREE.WebGPURenderer | null>(null);
-  const scene = shallowRef<THREE.Scene | null>(null);
-  const ambientLightRef = shallowRef<THREE.AmbientLight | null>(null);
-  const directionalLightRef = shallowRef<THREE.DirectionalLight | null>(null);
-  const grid = shallowRef<THREE.GridHelper | null>(null);
-  const bgTexture = shallowRef<THREE.Texture | null>(null);
+  const renderer = shallowRef<WebGPURenderer | null>(null);
+  const scene = shallowRef<Scene | null>(null);
+  const ambientLightRef = shallowRef<AmbientLight | null>(null);
+  const directionalLightRef = shallowRef<DirectionalLight | null>(null);
+  const grid = shallowRef<GridHelper | null>(null);
+  const bgTexture = shallowRef<Texture | null>(null);
   const composer = shallowRef<EffectComposer | null>(null);
   const renderPass = shallowRef<RenderPass | null>(null);
   const outputPass = shallowRef<OutputPass | null>(null);
@@ -59,7 +70,7 @@ export function useVrmScene(
     renderer.value.setClearColor(0x000000, 1);
     const bgImage = options.bgImage();
     if (bgImage) {
-      const loader = new THREE.TextureLoader();
+      const loader = new TextureLoader();
       loader.load(
         bgImage,
         (tex) => {
@@ -82,7 +93,7 @@ export function useVrmScene(
   function applyGrid(): void {
     if (!scene.value) return;
     if (options.showGrid() && !grid.value) {
-      grid.value = new THREE.GridHelper(10, 10);
+      grid.value = new GridHelper(10, 10);
       scene.value.add(grid.value);
     } else if (!options.showGrid() && grid.value) {
       scene.value.remove(grid.value);
@@ -127,7 +138,7 @@ export function useVrmScene(
     composer.value?.setSize(width, height);
   }
 
-  function render(dt: number, camera: THREE.PerspectiveCamera | null): void {
+  function render(dt: number, camera: PerspectiveCamera | null): void {
     if (composer.value) {
       composer.value.render(dt);
     } else if (renderer.value && scene.value && camera) {
@@ -143,7 +154,7 @@ export function useVrmScene(
   async function init(): Promise<void> {
     if (!canvasRef.value) return;
 
-    const r = new THREE.WebGPURenderer({
+    const r = new WebGPURenderer({
       canvas: canvasRef.value,
       antialias: true,
       alpha: true,
@@ -153,23 +164,23 @@ export function useVrmScene(
     // requires an async init before the first render.
     await r.init();
     r.setPixelRatio(window.devicePixelRatio);
-    r.outputColorSpace = THREE.SRGBColorSpace;
+    r.outputColorSpace = SRGBColorSpace;
     renderer.value = r;
 
-    const s = new THREE.Scene();
+    const s = new Scene();
     scene.value = s;
 
     const ambientLight = options.ambientLight();
-    const al = new THREE.AmbientLight(
-      new THREE.Color(ambientLight.color),
+    const al = new AmbientLight(
+      new Color(ambientLight.color),
       ambientLight.intensity,
     );
     ambientLightRef.value = al;
     s.add(al);
 
     const directionalLight = options.directionalLight();
-    const dl = new THREE.DirectionalLight(
-      new THREE.Color(directionalLight.color),
+    const dl = new DirectionalLight(
+      new Color(directionalLight.color),
       directionalLight.intensity,
     );
     dl.position.set(...directionalLight.position);

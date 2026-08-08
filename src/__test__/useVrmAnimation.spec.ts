@@ -1,7 +1,7 @@
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
 import { describe, expect, test } from '@rstest/core';
-import * as THREE from 'three';
+import { AnimationMixer, Object3D } from 'three';
 import {
   createMixerWithClips,
   disposeMixer,
@@ -10,17 +10,22 @@ import {
 
 /** Build a fake VRM-like object with just enough surface for the mixer. */
 function makeFakeVrm(): VRM {
-  const scene = new THREE.Object3D();
+  const scene = new Object3D();
   scene.name = 'fakeVrmRoot';
   return { scene } as unknown as VRM;
 }
+
+const weightsSumExceedsRegex =
+  /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/;
+const notGlbRegex = /too small|magic|GLB/;
+const missingVrmcVrmAnimationRegex = /VRMC_vrm_animation/;
 
 describe('createMixerWithClips - weight validation', () => {
   test('throws when weights sum exceeds 1.0', () => {
     const vrm = makeFakeVrm();
     const animations = [{}, {}] as VRMAnimation[];
     expect(() => createMixerWithClips(vrm, animations, [0.7, 0.5])).toThrow(
-      /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/,
+      weightsSumExceedsRegex,
     );
   });
 
@@ -51,8 +56,8 @@ describe('createMixerWithClips - weight validation', () => {
 
 describe('disposeMixer', () => {
   test('stops actions and uncaches the root without throwing', () => {
-    const root = new THREE.Object3D();
-    const mixer = new THREE.AnimationMixer(root);
+    const root = new Object3D();
+    const mixer = new AnimationMixer(root);
     expect(() => disposeMixer(mixer)).not.toThrow();
   });
 });
@@ -60,7 +65,7 @@ describe('disposeMixer', () => {
 describe('loadVRMAnimation - input validation', () => {
   test('rejects buffers that are not GLB', async () => {
     await expect(loadVRMAnimation(new ArrayBuffer(4))).rejects.toThrow(
-      /too small|magic|GLB/,
+      notGlbRegex,
     );
   });
 
@@ -82,7 +87,7 @@ describe('loadVRMAnimation - input validation', () => {
       view.setUint8(20 + jsonBytes.length + i, 0x20);
     }
     await expect(loadVRMAnimation(buffer)).rejects.toThrow(
-      /VRMC_vrm_animation/,
+      missingVrmcVrmAnimationRegex,
     );
   });
 });

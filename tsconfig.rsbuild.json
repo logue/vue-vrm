@@ -19,9 +19,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "vue-codemirror6": [
-        "./src/*"
       ]
     }
   }

@@ -9,6 +9,7 @@ const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
 const showGrid = ref(true);
 const bgTransparent = ref(false);
 const isLoading = ref(false);
+const errorMessage = ref<string>();
 const vrmCanvasRef = ref<VrmCanvasExposed>();
 
 const cameraInteractionEnabled = ref(false);
@@ -62,19 +63,16 @@ async function onAnimationFile(e: Event): Promise<void> {
 }
 
 function onLoading(): void {
-  console.log("onLoading");
   isLoading.value = true;
 }
 
 function onLoaded(): void {
-  console.log("onLoaded");
   isLoading.value = false;
 }
 
 function onError(err: Error): void {
   isLoading.value = false;
-  console.error(err);
-  alert(err.message);
+  errorMessage.value = err.message;
 }
 
 function onResetCamera(): void {
@@ -89,12 +87,16 @@ onMounted(() => {
 <template>
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">Vue VRM Demo</a>
+      <span class="navbar-brand">Vue VRM Demo</span>
 
       <div id="navbarCollapse" class="collapse navbar-collapse flex-grow-0">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="https://github.com/logue/vue-vrm">
+            <a
+              class="nav-link"
+              href="https://github.com/logue/vue-vrm"
+              aria-label="GitHub"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -102,6 +104,8 @@ onMounted(() => {
                 fill="currentColor"
                 class="bi bi-github"
                 viewBox="0 0 16 16"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path
                   d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
@@ -110,7 +114,7 @@ onMounted(() => {
             </a>
           </li>
           <li class="nav-item">
-            <toggle-theme class="nav-link" attribute="data-bs-theme" />
+            <ToggleTheme class="nav-link" attribute="data-bs-theme" />
           </li>
         </ul>
       </div>
@@ -167,6 +171,7 @@ onMounted(() => {
                 href="https://vroid.booth.pm/items/5512385"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Download VRMA sample from BOOTH"
               >
                 here
               </a>
@@ -282,6 +287,8 @@ onMounted(() => {
                 fill="currentColor"
                 class="bi bi-arrow-clockwise"
                 viewBox="0 0 16 16"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path
                   fill-rule="evenodd"
@@ -298,6 +305,9 @@ onMounted(() => {
         <div class="col">
           <div v-if="isLoading" class="alert alert-primary" role="alert">
             Loading...
+          </div>
+          <div v-if="errorMessage" class="alert alert-danger" role="alert">
+            {{ errorMessage }}
           </div>
           <figure class="mx-auto">
             <VrmCanvas

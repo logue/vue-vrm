@@ -2,9 +2,13 @@ import { describe, expect, test } from '@rstest/core';
 
 import { loadVrm } from '@/composables/useVrmLoader';
 
+const tooSmallRegex = /too small/;
+const vrm0xRegex = /VRM 0\.x/;
+const magicRegex = /magic/;
+
 describe('loadVrm - input validation', () => {
   test('rejects buffers that are too small to be GLB', async () => {
-    await expect(loadVrm(new ArrayBuffer(4))).rejects.toThrow(/too small/);
+    await expect(loadVrm(new ArrayBuffer(4))).rejects.toThrow(tooSmallRegex);
   });
 
   test('rejects GLB with VRM 0.x extension only', async () => {
@@ -23,7 +27,7 @@ describe('loadVrm - input validation', () => {
     for (let i = 0; i < padding; i++) {
       view.setUint8(20 + jsonBytes.length + i, 0x20);
     }
-    await expect(loadVrm(buffer)).rejects.toThrow(/VRM 0\.x/);
+    await expect(loadVrm(buffer)).rejects.toThrow(vrm0xRegex);
   });
 
   test('rejects GLB with wrong magic bytes', async () => {
@@ -34,6 +38,6 @@ describe('loadVrm - input validation', () => {
     view.setUint32(8, 24, true);
     view.setUint32(12, 4, true);
     view.setUint32(16, 0x4e4f534a, true);
-    await expect(loadVrm(buffer)).rejects.toThrow(/magic/);
+    await expect(loadVrm(buffer)).rejects.toThrow(magicRegex);
   });
 });

@@ -6,7 +6,7 @@ import {
 } from '@pixiv/three-vrm';
 import { MToonNodeMaterial } from '@pixiv/three-vrm/nodes';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import * as THREE from 'three/webgpu';
+import { Box3 } from 'three/webgpu';
 import { validateVrm } from '@/utils/validateGlb';
 
 /**
@@ -63,7 +63,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
  */
 export function autoPositionY(vrm: VRM): void {
   vrm.scene.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(vrm.scene);
+  const box = new Box3().setFromObject(vrm.scene);
   const minY = box.min.y;
   vrm.scene.position.y -= minY;
 }

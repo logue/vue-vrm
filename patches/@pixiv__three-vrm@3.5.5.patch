@@ -1,0 +1,36 @@
+diff --git a/lib/nodes/index.cjs b/lib/nodes/index.cjs
+index 353fd912ee056301f8c02832b9b4dc65194f3ec5..af1984199c57bdc370ba7d2db95f6e559a2638bc 100644
+--- a/lib/nodes/index.cjs
++++ b/lib/nodes/index.cjs
+@@ -121,12 +121,7 @@ var rimMultiply = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").to
+ var matcap = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").toVar("matcap");
+ var parametricRim = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").toVar("ParametricRim");
+ var FnCompat = (jsFunc) => {
+-  const threeRevision2 = parseInt(THREE_WEBGPU.REVISION, 10);
+-  if (threeRevision2 >= 168) {
+-    return THREE_TSL.Fn(jsFunc);
+-  } else {
+-    return THREE_WEBGPU.tslFn(jsFunc);
+-  }
++  return THREE_TSL.Fn(jsFunc);
+ };
+ var linearstep = FnCompat(
+   ({
+diff --git a/lib/nodes/index.module.js b/lib/nodes/index.module.js
+index 9d9c8bac8803e282570a212852df0824ba4a1e72..aebe5ce8c24331e98475b86d7063f3c3deb36006 100644
+--- a/lib/nodes/index.module.js
++++ b/lib/nodes/index.module.js
+@@ -99,12 +99,7 @@ var rimMultiply = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("RimMultiply"
+ var matcap = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("matcap");
+ var parametricRim = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("ParametricRim");
+ var FnCompat = (jsFunc) => {
+-  const threeRevision2 = parseInt(THREE_WEBGPU.REVISION, 10);
+-  if (threeRevision2 >= 168) {
+-    return THREE_TSL.Fn(jsFunc);
+-  } else {
+-    return THREE_WEBGPU.tslFn(jsFunc);
+-  }
++  return THREE_TSL.Fn(jsFunc);
+ };
+ var linearstep = FnCompat(
+   ({

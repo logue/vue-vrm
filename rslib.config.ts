@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 
 import { pluginTypeCheck } from '@rsbuild/plugin-type-check';
+import { pluginVue } from '@rsbuild/plugin-vue';
 import { defineConfig } from '@rslib/core';
 
 /**
@@ -47,6 +48,7 @@ const bannerText = `/**
 `;
 
 export default defineConfig({
+  plugins: [pluginTypeCheck(), pluginVue()],
   lib: [
     {
       format: 'esm',
@@ -88,5 +90,4 @@ export default defineConfig({
       __BUILD_DATE__: JSON.stringify(buildDate),
     },
   },
-  plugins: [pluginTypeCheck()],
 });

@@ -5,7 +5,7 @@ import {
   VRMAnimationLoaderPlugin,
 } from '@pixiv/three-vrm-animation';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import * as THREE from 'three/webgpu';
+import { AnimationMixer, type Object3D } from 'three/webgpu';
 import { validateVrma } from '@/utils/validateGlb';
 
 /**
@@ -62,7 +62,7 @@ export function createMixerWithClips(
   vrm: VRM,
   animations: VRMAnimation[],
   weights?: number[] | null,
-): THREE.AnimationMixer {
+): AnimationMixer {
   const n = animations.length;
   const lengthOk = weights?.length === n;
   const allFinite = weights?.every((v) => Number.isFinite(v)) ?? false;
@@ -77,7 +77,7 @@ export function createMixerWithClips(
     );
   }
 
-  const mixer = new THREE.AnimationMixer(vrm.scene);
+  const mixer = new AnimationMixer(vrm.scene);
 
   // Reduce the chance of T-pose by applying a neutral pose if there is no idle animation (i.e. only one animation with weight 1).
   if (!mixer) {
@@ -98,10 +98,10 @@ export function createMixerWithClips(
  *
  * @param mixer The AnimationMixer instance to dispose.
  */
-export function disposeMixer(mixer: THREE.AnimationMixer): void {
+export function disposeMixer(mixer: AnimationMixer): void {
   mixer.stopAllAction();
   const root = mixer.getRoot();
-  if (root) mixer.uncacheRoot(root as THREE.Object3D);
+  if (root) mixer.uncacheRoot(root as Object3D);
 }
 
 /**
