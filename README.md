@@ -6,10 +6,13 @@ English | [日本語](README.ja.md)
   <img width="256" height="256" alt="vue-vrm" src="https://github.com/user-attachments/assets/8257613a-bd29-48b7-ad0c-3625431599bc" />
 </div>
 
-[![jsdelivr CDN](https://data.jsdelivr.com/v1/package/npm/vue-vrm/badge)](https://www.jsdelivr.com/package/npm/vue-vrm)
-[![NPM Downloads](https://img.shields.io/npm/dm/vue-vrm.svg?style=flat)](https://www.npmjs.com/package/vue-vrm)
 [![npm version](https://img.shields.io/npm/v/vue-vrm.svg)](https://www.npmjs.com/package/vue-vrm)
+[![NPM Downloads](https://img.shields.io/npm/dm/vue-vrm.svg?style=flat)](https://www.npmjs.com/package/vue-vrm)
+[![jsdelivr CDN](https://data.jsdelivr.com/v1/package/npm/vue-vrm/badge)](https://www.jsdelivr.com/package/npm/vue-vrm)
 [![Open in unpkg](https://img.shields.io/badge/Open%20in-unpkg-blue)](https://uiwjs.github.io/npm-unpkg/#/pkg/vue-vrm/file/README.md)
+[![Open in Gitpod](https://shields.io/badge/Open%20in-Gitpod-green?logo=Gitpod)](https://gitpod.io/#https://github.com/logue/vue-vrm)
+[![X Follow](https://img.shields.io/twitter/follow/logue256?style=plastic)](https://twitter.com/logue256)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/logue?label=Sponsor&logo=github&color=ea4aaa)](https://github.com/sponsors/logue)
 
 Vue 3 component library for rendering [VRM avatars](https://vrm.dev/en) with [three.js](https://threejs.org/). It supports [VRM 1.0](https://vrm.dev/en/vrm1/) loading, [VRMA](https://vrm.dev/en/vrma/) playback, camera controls, screenshots, and low-level helper utilities for working with VRM and VRMA buffers.
 
@@ -29,11 +32,10 @@ Vue 3 component library for rendering [VRM avatars](https://vrm.dev/en) with [th
 
 ## Requirements
 
-- Node.js `>=24`
 - Vue `>=3.5`
-- three `>=0.184`
-- `@pixiv/three-vrm` `>=3.5`
-- `@pixiv/three-vrm-animation` `>=3.5`
+- three `>=0.185`
+- `@pixiv/three-vrm` `3.5.5`
+- `@pixiv/three-vrm-animation` `3.5.5`
 
 ## Installation
 
@@ -45,8 +47,8 @@ pnpm add vue-vrm vue three @pixiv/three-vrm @pixiv/three-vrm-animation
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue';
-import { VrmCanvas } from 'vue-vrm';
+import { ref } from "vue";
+import { VrmCanvas } from "vue-vrm";
 
 const modelData = ref<ArrayBuffer | null>(null);
 
@@ -69,8 +71,12 @@ async function onModelFile(event: Event): Promise<void> {
 
 ```vue
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { resetVrmCanvasCamera, type VrmCanvasExposed, VrmCanvas } from 'vue-vrm';
+import { computed, ref } from "vue";
+import {
+  resetVrmCanvasCamera,
+  type VrmCanvasExposed,
+  VrmCanvas,
+} from "vue-vrm";
 
 const modelData = ref<ArrayBuffer | null>(null);
 const animationData = ref<ArrayBuffer | null>(null);
@@ -82,15 +88,18 @@ const cameraInteraction = computed(() => ({
   pan: true,
   zoom: true,
   roll: true,
-  damping: true
+  damping: true,
 }));
 
-async function loadFile(event: Event, target: 'model' | 'animation'): Promise<void> {
+async function loadFile(
+  event: Event,
+  target: "model" | "animation",
+): Promise<void> {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
   const buffer = await file.arrayBuffer();
 
-  if (target === 'model') {
+  if (target === "model") {
     modelData.value = buffer;
     return;
   }
@@ -106,8 +115,16 @@ function resetCamera(): void {
 <template>
   <fieldset>
     <legend>VRM Demo</legend>
-    <input type="file" accept=".vrm,.glb" @change="event => loadFile(event, 'model')" />
-    <input type="file" accept=".vrma,.glb" @change="event => loadFile(event, 'animation')" />
+    <input
+      type="file"
+      accept=".vrm,.glb"
+      @change="(event) => loadFile(event, 'model')"
+    />
+    <input
+      type="file"
+      accept=".vrma,.glb"
+      @change="(event) => loadFile(event, 'animation')"
+    />
 
     <button type="button" @click="resetCamera">Reset camera</button>
 
@@ -117,10 +134,14 @@ function resetCamera(): void {
       :animation-data="animationData"
       :show-grid="true"
       :camera-interaction="cameraInteraction"
-      :directional-light="{ color: '#ffffff', intensity: 1, position: [1, 1, 1] }"
+      :directional-light="{
+        color: '#ffffff',
+        intensity: 1,
+        position: [1, 1, 1],
+      }"
       @model:loaded="() => console.log('model loaded')"
       @animation:start="() => console.log('animation started')"
-      @error="error => console.error(error)"
+      @error="(error) => console.error(error)"
     />
   </fieldset>
 </template>
@@ -214,8 +235,8 @@ import {
   meta,
   resetVrmCanvasCamera,
   validateVrm,
-  validateVrma
-} from 'vue-vrm';
+  validateVrma,
+} from "vue-vrm";
 ```
 
 | Export                                            | Description                                                                                                    |
@@ -243,29 +264,29 @@ import {
 When bundling with Vite or another Rollup-based tool, splitting `three` and the VRM packages into separate chunks improves cacheability and initial bundle loading behavior.
 
 ```ts
-import type { UserConfig } from 'vite';
+import type { UserConfig } from "vite";
 
 const config: UserConfig = {
   build: {
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (id.includes('/node_modules/three/')) {
-            return 'three';
+          if (id.includes("/node_modules/three/")) {
+            return "three";
           }
 
           if (
-            id.includes('/node_modules/@pixiv/three-vrm') ||
-            id.includes('/node_modules/@pixiv/three-vrm-animation')
+            id.includes("/node_modules/@pixiv/three-vrm") ||
+            id.includes("/node_modules/@pixiv/three-vrm-animation")
           ) {
-            return 'three-vrm';
+            return "three-vrm";
           }
 
-          return 'vendor';
-        }
-      }
-    }
-  }
+          return "vendor";
+        },
+      },
+    },
+  },
 };
 
 export default config;
@@ -292,11 +313,3 @@ pnpm preview
 ## License
 
 © 2026 Logue. Licensed under the [MIT License](LICENSE).
-
-## 🎨 Crafted for Developers
-
-This template is built with a focus on **UI/UX excellence** and **modern developer experience**. Maintaining it involves constant testing and updates to ensure everything works seamlessly.
-
-If you appreciate the attention to detail in this project, a small sponsorship would go a long way in supporting my work across the Vue.js and Metaverse ecosystems.
-
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/logue?label=Sponsor&logo=github&color=ea4aaa)](https://github.com/sponsors/logue)
