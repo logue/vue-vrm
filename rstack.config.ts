@@ -276,6 +276,12 @@ define.doc({
       label: '日本語',
       title: 'vue-vrm',
       description: 'three.jsでVRMアバターとVRMAアニメーションを表示するVue 3コンポーネント'
+    },
+    {
+      lang: 'zh',
+      label: '简体中文',
+      title: 'vue-vrm',
+      description: '使用 three.js 显示 VRM 头像并播放 VRMA 动画的 Vue 3 组件'
     }
   ],
   // generate llms.txt

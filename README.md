@@ -12,6 +12,8 @@
 [![X Follow](https://img.shields.io/twitter/follow/logue256?style=plastic)](https://x.com/logue256)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/logue?label=Sponsor&logo=github&color=ea4aaa)](https://github.com/sponsors/logue)
 
+**[English](https://logue.dev/vue-vrm/) | [日本語](https://logue.dev/vue-vrm/ja/) | [简体中文](https://logue.dev/vue-vrm/zh/)**
+
 A Vue 3 component for rendering [VRM](https://vrm.dev/en/) avatars and playing VRMA animations with [three.js](https://threejs.org/).
 
 **📖 Documentation: <https://logue.dev/vue-vrm/>**

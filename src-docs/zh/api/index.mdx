@@ -1,0 +1,34 @@
+---
+title: API 概览
+description: vue-vrm API 概览：props、事件、通过模板引用暴露的实例 API，以及辅助函数。
+---
+
+# API 概览
+
+`VrmCanvas` 组件有三类 API，此外包中还导出了辅助函数：
+
+| 页面                    | 内容                                            |
+| ----------------------- | ----------------------------------------------- |
+| [Props](./props)        | 模型、动画、画布、相机和灯光的设置。            |
+| [事件](./events)        | 加载、动画、相机和灯光变化以及错误的通知。      |
+| [实例 API](./instance)  | 可通过模板引用调用的方法。                      |
+| [工具函数](./utilities) | 无需组件即可校验和加载 VRM／VRMA 缓冲区的函数。 |
+
+```vue
+<script setup lang="ts">
+  import { ref } from 'vue';
+  import { VrmCanvas, type VrmCanvasExposed } from 'vue-vrm';
+
+  const modelData = ref<ArrayBuffer>();
+  const canvas = ref<VrmCanvasExposed>();
+</script>
+
+<template>
+  <VrmCanvas
+    ref="canvas"
+    :model-data="modelData"
+    show-grid
+    @model:loaded="() => canvas?.resetCamera()"
+  />
+</template>
+```

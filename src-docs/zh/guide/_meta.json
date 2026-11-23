@@ -1,0 +1,11 @@
+[
+  { "type": "section-header", "label": "入门" },
+  "introduction",
+  "getting-started",
+  { "type": "section-header", "label": "指南" },
+  "usage",
+  "animation",
+  "camera-and-lighting",
+  "web-components",
+  "bundling"
+]

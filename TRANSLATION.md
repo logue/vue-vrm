@@ -5,7 +5,7 @@ AI agents MUST read this file before creating or editing any files in `src-docs/
 
 ## 1. Scope & Directory Boundaries
 
-- **Managed Scope**: `src-docs/en/` and `src-docs/ja/` ONLY.
+- **Managed Scope**: `src-docs/en/`, `src-docs/ja/`, and `src-docs/zh/` ONLY.
 - **Excluded (Do NOT Touch)**: `src-demo/`, `src-docs/public/demo/`, `src/`, `theme/`.
 - **Source of Truth**: `src-docs/en/` (or `src-docs/ja/` — _set your primary locale_).
 - **Strict Mirroring**: Target locale directories MUST mirror the exact file paths, `kebab-case` filenames, and `_meta.json` structure of the primary locale.
@@ -35,4 +35,9 @@ To prevent structural drift across languages and keep `llms.txt` clean:
   - Use full-width punctuation (`。`, `、`). Never use half-width commas/periods in Japanese sentences.
   - Do NOT put spaces between Japanese characters and ASCII words (e.g., `Rspressの設定`, not `Rspress の 設定`).
   - Standardize katakana long vowels (e.g., `サーバー`, `ユーザー`, `レイヤー`, `パラメーター`).
+- **Simplified Chinese (`zh`)**:
+  - Use Simplified Chinese characters only.
+  - Use full-width punctuation (`，`, `。`, `：`, `（）`) in Chinese sentences.
+  - Put a half-width space between Chinese characters and ASCII words or inline code (e.g., `使用 Rspress 构建`).
+  - Use consistent terms: `组件`, `属性` is NOT used for props (keep `props`), `事件`, `实例 API`, `头像` for avatar, `模型` for model, `动画` for animation.
 - **Do-Not-Translate (DNT)**: `Rstack`, `Rspack`, `Rsbuild`, `Rslib`, `Rspress`, `Oxc`, `oxlint`, `oxfmt`, `Playground`, `llms.txt`, `_meta.json`.
