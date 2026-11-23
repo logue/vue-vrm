@@ -1,25 +1,29 @@
-# Fetch Model via VRoid Hub API
+---
+description: Cloudflare Pages FunctionsでOAuth（PKCE）を使ってVRoid HubからVRMモデルを取得し、ArrayBufferとしてvue-vrmに読み込む方法です。
+---
 
-This flow is more complex than static hosting because VRoid Hub requires OAuth.
+# VRoid Hub API
 
-> [!WARNING]
-> You cannot call `/api/vrm/:avatar_id` first.
-> You must complete OAuth once in a browser and get a refresh token.
+VRoid HubはOAuthが必要なので、静的ホスティングより手順が複雑です。
 
-## Overview
+:::warning
+最初に`/api/vrm/:avatar_id`を呼ぶことはできません。一度ブラウザーでOAuthを完了し、リフレッシュトークンを取得する必要があります。
+:::
 
-1. Get a client ID and client secret from the [VRoid Hub API](https://developer.vroid.com/api/).
-2. Write the obtained client ID and client secret to `VROID_APP_ID` and `VROID_CLIENT_SECRET`.
-3. Open `/api/auth` in your browser.
-4. Sign in to VRoid Hub and approve access.
-5. VRoid Hub redirects to `/api/auth/callback`.
-6. The callback exchanges the authorization code for tokens.
-7. Save the returned refresh token to environment variables or KV.
-8. Now `/api/vrm/:avatar_id` can fetch JSON that contains a temporary download URL.
+## 概要
 
-## Code Example
+1. [VRoid Hub API](https://developer.vroid.com/api/)でクライアントIDとクライアントシークレットを取得します。
+2. 取得したクライアントIDとクライアントシークレットを、`VROID_APP_ID`と`VROID_CLIENT_SECRET`に設定します。
+3. ブラウザーで`/api/auth`を開きます。
+4. VRoid Hubにサインインし、アクセスを許可します。
+5. VRoid Hubが`/api/auth/callback`にリダイレクトします。
+6. コールバックが認可コードをトークンに交換します。
+7. 返ってきたリフレッシュトークンを、環境変数かKVに保存します。
+8. これで`/api/vrm/:avatar_id`から、一時的なダウンロードURLを含むJSONを取得できるようになります。
 
-The following examples are based on the Worker code used by the referenced repository.
+## コード例
+
+以下の例は、[v.logue.dev](https://github.com/logue/v.logue.dev)で使っているコードをもとにしています。`USER_AGENT`は最初のコードで定義している定数です。
 
 ### `/api/auth`
 
@@ -224,95 +228,100 @@ export const onRequest: PagesFunction<Env> = async context => {
 };
 ```
 
-## Required Environment Variables
+## 必要な環境変数
 
 - `VROID_APP_ID`
 - `VROID_CLIENT_SECRET`
 
-Optional:
+任意：
 
 - `VROID_REFRESH_TOKEN`
-- `TOKEN_STORE` (Cloudflare KV binding for token rotation)
+- `TOKEN_STORE`（トークンを更新し続けるためのCloudflare KVバインディング）
 
-Notes:
+補足：
 
-- In VRoid terms, the application key corresponds to `VROID_APP_ID` (client ID).
-- In VRoid terms, the secret key corresponds to `VROID_CLIENT_SECRET` (client secret).
-- Write the obtained client ID and client secret to `VROID_APP_ID` and `VROID_CLIENT_SECRET`.
-- `VROID_CLIENT_SECRET` is required for token exchange in callback and refresh flow.
-- If TOKEN_STORE is configured, the latest refresh token is stored there and used first.
+- VRoidの用語では、アプリケーションキーが`VROID_APP_ID`（クライアントID）にあたります。
+- VRoidの用語では、シークレットキーが`VROID_CLIENT_SECRET`（クライアントシークレット）にあたります。
+- 取得したクライアントIDとクライアントシークレットを、`VROID_APP_ID`と`VROID_CLIENT_SECRET`に設定します。
+- `VROID_CLIENT_SECRET`は、コールバックとリフレッシュでのトークン交換に必要です。
+- `TOKEN_STORE`を設定すると、最新のリフレッシュトークンがそこに保存され、優先して使われます。
 
-## VRoid Hub App Settings
+## VRoid Hubアプリの設定
 
-Create an OAuth app in VRoid Hub developer settings and configure callback URL:
+VRoid Hubの開発者設定でOAuthアプリを作成し、コールバックURLを設定します。
 
-- Local: <http://127.0.0.1:8788/api/auth/callback> (or your local Worker URL)
-- Production: <https://your-domain.example/api/auth/callback>
+- ローカル：`http://127.0.0.1:8788/api/auth/callback`（またはローカルのWorkerのURL）
+- 本番：`https://your-domain.example/api/auth/callback`
 
-The callback URL must exactly match the URL used by the Worker.
+コールバックURLは、Workerが使うURLと完全に一致させてください。
 
-## Browser Step (Mandatory)
+## ブラウザーでの手順（必須）
 
-Open this URL in your browser:
+ブラウザーで次のURLを開きます。
 
 - `/api/auth`
 
-What it does:
+このURLで行うこと：
 
-- Generates PKCE code_verifier / code_challenge.
-- Generates state for CSRF protection.
-- Stores both values in HttpOnly cookies.
-- Redirects to VRoid Hub OAuth authorize endpoint.
+- PKCEの`code_verifier`／`code_challenge`を生成します。
+- CSRF対策の`state`を生成します。
+- 両方の値をHttpOnlyのCookieに保存します。
+- VRoid HubのOAuth認可エンドポイントにリダイレクトします。
 
-After approval, VRoid Hub redirects to:
+許可すると、VRoid Hubが次のURLにリダイレクトします。
 
 - `/api/auth/callback?code=...&state=...`
 
-The callback endpoint validates state and code_verifier, then exchanges code for tokens.
+コールバックのエンドポイントは`state`と`code_verifier`を検証し、コードをトークンに交換します。
 
-## How to Get the Refresh Token
+## リフレッシュトークンの取得
 
-When callback succeeds, the response includes a line like:
+コールバックが成功すると、レスポンスに次のような行が含まれます。
 
 - `VROID_REFRESH_TOKEN=xxxxxxxx`
 
-Use this value as your initial refresh token.
+この値を最初のリフレッシュトークンとして使います。
 
-If `TOKEN_STORE` is configured, the callback also stores the refresh token in KV.
+`TOKEN_STORE`を設定している場合は、コールバックがリフレッシュトークンをKVにも保存します。
 
-## Call the Avatar Endpoint
+## アバターのエンドポイントを呼ぶ
 
-After OAuth setup, call:
+OAuthの設定が終わったら、次のURLを呼びます。
 
 - `/api/vrm/{avatar_id}`
 
-Example:
+例：
 
 - `/api/vrm/your_avatar_id`
 
-The endpoint flow is:
+エンドポイントの処理の流れは次のとおりです。
 
-1. Load refresh token from KV (fallback to `VROID_REFRESH_TOKEN`).
-2. Exchange refresh token for access token (and rotated refresh token).
-3. Query account character models and find the model by `avatar_id`.
-4. Issue a download license.
-5. Get JSON from VRoid Hub that includes a temporary URL.
-6. Return JSON: `{ "url": "..." }` to the client.
+1. KVからリフレッシュトークンを読みます（なければ`VROID_REFRESH_TOKEN`を使います）。
+2. リフレッシュトークンを、アクセストークン（と更新されたリフレッシュトークン）に交換します。
+3. アカウントのキャラクターモデルを取得し、`avatar_id`でモデルを探します。
+4. ダウンロードライセンスを発行します。
+5. VRoid Hubから、一時的なURLを含むJSONを取得します。
+6. クライアントにJSON（`{ "url": "..." }`）を返します。
 
-The client then calls `fetch(url)` and reads the VRM data as an `ArrayBuffer`.
+クライアントは`fetch(url)`を呼び、VRMのデータを`ArrayBuffer`として読みます。
 
-## Typical Pitfalls
+```ts
+const { url } = (await (await fetch(`/api/vrm/${avatarId}`)).json()) as { url: string };
+modelData.value = await (await fetch(url)).arrayBuffer();
+```
 
-- Callback URL mismatch in VRoid Hub app settings.
-- Calling `/api/vrm/:avatar_id` before completing `/api/auth` browser flow.
-- Trying to open the temporary VRM URL directly in a browser instead of fetching it from the app.
-- Missing `VROID_CLIENT_SECRET`.
-- No `TOKEN_STORE` binding when relying on automatic refresh token rotation.
+## よくある失敗
 
-## Quick Test Sequence
+- VRoid HubアプリのコールバックURLが一致していない。
+- ブラウザーで`/api/auth`の手順を終える前に、`/api/vrm/:avatar_id`を呼んでいる。
+- 一時的なVRMのURLを、アプリから取得せずにブラウザーで直接開こうとする。
+- `VROID_CLIENT_SECRET`が設定されていない。
+- リフレッシュトークンの自動更新に頼っているのに、`TOKEN_STORE`のバインディングがない。
 
-1. Set `VROID_APP_ID` and `VROID_CLIENT_SECRET`.
-2. Open `/api/auth` in browser and complete consent.
-3. Confirm callback success and copy `VROID_REFRESH_TOKEN`.
-4. Save token to env (or confirm KV write).
-5. Call `/api/vrm/{avatar_id}`.
+## 動作確認の手順
+
+1. `VROID_APP_ID`と`VROID_CLIENT_SECRET`を設定します。
+2. ブラウザーで`/api/auth`を開き、同意を完了します。
+3. コールバックが成功したことを確認し、`VROID_REFRESH_TOKEN`をコピーします。
+4. トークンを環境変数に保存します（またはKVへの書き込みを確認します）。
+5. `/api/vrm/{avatar_id}`を呼びます。

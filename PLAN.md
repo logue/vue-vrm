@@ -119,6 +119,7 @@ npm パッケージ名は **`vue-vrm`**（スコープなし）。
 - **ビルド形式**: ESM（`.mjs`）と CJS（`.cjs`）の両方を出力。
 - **型定義**: `tsc --declaration` で `.d.ts` を生成。公開 API（emits のペイロード・`defineExpose` の戻り値）には Three.js / `@pixiv/three-vrm` の型をそのまま使用する（`VRM`, `VRMAnimation`, `THREE.AnimationMixer` 等を独自ラップしない）。利用者は `@types/three` を別途インストールする必要がある。
 - **peerDependencies**: `three`, `@pixiv/three-vrm`, `@pixiv/three-vrm-animation`, `vue >=3.5`。バンドルには含めない。
+  - `three` は `>=0.187.0`（r187 以上）とする。three-vrm-core の `peerDependencies.three`（<https://github.com/pixiv/three-vrm/blob/dev/packages/three-vrm-core/package.json>、現在は `>=0.137`）より狭いのは、本ライブラリが r187 以降の API（`Timer` など）を使っているため。
 - **peerDevDependencies**: `@types/three`（型定義の参照に必要）。
 - **exports フィールド**:
 

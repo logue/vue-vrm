@@ -1,7 +1,7 @@
 [
   {
     "text": "Guide",
-    "link": "/guide/start/introduction",
+    "link": "/guide/introduction",
     "activeMatch": "/guide/"
   },
   {
@@ -10,12 +10,17 @@
     "activeMatch": "/api/"
   },
   {
+    "text": "Examples",
+    "link": "/examples/",
+    "activeMatch": "/examples/"
+  },
+  {
     "text": "Playground",
     "link": "/playground",
     "activeMatch": "/playground"
   },
   {
-    "text": "Document",
-    "link": "https://rspress.rs/"
+    "text": "Changelog",
+    "link": "https://github.com/logue/vue-vrm/blob/master/CHANGELOG.md"
   }
 ]

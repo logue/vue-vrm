@@ -1,43 +1,47 @@
-# Host Model Files via Cloudflare R2 + Workers
+---
+description: Cloudflare R2に置いたVRMファイルを、オリジンの確認とRange対応付きのWorkerで配信し、ArrayBufferとしてvue-vrmに読み込む方法です。
+---
 
-This flow is simpler than the VRoid Hub OAuth setup, but the client side pattern is similar: the app fetches a file URL and reads the response as an `ArrayBuffer`.
+# Cloudflare R2 + Workers
 
-You should not treat the asset endpoint as a page to open in the browser.
-The Worker validates the request, streams the object from R2, and returns bytes to `fetch()`.
+この方法はVRoid HubのOAuth設定より簡単ですが、クライアント側の流れは同じです。アプリはファイルのURLを取得し、レスポンスを`ArrayBuffer`として読みます。
 
-## Overview
+アセットのエンドポイントは、ブラウザーで開くページとして扱わないでください。
+Workerはリクエストを検証し、R2のオブジェクトをストリーミングして、`fetch()`にバイト列を返します。
 
-1. Create an R2 bucket and upload VRM files.
-2. Configure a Worker with an R2 binding.
-3. Expose an internal asset route such as /assets/\*.
-4. Fetch the asset URL from the app and read it as an `ArrayBuffer`.
+## 概要
 
-## Required Environment Variables
+1. R2バケットを作成し、VRMファイルをアップロードします。
+2. R2バインディング付きのWorkerを設定します。
+3. `/assets/*`のような内部用のアセットルートを公開します。
+4. アプリからアセットのURLを取得し、`ArrayBuffer`として読みます。
+
+## 必要な環境変数
 
 - `VRM_BUCKET`
 
-Optional:
+任意：
 
 - `ALLOWED_ORIGINS`
 
-Notes:
+補足：
 
-- `VRM_BUCKET` is the R2 binding name used by the Worker.
-- `ALLOWED_ORIGINS` is a comma-separated allowlist of exact origins.
-- If `ALLOWED_ORIGINS` is omitted, same-origin requests are allowed.
+- `VRM_BUCKET`は、Workerが使うR2バインディングの名前です。
+- `ALLOWED_ORIGINS`は、許可するオリジンをカンマ区切りで完全一致で指定するリストです。
+- `ALLOWED_ORIGINS`を省略すると、同一オリジンからのリクエストだけを許可します。
 
-## R2 Bucket Setup
+## R2バケットの設定
 
-Create a bucket, for example vrm-assets, then upload your VRM files.
+`vrm-assets`などのバケットを作成し、VRMファイルをアップロードします。
 
-Example object keys:
+オブジェクトキーの例：
 
-- avatars/AvatarSample_A.vrm
-- characters/Hero.vrm
+- `avatars/AvatarSample_A.vrm`
+- `characters/Hero.vrm`
 
-## Worker Settings
+## Workerの設定
 
-wrangler.toml:
+`wrangler.toml`:
 
 ```toml
 name = "vrm-assets-worker"
@@ -54,21 +58,21 @@ bucket_name = "vrm-assets"
 ALLOWED_ORIGINS = "http://localhost:5173,https://your-app.example"
 ```
 
-Example addresses:
+アドレスの例：
 
-- R2 bucket: `vrm-assets`
-- Local Worker URL: `http://127.0.0.1:8787/assets/avatars/AvatarSample_A.vrm`
-- Production Worker URL: `https://your-worker.example/assets/avatars/AvatarSample_A.vrm`
-- App-side fetch target: `fetch('https://your-worker.example/assets/avatars/AvatarSample_A.vrm')`
+- R2バケット：`vrm-assets`
+- ローカルのWorkerのURL：`http://127.0.0.1:8787/assets/avatars/AvatarSample_A.vrm`
+- 本番のWorkerのURL：`https://your-worker.example/assets/avatars/AvatarSample_A.vrm`
+- アプリ側で取得する先：`fetch('https://your-worker.example/assets/avatars/AvatarSample_A.vrm')`
 
-Official docs:
+公式ドキュメント：
 
 - Cloudflare R2: <https://developers.cloudflare.com/r2/>
 - Cloudflare Workers: <https://developers.cloudflare.com/workers/>
 
-## Worker Implementation
+## Workerの実装
 
-src/index.ts:
+`src/index.ts`:
 
 ```ts
 export interface Env {
@@ -203,41 +207,54 @@ export default {
 };
 ```
 
-## Route Example
+## ルートの例
 
-The asset endpoint is an internal URL under /assets/\*.
-The client calls `fetch()` and then reads the response as an `ArrayBuffer`.
+アセットのエンドポイントは、`/assets/*`以下の内部用のURLです。
+クライアントは`fetch()`を呼び、レスポンスを`ArrayBuffer`として読みます。
 
-Examples:
+例：
 
-- <https://your-worker.example/assets/avatars/AvatarSample_A.vrm>
-- <https://your-worker.example/assets/characters/Hero.vrm>
+- `https://your-worker.example/assets/avatars/AvatarSample_A.vrm`
+- `https://your-worker.example/assets/characters/Hero.vrm`
 
-Client-side usage:
+クライアント側での使い方：
 
-```ts
-const response = await fetch('https://your-worker.example/assets/avatars/AvatarSample_A.vrm');
-const arrayBuffer = await response.arrayBuffer();
+```vue
+<script setup lang="ts">
+  import { onMounted, ref } from 'vue';
+  import { VrmCanvas } from 'vue-vrm';
+
+  const modelData = ref<ArrayBuffer>();
+
+  onMounted(async () => {
+    const response = await fetch('https://your-worker.example/assets/avatars/AvatarSample_A.vrm');
+    modelData.value = await response.arrayBuffer();
+  });
+</script>
+
+<template>
+  <VrmCanvas :model-data="modelData" />
+</template>
 ```
 
-## Local Development and Deploy
+## ローカル開発とデプロイ
 
 ```bash
 npx wrangler dev
 npx wrangler deploy
 ```
 
-## Typical Pitfalls
+## よくある失敗
 
-- Calling the asset URL from the browser as if it were a page instead of fetching it.
-- Missing or mismatched `ALLOWED_ORIGINS` when the app runs on another origin.
-- Uploading VRM files without a proper `Content-Type`.
-- Using a path that does not match the allowlisted extension or includes traversal patterns.
+- アセットのURLを`fetch()`で取得せず、ページとしてブラウザーで開こうとする。
+- アプリが別のオリジンで動いているのに、`ALLOWED_ORIGINS`がない、または一致していない。
+- 適切な`Content-Type`を付けずにVRMファイルをアップロードしている。
+- 許可した拡張子に合わないパスや、ディレクトリをさかのぼるパターンを含むパスを使っている。
 
-## Quick Test Sequence
+## 動作確認の手順
 
-1. Create the R2 bucket and upload a VRM file.
-2. Set `VRM_BUCKET` and `ALLOWED_ORIGINS`.
-3. Start the Worker locally or deploy it.
-4. Call the asset URL from the app with `fetch()`.
-5. Confirm `response.arrayBuffer()` returns the VRM bytes.
+1. R2バケットを作成し、VRMファイルをアップロードします。
+2. `VRM_BUCKET`と`ALLOWED_ORIGINS`を設定します。
+3. Workerをローカルで起動するか、デプロイします。
+4. アプリから`fetch()`でアセットのURLを呼びます。
+5. `response.arrayBuffer()`がVRMのバイト列を返すことを確認します。

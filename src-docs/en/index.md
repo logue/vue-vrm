@@ -1,44 +1,47 @@
 ---
-description: Rspress starter homepage with guide, MDX, search, AI, SSG, and theme customization links.
+description: vue-vrm is a Vue 3 component that renders VRM 1.0 avatars and plays VRMA animations with three.js, also available as a Web Component.
 pageType: home
 
 hero:
-  name: My Site
-  text: A cool website!
-  tagline: This is the tagline
+  name: vue-vrm
+  text: VRM avatars for Vue
+  tagline: Render VRM 1.0 models and play VRMA animations with three.js, from a single component.
   actions:
     - theme: brand
-      text: Quick Start
-      link: /guide/start/introduction
+      text: Get Started
+      link: /guide/getting-started
+    - theme: alt
+      text: Playground
+      link: /playground
     - theme: alt
       text: GitHub
-      link: https://github.com/web-infra-dev/rspress
+      link: https://github.com/logue/vue-vrm
   image:
-    src: /rspress-icon.png
-    alt: Logo
+    src: https://github.com/user-attachments/assets/8257613a-bd29-48b7-ad0c-3625431599bc
+    alt: vue-vrm logo
 features:
-  - title: Blazing fast build speed
-    details: The core compilation module is based on the Rust front-end toolchain, providing a more ultimate development experience.
-    icon: 🏃🏻‍♀️
-    link: /guide/start/introduction
-  - title: Support for MDX content writing
-    details: MDX is a powerful way to write content, allowing you to use React components in Markdown.
-    icon: 📦
-    link: /guide/use-mdx/components
-  - title: Built-in full-text search
-    details: Automatically generates a full-text search index for you during construction, providing out-of-the-box full-text search capabilities.
-    icon: 🎨
-    link: https://rspress.rs/guide/advanced/custom-search
-  - title: AI-friendly
-    details: Generate llms.txt and Markdown files compliant with the llms.txt specification through SSG-MD, making it easier for large language models to understand and use your documentation.
-    icon: 🤖
-    link: https://rspress.rs/guide/basic/ssg-md
-  - title: Static site generation
-    details: In production, it automatically builds into static HTML files, which can be easily deployed anywhere.
-    icon: 🌈
-    link: https://rspress.rs/guide/basic/ssg
-  - title: Providing multiple custom capabilities
-    details: Through its extension mechanism, you can easily extend theme UI and build process.
-    icon: 🔥
-    link: https://rspress.rs/guide/basic/custom-theme
+  - title: VRM 1.0 with MToon
+    details: Loads VRM 1.0 models from an ArrayBuffer and renders them with three-vrm's MToon shader.
+    icon: 🧍
+    link: /guide/introduction
+  - title: VRMA playback
+    details: Play one or several VRMA clips with blend weights, and pause, resume, or stop them from code.
+    icon: 💃
+    link: /guide/animation
+  - title: Camera and lighting
+    details: Frame the model automatically, adjust the camera and lights through props, and enable orbit controls.
+    icon: 🎥
+    link: /guide/camera-and-lighting
+  - title: ⚠️ Mind the asset licenses
+    details: Unless you own the copyright to the model and all its assets, don't load the actual file directly. Accepts only ArrayBuffers — see Examples for safe delivery.
+    icon: 🔒
+    link: /examples/
+  - title: Web Component
+    details: The same component is also exported as a custom element for use outside Vue.
+    icon: 🧩
+    link: /guide/web-components
+  - title: Full three.js access
+    details: Reach the scene, camera, renderer, mixer, and VRM instance through a template ref.
+    icon: 🛠️
+    link: /api/instance
 ---

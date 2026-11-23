@@ -1,7 +1,34 @@
 ---
 title: API Overview
-description: Overview page for the Rspress starter API section and available reference pages.
-overview: true
+description: Overview of the vue-vrm API — props, events, the instance API exposed through a template ref, and helper functions.
 ---
 
-This is an API Overview page which outlines all the available APIs.
+# API Overview
+
+The `VrmCanvas` component has three kinds of API, and the package also exports helper functions:
+
+| Page                       | Content                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| [Props](./props)           | Options for the model, animation, canvas, camera, and lights.                  |
+| [Events](./events)         | Notifications for loading, animation, camera and light changes, and errors.    |
+| [Instance API](./instance) | Methods available through a template ref.                                      |
+| [Utilities](./utilities)   | Functions for validating and loading VRM / VRMA buffers without the component. |
+
+```vue
+<script setup lang="ts">
+  import { ref } from 'vue';
+  import { VrmCanvas, type VrmCanvasExposed } from 'vue-vrm';
+
+  const modelData = ref<ArrayBuffer>();
+  const canvas = ref<VrmCanvasExposed>();
+</script>
+
+<template>
+  <VrmCanvas
+    ref="canvas"
+    :model-data="modelData"
+    show-grid
+    @model:loaded="() => canvas?.resetCamera()"
+  />
+</template>
+```

@@ -1,0 +1,26 @@
+[
+  {
+    "text": "ガイド",
+    "link": "/guide/introduction",
+    "activeMatch": "/guide/"
+  },
+  {
+    "text": "API",
+    "link": "/api/",
+    "activeMatch": "/api/"
+  },
+  {
+    "text": "実装例",
+    "link": "/examples/",
+    "activeMatch": "/examples/"
+  },
+  {
+    "text": "Playground",
+    "link": "/playground",
+    "activeMatch": "/playground"
+  },
+  {
+    "text": "変更履歴",
+    "link": "https://github.com/logue/vue-vrm/blob/master/CHANGELOG.md"
+  }
+]

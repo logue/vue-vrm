@@ -268,8 +268,14 @@ define.doc({
     {
       lang: 'en',
       label: 'English',
-      title: 'My Site',
-      description: 'My site description'
+      title: 'vue-vrm',
+      description: 'Vue 3 component for rendering VRM avatars and VRMA animations with three.js.'
+    },
+    {
+      lang: 'ja',
+      label: '日本語',
+      title: 'vue-vrm',
+      description: 'three.jsでVRMアバターとVRMAアニメーションを表示するVue 3コンポーネント'
     }
   ],
   // generate llms.txt

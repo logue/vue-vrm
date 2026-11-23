@@ -1,0 +1,34 @@
+---
+title: API概要
+description: vue-vrmのAPIの概要です。props、イベント、テンプレート参照から使えるインスタンスAPI、ヘルパー関数を紹介します。
+---
+
+# API概要
+
+`VrmCanvas`コンポーネントには3種類のAPIがあり、ほかにヘルパー関数も公開しています。
+
+| ページ                        | 内容                                                               |
+| ----------------------------- | ------------------------------------------------------------------ |
+| [Props](./props)              | モデル、アニメーション、キャンバス、カメラ、ライトの設定です。     |
+| [イベント](./events)          | 読み込み、アニメーション、カメラとライトの変化、エラーの通知です。 |
+| [インスタンスAPI](./instance) | テンプレート参照から呼べるメソッドです。                           |
+| [ユーティリティ](./utilities) | コンポーネントを使わずにVRM／VRMAを検証・読み込みする関数です。    |
+
+```vue
+<script setup lang="ts">
+  import { ref } from 'vue';
+  import { VrmCanvas, type VrmCanvasExposed } from 'vue-vrm';
+
+  const modelData = ref<ArrayBuffer>();
+  const canvas = ref<VrmCanvasExposed>();
+</script>
+
+<template>
+  <VrmCanvas
+    ref="canvas"
+    :model-data="modelData"
+    show-grid
+    @model:loaded="() => canvas?.resetCamera()"
+  />
+</template>
+```
