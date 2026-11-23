@@ -3,7 +3,6 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import {
   AmbientLight,
-  Color,
   DirectionalLight,
   GridHelper,
   type PerspectiveCamera,
@@ -15,99 +14,104 @@ import {
 } from 'three/webgpu';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
-import type { VrmSceneCallbacks, VrmSceneDeps, VrmSceneOptions } from '@/types/VrmSceneTypes';
+import type {
+  VrmSceneCallbacks,
+  VrmSceneDependencies,
+  VrmSceneOptions
+} from '@/types/VrmSceneTypes';
+
 /**
  * Manage the Three.js scene: renderer, scene graph, lights, background,
  * grid helper, and the optional postprocessing composer.
  *
- * @param canvasRef The `<canvas>` element to render into.
+ * @param canvas The `<canvas>` element to render into.
  * @param options Reactive getters for scene-related props.
- * @param deps Getters for state owned by other composables (e.g. the camera).
+ * @param dependencies Getters for state owned by other composables (e.g. the camera).
  * @param callbacks Optional hooks invoked on error or reactive light changes.
  */
 export function useVrmScene(
-  canvasRef: Ref<HTMLCanvasElement | null>,
+  canvas: Readonly<Ref<HTMLCanvasElement | undefined>>,
   options: VrmSceneOptions,
-  deps: VrmSceneDeps,
+  dependencies: VrmSceneDependencies,
   callbacks: VrmSceneCallbacks = {}
 ): {
-  renderer: ShallowRef<WebGPURenderer | null>;
-  scene: ShallowRef<Scene | null>;
-  composer: ShallowRef<EffectComposer | null>;
+  renderer: ShallowRef<WebGPURenderer | undefined>;
+  scene: ShallowRef<Scene | undefined>;
+  composer: ShallowRef<EffectComposer | undefined>;
   init: () => Promise<void>;
   dispose: () => void;
   setSize: (width: number, height: number) => void;
   rebuildComposer: () => void;
-  render: (dt: number, camera: PerspectiveCamera | null) => void;
+  render: (deltaSeconds: number, camera?: PerspectiveCamera) => void;
 } {
-  const renderer = shallowRef<WebGPURenderer | null>(null);
-  const scene = shallowRef<Scene | null>(null);
-  const ambientLightReference = shallowRef<AmbientLight | null>(null);
-  const directionalLightReference = shallowRef<DirectionalLight | null>(null);
-  const grid = shallowRef<GridHelper | null>(null);
-  const bgTexture = shallowRef<Texture | null>(null);
-  const composer = shallowRef<EffectComposer | null>(null);
-  const renderPass = shallowRef<RenderPass | null>(null);
-  const outputPass = shallowRef<OutputPass | null>(null);
+  const renderer = shallowRef<WebGPURenderer>();
+  const scene = shallowRef<Scene>();
+  const composer = shallowRef<EffectComposer>();
+
+  // Non-reactive internals.
+  let ambientLight: AmbientLight | undefined;
+  let directionalLight: DirectionalLight | undefined;
+  let grid: GridHelper | undefined;
+  let bgTexture: Texture | undefined;
+  /** Incremented per background request so stale texture loads are discarded. */
+  let bgRequest = 0;
+
+  function setBackground(texture?: Texture): void {
+    if (bgTexture !== texture) bgTexture?.dispose();
+    bgTexture = texture;
+    // eslint-disable-next-line unicorn/no-null -- three.js uses `null` for "no background".
+    if (scene.value) scene.value.background = texture ?? null;
+  }
 
   function applyBackground(): void {
     if (!(scene.value && renderer.value)) return;
-    if (options.bgTransparent()) {
-      renderer.value.setClearColor(0x000000, 0);
-      scene.value.background = null;
-      if (bgTexture.value) {
-        bgTexture.value.dispose();
-        bgTexture.value = null;
-      }
+    const request = ++bgRequest;
+    const transparent = options.bgTransparent();
+    renderer.value.setClearColor(0x00_00_00, transparent ? 0 : 1);
+
+    const bgImage = options.bgImage();
+    if (transparent || !bgImage) {
+      setBackground();
       return;
     }
-
-    renderer.value.setClearColor(0x000000, 1);
-    const bgImage = options.bgImage();
-    if (bgImage) {
-      const loader = new TextureLoader();
-      loader.load(
-        bgImage,
-        tex => {
-          if (bgTexture.value) bgTexture.value.dispose();
-          bgTexture.value = tex;
-          if (scene.value) scene.value.background = tex;
-        },
-        undefined,
-        error => callbacks.onError?.(error)
-      );
-    } else {
-      if (bgTexture.value) {
-        bgTexture.value.dispose();
-        bgTexture.value = null;
-      }
-      scene.value.background = null;
-    }
+    new TextureLoader().load(
+      bgImage,
+      texture => {
+        if (request === bgRequest) {
+          texture.colorSpace = SRGBColorSpace;
+          setBackground(texture);
+        } else {
+          texture.dispose();
+        }
+      },
+      undefined,
+      error => callbacks.onError?.(error)
+    );
   }
 
   function applyGrid(): void {
     if (!scene.value) return;
-    if (options.showGrid() && !grid.value) {
-      grid.value = new GridHelper(10, 10);
-      scene.value.add(grid.value);
-    } else if (!options.showGrid() && grid.value) {
-      scene.value.remove(grid.value);
-      grid.value.dispose();
-      grid.value = null;
+    const show = options.showGrid();
+    if (show && !grid) {
+      grid = new GridHelper(10, 10);
+      scene.value.add(grid);
+    } else if (!show && grid) {
+      scene.value.remove(grid);
+      grid.dispose();
+      grid = undefined;
     }
   }
 
+  function disposeComposer(): void {
+    composer.value?.dispose();
+    composer.value = undefined;
+  }
+
   function rebuildComposer(): void {
-    const camera = deps.getCamera();
+    const camera = dependencies.getCamera();
     if (!(renderer.value && scene.value && camera)) return;
 
-    if (composer.value) {
-      composer.value.dispose();
-      composer.value = null;
-      renderPass.value = null;
-      outputPass.value = null;
-    }
-
+    disposeComposer();
     const shaderPass = options.shaderPass();
     if (!shaderPass) return;
 
@@ -116,14 +120,10 @@ export function useVrmScene(
     const c = new EffectComposer(
       renderer.value as unknown as ConstructorParameters<typeof EffectComposer>[0]
     );
-    const rp = new RenderPass(scene.value, camera);
-    const op = new OutputPass();
-    c.addPass(rp);
+    c.addPass(new RenderPass(scene.value, camera));
     c.addPass(shaderPass);
-    c.addPass(op);
+    c.addPass(new OutputPass());
     composer.value = c;
-    renderPass.value = rp;
-    outputPass.value = op;
   }
 
   function setSize(width: number, height: number): void {
@@ -131,134 +131,95 @@ export function useVrmScene(
     composer.value?.setSize(width, height);
   }
 
-  function render(dt: number, camera: PerspectiveCamera | null): void {
+  function render(deltaSeconds: number, camera?: PerspectiveCamera): void {
     if (composer.value) {
-      composer.value.render(dt);
+      composer.value.render(deltaSeconds);
     } else if (renderer.value && scene.value && camera) {
       renderer.value.render(scene.value, camera);
     }
   }
 
+  function applyAmbientLight(): void {
+    if (!ambientLight) return;
+    const { color, intensity } = options.ambientLight();
+    ambientLight.color.set(color);
+    ambientLight.intensity = intensity;
+  }
+
+  function applyDirectionalLight(): void {
+    if (!directionalLight) return;
+    const { color, intensity, position } = options.directionalLight();
+    directionalLight.color.set(color);
+    directionalLight.intensity = intensity;
+    directionalLight.position.set(...position);
+  }
+
   /**
-   * Creates the renderer, scene, lights, background, and grid.
+   * Create the renderer, scene, lights, background, and grid.
    * Does not build the composer — call `rebuildComposer()` once the camera
    * (owned by the caller) exists, since the composer's RenderPass needs it.
    */
   async function init(): Promise<void> {
-    if (!canvasRef.value) return;
+    if (!canvas.value) return;
 
-    const r = new WebGPURenderer({
-      canvas: canvasRef.value,
-      antialias: true,
-      alpha: true
-    });
     // MToonNodeMaterial is a Node material; it can only be rendered by the
     // unified WebGPURenderer (WebGPU with automatic WebGL2 fallback), which
     // requires an async init before the first render.
+    const r = new WebGPURenderer({ canvas: canvas.value, antialias: true, alpha: true });
     await r.init();
-    r.setPixelRatio(window.devicePixelRatio);
+    r.setPixelRatio(globalThis.devicePixelRatio);
     r.outputColorSpace = SRGBColorSpace;
     renderer.value = r;
 
     const s = new Scene();
+    ambientLight = new AmbientLight();
+    directionalLight = new DirectionalLight();
+    s.add(ambientLight, directionalLight);
     scene.value = s;
 
-    const ambientLight = options.ambientLight();
-    const al = new AmbientLight(new Color(ambientLight.color), ambientLight.intensity);
-    ambientLightReference.value = al;
-    s.add(al);
-
-    const directionalLight = options.directionalLight();
-    const dl = new DirectionalLight(new Color(directionalLight.color), directionalLight.intensity);
-    dl.position.set(...directionalLight.position);
-    directionalLightReference.value = dl;
-    s.add(dl);
-
+    applyAmbientLight();
+    applyDirectionalLight();
     applyBackground();
     applyGrid();
   }
 
   function dispose(): void {
-    if (grid.value) {
-      grid.value.dispose();
-      grid.value = null;
-    }
-    if (bgTexture.value) {
-      bgTexture.value.dispose();
-      bgTexture.value = null;
-    }
-    if (composer.value) {
-      composer.value.dispose();
-      composer.value = null;
-    }
-    renderPass.value = null;
-    outputPass.value = null;
-    if (renderer.value) {
-      renderer.value.dispose();
-      renderer.value = null;
-    }
-    scene.value = null;
-    ambientLightReference.value = null;
-    directionalLightReference.value = null;
+    bgRequest++;
+    grid?.dispose();
+    grid = undefined;
+    setBackground();
+    disposeComposer();
+    void renderer.value?.dispose();
+    renderer.value = undefined;
+    scene.value = undefined;
+    ambientLight = undefined;
+    directionalLight = undefined;
   }
 
+  watch(() => [options.bgTransparent(), options.bgImage()], applyBackground);
+  watch(options.showGrid, applyGrid);
   watch(
-    () => [options.bgTransparent(), options.bgImage()],
+    options.ambientLight,
     () => {
-      applyBackground();
-    }
-  );
-
-  watch(
-    () => options.showGrid(),
-    () => {
-      applyGrid();
-    }
-  );
-
-  watch(
-    () => options.ambientLight(),
-    () => {
-      if (!ambientLightReference.value) return;
-      const ambientLight = options.ambientLight();
-      ambientLightReference.value.color.set(ambientLight.color);
-      ambientLightReference.value.intensity = ambientLight.intensity;
-      callbacks.onAmbientLightChange?.({ ...ambientLight });
+      if (!ambientLight) return;
+      applyAmbientLight();
+      callbacks.onAmbientLightChange?.({ ...options.ambientLight() });
     },
     { deep: true }
   );
-
   watch(
-    () => options.directionalLight(),
+    options.directionalLight,
     () => {
-      if (!directionalLightReference.value) return;
-      const directionalLight = options.directionalLight();
-      directionalLightReference.value.color.set(directionalLight.color);
-      directionalLightReference.value.intensity = directionalLight.intensity;
-      directionalLightReference.value.position.set(...directionalLight.position);
+      if (!directionalLight) return;
+      applyDirectionalLight();
       callbacks.onDirectionalLightChange?.({
-        ...directionalLight,
-        position: directionalLightReference.value.position.clone()
+        ...options.directionalLight(),
+        position: directionalLight.position.clone()
       });
     },
     { deep: true }
   );
+  watch(options.shaderPass, rebuildComposer);
 
-  watch(
-    () => options.shaderPass(),
-    () => {
-      rebuildComposer();
-    }
-  );
-
-  return {
-    renderer,
-    scene,
-    composer,
-    init,
-    dispose,
-    setSize,
-    rebuildComposer,
-    render
-  };
+  return { renderer, scene, composer, init, dispose, setSize, rebuildComposer, render };
 }

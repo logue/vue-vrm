@@ -1,26 +1,26 @@
-import type { LightOptions, Vec3 } from '@/types/VrmCanvasOptions';
-import type * as THREE from 'three';
-import type { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import type { DirectionalLightOptions, LightOptions } from '@/types/VrmCanvasOptions';
+import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import type { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 /**
  * Reactive getters for the scene-related props of VrmCanvas.
  */
 export type VrmSceneOptions = {
   bgTransparent: () => boolean;
-  bgImage: () => string | null;
+  bgImage: () => string | undefined;
   showGrid: () => boolean;
   ambientLight: () => LightOptions;
-  directionalLight: () => LightOptions & { position: Vec3 };
-  shaderPass: () => ShaderPass | null;
+  directionalLight: () => DirectionalLightOptions;
+  shaderPass: () => ShaderPass | undefined;
 };
 
-export type VrmSceneDeps = {
+export type VrmSceneDependencies = {
   /** Returns the current camera, used to (re)build the postprocessing composer. */
-  getCamera: () => THREE.PerspectiveCamera | null;
+  getCamera: () => PerspectiveCamera | undefined;
 };
 
 export type VrmSceneCallbacks = {
   onError?: (error: unknown) => void;
   onAmbientLightChange?: (payload: LightOptions) => void;
-  onDirectionalLightChange?: (payload: LightOptions & { position: THREE.Vector3 }) => void;
+  onDirectionalLightChange?: (payload: LightOptions & { position: Vector3 }) => void;
 };

@@ -1,33 +1,35 @@
-import type { CameraInteractionOptions, CameraOptions, Vec3 } from './VrmCanvasOptions';
-import type * as THREE from 'three/webgpu';
+import type { CameraInteractionOptions, CameraOptions, Vec3 } from '@/types/VrmCanvasOptions';
+import type { Object3D, Vector3, WebGPURenderer } from 'three/webgpu';
 
 /**
  * Reactive getters for the camera-related props of VrmCanvas.
  */
 export type VrmCameraOptions = {
   cameraOptions: () => CameraOptions;
-  cameraDistance: () => number | null;
+  cameraDistance: () => number | undefined;
   cameraEuler: () => Vec3;
   cameraOffset: () => Vec3;
   cameraLookAt: () => Vec3;
-  cameraInteraction: () => CameraInteractionOptions | null;
+  cameraInteraction: () => CameraInteractionOptions | undefined;
 };
 
-export type VrmCameraDeps = {
+export type VrmCameraDependencies = {
   /** Returns the current renderer, used to construct OrbitControls. */
-  getRenderer: () => THREE.WebGPURenderer | null;
-  /** Returns the object the camera should fit to when resetting, or null. */
-  getFitTarget: () => THREE.Object3D | null;
+  getRenderer: () => WebGPURenderer | undefined;
+  /** Returns the object the camera should fit to when resetting. */
+  getFitTarget: () => Object3D | undefined;
+};
+
+export type VrmCameraCallbacks = {
+  onCameraChange?: (payload: CameraChangePayload) => void;
+  onCameraOptionsChange?: (payload: Required<CameraOptions>) => void;
 };
 
 export type CameraChangePayload = {
-  position: THREE.Vector3;
-  lookAt: THREE.Vector3;
+  /** The new camera position. */
+  position: Vector3;
+  /** The new camera lookAt point. */
+  lookAt: Vector3;
+  /** The distance between position and lookAt. */
   distance: number;
-};
-
-export type CameraOptionsChangePayload = {
-  fov: number;
-  near: number;
-  far: number;
 };

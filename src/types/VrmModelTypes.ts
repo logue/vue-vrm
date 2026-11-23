@@ -1,20 +1,23 @@
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
-import type * as THREE from 'three';
+import type { Scene } from 'three/webgpu';
+
+/** One or more VRMA buffers. */
+export type AnimationData = ArrayBuffer | ArrayBuffer[];
 
 /**
  * Reactive getters for the model/animation-related props of VrmCanvas.
  */
 export type VrmModelOptions = {
-  modelData: () => ArrayBuffer | null;
-  animationData: () => ArrayBuffer | ArrayBuffer[] | null;
-  animationWeights: () => number[] | null;
+  modelData: () => ArrayBuffer | undefined;
+  animationData: () => AnimationData | undefined;
+  animationWeights: () => number[] | undefined;
   loop: () => boolean;
 };
 
-export type VrmModelDeps = {
+export type VrmModelDependencies = {
   /** Returns the scene to add/remove the VRM's root object from. */
-  getScene: () => THREE.Scene | null;
+  getScene: () => Scene | undefined;
 };
 
 export type VrmModelCallbacks = {

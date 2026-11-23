@@ -5,7 +5,7 @@ export type CanvasSizeOptions = {
   /** The requested width of the canvas in pixels. */
   width: () => number;
   /** The maximum width of the canvas in pixels. */
-  maxWidth: () => number | null;
+  maxWidth: () => number | undefined;
   /** The aspect ratio (width / height) to maintain. */
   aspectRatio: () => number;
 };

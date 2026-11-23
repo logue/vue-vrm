@@ -22,7 +22,7 @@ function parseGlbJson(buffer: ArrayBuffer): Record<string, unknown> {
   }
   const version = view.getUint32(4, true);
   if (version !== GLB_VERSION) {
-    throw new Error(`[VrmCanvas] Invalid GLB: unsupported version ${version}`);
+    throw new Error(`[VrmCanvas] Invalid GLB: unsupported version ${String(version)}`);
   }
   const jsonChunkLength = view.getUint32(12, true);
   if (view.getUint32(16, true) !== CHUNK_TYPE_JSON) {

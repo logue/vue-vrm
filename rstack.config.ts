@@ -385,7 +385,9 @@ define.lint(
           }
         ],
         // Vue Options API (`render()`) and webpack loaders rely on `this`.
-        'unicorn/no-this-outside-of-class': 'off'
+        'unicorn/no-this-outside-of-class': 'off',
+        // Conflicts with Prettier, which lowercases hex digits.
+        'unicorn/number-literal-case': 'off'
       },
       settings: {
         'import/resolver': {

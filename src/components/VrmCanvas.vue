@@ -1,8 +1,14 @@
 <script setup lang="ts">
   import type { VRM } from '@pixiv/three-vrm';
   import type { VRMAnimation } from '@pixiv/three-vrm-animation';
-  import type { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-  import type * as THREE from 'three/webgpu';
+  import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+  import type {
+    AnimationMixer,
+    PerspectiveCamera,
+    Scene,
+    Vector3,
+    WebGPURenderer
+  } from 'three/webgpu';
   import { onMounted, onUnmounted, ref, watch } from 'vue';
 
   import { useCanvasSize } from '@/composables/useCanvasSize';
@@ -10,58 +16,61 @@
   import { useVrmCamera } from '@/composables/useVrmCamera';
   import { useVrmModel } from '@/composables/useVrmModel';
   import { useVrmScene } from '@/composables/useVrmScene';
+  import type { CameraChangePayload } from '@/types/VrmCameraTypes';
   import type {
     CameraInteractionOptions,
     CameraOptions,
+    DirectionalLightOptions,
     LightOptions,
     Vec3
   } from '@/types/VrmCanvasOptions';
+  import type { AnimationData } from '@/types/VrmModelTypes';
 
   /**
    * Props for VrmCanvas component.
    */
   type Props = {
     /** The VRM model data as an ArrayBuffer. */
-    modelData: ArrayBuffer;
+    modelData?: ArrayBuffer;
     /** The VRM animation data as an ArrayBuffer or an array of ArrayBuffers. */
-    animationData: ArrayBuffer | ArrayBuffer[];
+    animationData?: AnimationData;
     /** The weights for each animation. */
-    animationWeights: number[];
+    animationWeights?: number[];
     /** Whether the animation should loop. */
-    loop: boolean;
+    loop?: boolean;
     /** Whether the background should be transparent. */
-    bgTransparent: boolean;
+    bgTransparent?: boolean;
     /** The background image URL. */
-    bgImage: string;
+    bgImage?: string;
     /** Whether to show the grid helper. */
-    showGrid: boolean;
+    showGrid?: boolean;
     /** The width of the canvas in pixels. */
-    width: number;
+    width?: number;
     /** The maximum width of the canvas in pixels. */
-    maxWidth: number;
+    maxWidth?: number;
     /** The aspect ratio (width / height) to maintain. Height is derived from width and this ratio. */
-    aspectRatio: number;
+    aspectRatio?: number;
     /** Options for configuring the camera. */
-    cameraOptions: CameraOptions;
-    /** The distance of the camera from the target. */
-    cameraDistance: number;
-    /** The Euler angles (Yaw, Pitch, Roll) for the camera rotation. */
-    cameraEuler: Vec3;
+    cameraOptions?: CameraOptions;
+    /** The distance of the camera from the target. Defaults to a distance that fits the model. */
+    cameraDistance?: number;
+    /** The Euler angles (X, Y, Z) for the camera rotation around the target. */
+    cameraEuler?: Vec3;
     /** The offset of the camera from the target. */
-    cameraOffset: Vec3;
+    cameraOffset?: Vec3;
     /** The point the camera is looking at. */
-    cameraLookAt: Vec3;
+    cameraLookAt?: Vec3;
     /** Options for the ambient light (color and intensity). */
-    ambientLight: LightOptions;
+    ambientLight?: LightOptions;
     /** Options for the directional light (color, intensity, and position). */
-    directionalLight: LightOptions & { position: Vec3 };
+    directionalLight?: DirectionalLightOptions;
     /** An optional postprocessing shader pass to apply. */
-    shaderPass: ShaderPass;
+    shaderPass?: ShaderPass;
     /** Optional camera interaction controls. */
-    cameraInteraction: CameraInteractionOptions;
+    cameraInteraction?: CameraInteractionOptions;
   };
 
-  const props = withDefaults(defineProps<Partial<Props>>(), {
+  const props = withDefaults(defineProps<Props>(), {
     loop: true,
     bgTransparent: false,
     showGrid: false,
@@ -72,11 +81,7 @@
     cameraOffset: () => [0, 0, 0],
     cameraLookAt: () => [0, 0.9, 0],
     ambientLight: () => ({ color: '#ffffff', intensity: 0.5 }),
-    directionalLight: () => ({
-      color: '#ffffff',
-      intensity: 1,
-      position: [1, 1, 1] as Vec3
-    })
+    directionalLight: () => ({ color: '#ffffff', intensity: 1, position: [1, 1, 1] })
   });
 
   const emit = defineEmits<{
@@ -100,71 +105,66 @@
     'animation:resume': [];
     /** Emitted when the animation is stopped. */
     'animation:stop': [];
-    /** Emitted when the animation ends. */
+    /** Emitted when a non-looping animation ends. */
     'animation:end': [];
     /** Emitted when there is an error loading the animation. */
     'animation:error': [error: Error];
-    /** Emitted when the camera changes. */
-    'camera:change': [
-      payload: {
-        /* The new camera position. */
-        position: THREE.Vector3;
-        /* The new camera lookAt point. */
-        lookAt: THREE.Vector3;
-        /* The new camera distance. */
-        distance: number;
-      }
-    ];
+    /** Emitted when the camera position or target changes. */
+    'camera:change': [payload: CameraChangePayload];
     /**
      * Emitted when the camera options change (fov, near, far).
-     * Note that changes to cameraDistance, cameraEuler, cameraOffset, or cameraLookAt do not trigger this event, but do trigger 'camera:change'.
+     * Changes to cameraDistance, cameraEuler, cameraOffset, or cameraLookAt
+     * only trigger 'camera:change'.
      */
-    'camera:options-change': [payload: CameraOptions];
+    'camera:options-change': [payload: Required<CameraOptions>];
+    /** Emitted when the ambient light changes. */
     'light:ambient-change': [payload: LightOptions];
-    'light:directional-change': [payload: LightOptions & { position: THREE.Vector3 }];
+    /** Emitted when the directional light changes. */
+    'light:directional-change': [payload: LightOptions & { position: Vector3 }];
+    /** Emitted on other errors (e.g. background image failed to load). */
     error: [error: Error];
   }>();
 
-  function toError(err: unknown): Error {
-    return err instanceof Error ? err : new Error(String(err));
+  function toError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(String(error));
   }
 
-  // ---------- Refs ----------
-  const containerRef = ref<HTMLDivElement | null>(null);
-  const canvasRef = ref<HTMLCanvasElement | null>(null);
+  // ---------- Template refs ----------
+  const container = ref<HTMLElement>();
+  const canvas = ref<HTMLCanvasElement>();
 
   // ---------- Composables ----------
   const sceneApi = useVrmScene(
-    canvasRef,
+    canvas,
     {
       bgTransparent: () => props.bgTransparent,
-      bgImage: () => props.bgImage ?? null,
+      bgImage: () => props.bgImage,
       showGrid: () => props.showGrid,
       ambientLight: () => props.ambientLight,
       directionalLight: () => props.directionalLight,
-      shaderPass: () => props.shaderPass ?? null
+      shaderPass: () => props.shaderPass
     },
     { getCamera: () => cameraApi.camera.value },
     {
-      onError: err => emit('error', toError(err)),
+      onError: error => emit('error', toError(error)),
       onAmbientLightChange: payload => emit('light:ambient-change', payload),
       onDirectionalLightChange: payload => emit('light:directional-change', payload)
     }
   );
 
   const cameraApi = useVrmCamera(
-    canvasRef,
+    canvas,
     {
       cameraOptions: () => props.cameraOptions,
-      cameraDistance: () => props.cameraDistance ?? null,
+      cameraDistance: () => props.cameraDistance,
       cameraEuler: () => props.cameraEuler,
       cameraOffset: () => props.cameraOffset,
       cameraLookAt: () => props.cameraLookAt,
-      cameraInteraction: () => props.cameraInteraction ?? null
+      cameraInteraction: () => props.cameraInteraction
     },
     {
       getRenderer: () => sceneApi.renderer.value,
-      getFitTarget: () => modelApi.vrm.value?.scene ?? null
+      getFitTarget: () => modelApi.vrm.value?.scene
     },
     {
       onCameraChange: payload => emit('camera:change', payload),
@@ -177,9 +177,9 @@
 
   const modelApi = useVrmModel(
     {
-      modelData: () => props.modelData ?? null,
-      animationData: () => props.animationData ?? null,
-      animationWeights: () => props.animationWeights ?? null,
+      modelData: () => props.modelData,
+      animationData: () => props.animationData,
+      animationWeights: () => props.animationWeights,
       loop: () => props.loop
     },
     { getScene: () => sceneApi.scene.value },
@@ -187,12 +187,12 @@
       onModelLoading: () => emit('model:loading'),
       onModelLoaded: vrm => emit('model:loaded', vrm),
       onModelUnloaded: () => emit('model:unloaded'),
-      onModelError: err => emit('model:error', toError(err)),
+      onModelError: error => emit('model:error', toError(error)),
       onAnimationLoading: () => emit('animation:loading'),
       onAnimationLoaded: animation => emit('animation:loaded', animation),
       onAnimationStart: () => emit('animation:start'),
       onAnimationEnd: () => emit('animation:end'),
-      onAnimationError: err => emit('animation:error', toError(err)),
+      onAnimationError: error => emit('animation:error', toError(error)),
       onAnimationPause: () => emit('animation:pause'),
       onAnimationResume: () => emit('animation:resume'),
       onAnimationStop: () => emit('animation:stop'),
@@ -200,42 +200,50 @@
     }
   );
 
-  const canvasSizeApi = useCanvasSize(containerRef, {
+  const canvasSizeApi = useCanvasSize(container, {
     width: () => props.width,
-    maxWidth: () => props.maxWidth ?? null,
+    maxWidth: () => props.maxWidth,
     aspectRatio: () => props.aspectRatio
   });
 
-  const renderLoop = useRenderLoop(dt => {
-    modelApi.update(dt);
+  const renderLoop = useRenderLoop(deltaSeconds => {
+    modelApi.update(deltaSeconds);
     cameraApi.update();
-    sceneApi.render(dt, cameraApi.camera.value);
+    sceneApi.render(deltaSeconds, cameraApi.camera.value);
   });
 
-  // ---------- Canvas event handlers ----------
-  function handleCanvasPointerDown(): void {
-    canvasRef.value?.focus();
-  }
-
-  // ---------- Lifecycle ----------
-  onMounted(async () => {
-    // WebGPURenderer requires an async init before the first render.
-    await sceneApi.init();
-    // The camera must exist before the composer's RenderPass is built.
-    cameraApi.init();
-    sceneApi.rebuildComposer();
-
-    canvasSizeApi.init();
+  function applySize(): void {
     const { width, height } = canvasSizeApi.size.value;
     sceneApi.setSize(width, height);
     cameraApi.updateAspect(width, height);
+  }
 
-    modelApi.init();
+  // ---------- Lifecycle ----------
+  let unmounted = false;
 
+  onMounted(async () => {
+    try {
+      // WebGPURenderer requires an async init before the first render.
+      await sceneApi.init();
+    } catch (error) {
+      emit('error', toError(error));
+      return;
+    }
+    if (unmounted) {
+      sceneApi.dispose();
+      return;
+    }
+    // The camera must exist before the composer's RenderPass is built.
+    cameraApi.init();
+    sceneApi.rebuildComposer();
+    canvasSizeApi.init();
+    applySize();
     renderLoop.start();
+    await modelApi.init();
   });
 
   onUnmounted(() => {
+    unmounted = true;
     renderLoop.stop();
     canvasSizeApi.dispose();
     modelApi.dispose();
@@ -243,43 +251,34 @@
     sceneApi.dispose();
   });
 
-  // ---------- Push measured size to the renderer/camera ----------
-  watch(canvasSizeApi.size, ({ width, height }) => {
-    sceneApi.setSize(width, height);
-    cameraApi.updateAspect(width, height);
-  });
+  watch(canvasSizeApi.size, applySize);
 
   // ---------- Exposed API ----------
 
   /**
-   * Loads and plays a VRMA animation.
+   * Load and play a VRMA animation, replacing any active animation.
    * When an array is provided, all clips are blended simultaneously using the
    * supplied `weights` (or equal weights when omitted / length-mismatched).
-   * Replaces any currently active animation.
-   * @param buf - A single VRMA `ArrayBuffer` or an array of them.
+   * @param data - A single VRMA `ArrayBuffer` or an array of them.
    * @param weights - Optional per-clip blend weights. Must sum to ≤ 1.0.
    */
-  async function playAnimation(
-    buf: ArrayBuffer | ArrayBuffer[],
-    weights?: number[]
-  ): Promise<void> {
-    await modelApi.loadAnimation(buf, weights ?? null);
+  async function playAnimation(data: AnimationData, weights?: number[]): Promise<void> {
+    await modelApi.loadAnimation(data, weights);
   }
 
   /**
-   * Captures the current frame as a data URL.
-   * Forces a render before reading the drawing buffer so the result is always
-   * up-to-date even when `requestAnimationFrame` has not fired yet.
+   * Capture the current frame as a data URL.
+   * Forces a render before reading the drawing buffer so the result is up to date.
    * @param format - MIME type of the output image (default: `'image/png'`).
    * @returns A data URL string of the captured frame.
    */
-  async function captureScreenshot(format = 'image/png'): Promise<string> {
-    if (!(sceneApi.renderer.value && sceneApi.scene.value && cameraApi.camera.value)) {
+  function captureScreenshot(format = 'image/png'): string {
+    const renderer = sceneApi.renderer.value;
+    if (!(renderer && sceneApi.scene.value && cameraApi.camera.value)) {
       throw new Error('[VrmCanvas] Renderer is not initialized.');
     }
-    // Force a render so the drawing buffer is fresh.
-    await sceneApi.render(0, cameraApi.camera.value);
-    return sceneApi.renderer.value.domElement.toDataURL(format);
+    sceneApi.render(0, cameraApi.camera.value);
+    return renderer.domElement.toDataURL(format);
   }
 
   defineExpose({
@@ -287,36 +286,37 @@
     pauseAnimation: modelApi.pauseAnimation,
     resumeAnimation: modelApi.resumeAnimation,
     stopAnimation: modelApi.stopAnimation,
+    /** Resets camera position and orientation to frame the model. */
     resetCamera: cameraApi.resetCamera,
     captureScreenshot,
-    /** Returns the Three.js `Scene` instance, or `null` before mount. */
-    getScene: (): THREE.Scene | null => sceneApi.scene.value,
-    /** Returns the `PerspectiveCamera` instance, or `null` before mount. */
-    getCamera: (): THREE.PerspectiveCamera | null => cameraApi.camera.value,
-    /** Returns the `WebGPURenderer` instance, or `null` before mount. */
-    getRenderer: (): THREE.WebGPURenderer | null => sceneApi.renderer.value,
-    /** Returns the `AnimationMixer` instance, or `null` when no animation is active. */
-    getMixer: (): THREE.AnimationMixer | null => modelApi.mixer.value,
-    /** Returns the currently loaded `VRM` instance, or `null` when no model is loaded. */
-    getVrm: (): VRM | null => modelApi.vrm.value,
-    /** Returns the internal `<canvas>` element, or `null` before mount. */
-    getCanvas: (): HTMLCanvasElement | null => canvasRef.value,
-    /** Resets camera position and orientation. */
-    resetCameraPose: (): void => cameraApi.resetCamera()
+    /** Returns the Three.js `Scene` instance, or `undefined` before mount. */
+    getScene: (): Scene | undefined => sceneApi.scene.value,
+    /** Returns the `PerspectiveCamera` instance, or `undefined` before mount. */
+    getCamera: (): PerspectiveCamera | undefined => cameraApi.camera.value,
+    /** Returns the `WebGPURenderer` instance, or `undefined` before mount. */
+    getRenderer: (): WebGPURenderer | undefined => sceneApi.renderer.value,
+    /** Returns the `AnimationMixer` instance, or `undefined` when no animation is active. */
+    getMixer: (): AnimationMixer | undefined => modelApi.mixer.value,
+    /** Returns the currently loaded `VRM` instance, or `undefined` when no model is loaded. */
+    getVrm: (): VRM | undefined => modelApi.vrm.value,
+    /** Returns the internal `<canvas>` element, or `undefined` before mount. */
+    getCanvas: (): HTMLCanvasElement | undefined => canvas.value,
+    /** @deprecated Use `resetCamera()`. */
+    resetCameraPose: cameraApi.resetCamera
   });
 </script>
 
 <template>
   <figure
-    ref="containerRef"
+    ref="container"
     style="position: relative; margin: 0; overflow: hidden"
     :style="canvasSizeApi.containerStyle.value"
   >
     <canvas
-      ref="canvasRef"
+      ref="canvas"
       style="display: block; width: 100%; height: 100%"
       @keydown="cameraApi.handleCanvasKeydown"
-      @pointerdown="handleCanvasPointerDown"
+      @pointerdown="canvas?.focus()"
     />
   </figure>
 </template>

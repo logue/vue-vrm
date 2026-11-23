@@ -1,35 +1,36 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Box3, Euler, type Object3D, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Box3, Euler, MathUtils, type Object3D, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {
-  CameraChangePayload,
-  CameraOptionsChangePayload,
-  VrmCameraDeps,
+  VrmCameraCallbacks,
+  VrmCameraDependencies,
   VrmCameraOptions
 } from '@/types/VrmCameraTypes';
+import type { CameraOptions } from '@/types/VrmCanvasOptions';
 
-export type VrmCameraCallbacks = {
-  onCameraChange?: (payload: CameraChangePayload) => void;
-  onCameraOptionsChange?: (payload: CameraOptionsChangePayload) => void;
-};
+const DEFAULT_CAMERA: Required<CameraOptions> = { fov: 30, near: 0.1, far: 100 };
+const DEFAULT_DISTANCE = 3;
+const DEFAULT_ROLL_SPEED = 0.03;
+/** Padding applied to the fit distance so head/feet aren't clipped. */
+const FIT_PADDING = 1.4;
 
 /**
  * Manage the perspective camera and optional OrbitControls interaction.
  *
- * @param canvasRef The `<canvas>` element OrbitControls listens on.
+ * @param canvas The `<canvas>` element OrbitControls listens on.
  * @param options Reactive getters for camera-related props.
- * @param deps Getters for state owned by other composables (renderer, fit target).
+ * @param dependencies Getters for state owned by other composables (renderer, fit target).
  * @param callbacks Optional hooks invoked on camera or camera-options changes.
  */
 export function useVrmCamera(
-  canvasRef: Ref<HTMLCanvasElement | null>,
+  canvas: Readonly<Ref<HTMLCanvasElement | undefined>>,
   options: VrmCameraOptions,
-  deps: VrmCameraDeps,
+  dependencies: VrmCameraDependencies,
   callbacks: VrmCameraCallbacks = {}
 ): {
-  camera: ShallowRef<PerspectiveCamera | null>;
-  orbitControls: ShallowRef<OrbitControls | null>;
+  camera: ShallowRef<PerspectiveCamera | undefined>;
+  orbitControls: ShallowRef<OrbitControls | undefined>;
   init: () => void;
   dispose: () => void;
   resetCamera: () => void;
@@ -37,26 +38,28 @@ export function useVrmCamera(
   update: () => void;
   handleCanvasKeydown: (event: KeyboardEvent) => void;
 } {
-  const camera = shallowRef<PerspectiveCamera | null>(null);
-  const orbitControls = shallowRef<OrbitControls | null>(null);
+  const camera = shallowRef<PerspectiveCamera>();
+  const orbitControls = shallowRef<OrbitControls>();
 
-  const initialCameraDistance = shallowRef<number>(0);
-  const initialCameraTarget = shallowRef<Vector3>(new Vector3());
+  let fitDistance = DEFAULT_DISTANCE;
+  const fitTarget = new Vector3();
 
-  function getCurrentLookAt(): Vector3 {
-    if (orbitControls.value) {
-      return orbitControls.value.target.clone();
-    }
-    return new Vector3(...options.cameraLookAt());
+  function resolveCameraOptions(): Required<CameraOptions> {
+    return { ...DEFAULT_CAMERA, ...options.cameraOptions() };
   }
 
-  function emitCameraChange(lookAt?: Vector3): void {
+  function getCurrentLookAt(): Vector3 {
+    return orbitControls.value
+      ? orbitControls.value.target.clone()
+      : new Vector3(...options.cameraLookAt());
+  }
+
+  function emitCameraChange(lookAt = getCurrentLookAt()): void {
     if (!camera.value) return;
-    const target = lookAt ?? getCurrentLookAt();
     callbacks.onCameraChange?.({
       position: camera.value.position.clone(),
-      lookAt: target.clone(),
-      distance: camera.value.position.distanceTo(target)
+      lookAt: lookAt.clone(),
+      distance: camera.value.position.distanceTo(lookAt)
     });
   }
 
@@ -68,57 +71,47 @@ export function useVrmCamera(
     if (!orbitControls.value) return;
     orbitControls.value.removeEventListener('change', handleControlsChange);
     orbitControls.value.dispose();
-    orbitControls.value = null;
+    orbitControls.value = undefined;
   }
 
   function setupOrbitControls(): void {
     disposeOrbitControls();
-    if (canvasRef.value) {
-      canvasRef.value.tabIndex = -1;
+    const interaction = options.cameraInteraction();
+    if (canvas.value) {
+      // Only make the canvas focusable when Q/E roll keys are in use.
+      canvas.value.tabIndex = interaction?.enabled && interaction.roll ? 0 : -1;
     }
-    const renderer = deps.getRenderer();
-    const cameraInteraction = options.cameraInteraction();
-    if (!(camera.value && renderer)) return;
-    if (!cameraInteraction?.enabled) return;
+    const renderer = dependencies.getRenderer();
+    if (!(camera.value && renderer && interaction?.enabled)) return;
 
     const controls = new OrbitControls(camera.value, renderer.domElement);
-    controls.enableRotate = cameraInteraction.rotate ?? true;
-    controls.enablePan = cameraInteraction.pan ?? true;
-    controls.enableZoom = cameraInteraction.zoom ?? true;
-    controls.rotateSpeed = cameraInteraction.rotateSpeed ?? 1;
-    controls.panSpeed = cameraInteraction.panSpeed ?? 1;
-    controls.zoomSpeed = cameraInteraction.zoomSpeed ?? 1;
-    controls.enableDamping = cameraInteraction.damping ?? true;
-    controls.dampingFactor = cameraInteraction.dampingFactor ?? 0.08;
-    controls.minDistance = cameraInteraction.minDistance ?? 0.1;
-    controls.maxDistance = cameraInteraction.maxDistance ?? Infinity;
-    controls.target.copy(initialCameraTarget.value);
+    controls.enableRotate = interaction.rotate ?? true;
+    controls.enablePan = interaction.pan ?? true;
+    controls.enableZoom = interaction.zoom ?? true;
+    controls.rotateSpeed = interaction.rotateSpeed ?? 1;
+    controls.panSpeed = interaction.panSpeed ?? 1;
+    controls.zoomSpeed = interaction.zoomSpeed ?? 1;
+    controls.enableDamping = interaction.damping ?? true;
+    controls.dampingFactor = interaction.dampingFactor ?? 0.08;
+    controls.minDistance = interaction.minDistance ?? 0.1;
+    controls.maxDistance = interaction.maxDistance ?? Infinity;
+    controls.target.copy(fitTarget);
     controls.update();
     controls.addEventListener('change', handleControlsChange);
     orbitControls.value = controls;
-
-    if (canvasRef.value) {
-      canvasRef.value.tabIndex = cameraInteraction.roll ? 0 : -1;
-    }
   }
 
   function applyCameraTransform(): void {
     if (!camera.value) return;
-    const distribution = options.cameraDistance() ?? initialCameraDistance.value;
-    const cameraOffset = options.cameraOffset();
-    const target = new Vector3(
-      initialCameraTarget.value.x + cameraOffset[0],
-      initialCameraTarget.value.y + cameraOffset[1],
-      initialCameraTarget.value.z + cameraOffset[2]
-    );
+    const target = fitTarget.clone().add(new Vector3(...options.cameraOffset()));
 
-    // Camera position: target + (0, 0, dist) rotated by cameraEuler.
-    const cameraEuler = options.cameraEuler();
-    const euler = new Euler(cameraEuler[0], cameraEuler[1], cameraEuler[2], 'XYZ');
-    const offset = new Vector3(0, 0, distribution).applyEuler(euler);
+    // Camera position: target + (0, 0, distance) rotated by cameraEuler.
+    const offset = new Vector3(0, 0, options.cameraDistance() ?? fitDistance).applyEuler(
+      new Euler(...options.cameraEuler(), 'XYZ')
+    );
     camera.value.position.copy(target).add(offset);
 
-    const lookAt = orbitControls.value ? target.clone() : new Vector3(...options.cameraLookAt());
+    const lookAt = orbitControls.value ? target : new Vector3(...options.cameraLookAt());
     camera.value.lookAt(lookAt);
     if (orbitControls.value) {
       orbitControls.value.target.copy(lookAt);
@@ -128,56 +121,46 @@ export function useVrmCamera(
     emitCameraChange(lookAt);
   }
 
-  function computeFitDistance(target: Object3D, fovDeg: number): number {
-    const box = new Box3().setFromObject(target);
+  /**
+   * Center the camera target on `object` and compute a distance that fits it in view.
+   */
+  function fitTo(object: Object3D, fovDeg: number): void {
+    const box = new Box3().setFromObject(object);
     const size = box.getSize(new Vector3());
-    const center = box.getCenter(new Vector3());
-    initialCameraTarget.value.copy(center);
+    box.getCenter(fitTarget);
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = (fovDeg * Math.PI) / 180;
-    const distribution = maxDim / 2 / Math.tan(fov / 2);
-    // Add some padding so head/feet aren't clipped.
-    return distribution * 1.4;
+    fitDistance = (maxDim / 2 / Math.tan(MathUtils.degToRad(fovDeg) / 2)) * FIT_PADDING;
   }
 
   /**
-   * Resets the camera to its initial position calculated to fit the fit
-   * target (if any) in view. If there is no fit target, only the transform
-   * is reapplied.
+   * Reset the camera so the fit target (if any) is framed in view.
+   * Without a fit target, only the transform is reapplied.
    */
   function resetCamera(): void {
     if (!camera.value) return;
-    const fitTarget = deps.getFitTarget();
-    if (fitTarget) {
-      const fov = camera.value.fov;
-      initialCameraDistance.value = computeFitDistance(fitTarget, fov);
-    }
+    const target = dependencies.getFitTarget();
+    if (target) fitTo(target, camera.value.fov);
     camera.value.up.set(0, 1, 0);
     applyCameraTransform();
   }
 
   function rollCamera(direction: 1 | -1): void {
-    if (!(camera.value && orbitControls.value)) return;
-    const cameraInteraction = options.cameraInteraction();
-    if (!(cameraInteraction?.roll ?? false)) return;
-    const step = cameraInteraction?.rollSpeed ?? 0.03;
-    const forward = new Vector3();
-    camera.value.getWorldDirection(forward);
-    camera.value.up.applyAxisAngle(forward, step * direction).normalize();
+    const interaction = options.cameraInteraction();
+    if (!(camera.value && orbitControls.value && interaction?.roll)) return;
+    const forward = camera.value.getWorldDirection(new Vector3());
+    camera.value.up
+      .applyAxisAngle(forward, (interaction.rollSpeed ?? DEFAULT_ROLL_SPEED) * direction)
+      .normalize();
     camera.value.lookAt(orbitControls.value.target);
     orbitControls.value.update();
     emitCameraChange();
   }
 
   function handleCanvasKeydown(event: KeyboardEvent): void {
-    if (event.key === 'q' || event.key === 'Q') {
-      event.preventDefault();
-      rollCamera(-1);
-    }
-    if (event.key === 'e' || event.key === 'E') {
-      event.preventDefault();
-      rollCamera(1);
-    }
+    const key = event.key.toLowerCase();
+    if (key !== 'q' && key !== 'e') return;
+    event.preventDefault();
+    rollCamera(key === 'q' ? -1 : 1);
   }
 
   function updateAspect(width: number, height: number): void {
@@ -192,23 +175,17 @@ export function useVrmCamera(
   }
 
   function init(): void {
-    const options_ = options.cameraOptions();
-    const cam = new PerspectiveCamera(
-      options_.fov ?? 30,
-      1,
-      options_.near ?? 0.1,
-      options_.far ?? 100
-    );
-    camera.value = cam;
-    initialCameraTarget.value = new Vector3(...options.cameraLookAt());
-    initialCameraDistance.value = 3;
+    const { fov, near, far } = resolveCameraOptions();
+    camera.value = new PerspectiveCamera(fov, 1, near, far);
+    fitTarget.set(...options.cameraLookAt());
+    fitDistance = DEFAULT_DISTANCE;
     applyCameraTransform();
     setupOrbitControls();
   }
 
   function dispose(): void {
     disposeOrbitControls();
-    camera.value = null;
+    camera.value = undefined;
   }
 
   watch(
@@ -218,36 +195,24 @@ export function useVrmCamera(
       options.cameraOffset(),
       options.cameraLookAt()
     ],
-    () => {
-      applyCameraTransform();
-    },
+    applyCameraTransform,
     { deep: true }
   );
 
   watch(
-    () => options.cameraOptions(),
-    options_ => {
+    options.cameraOptions,
+    () => {
       if (!camera.value) return;
-      const fov = options_?.fov ?? 30;
-      const near = options_?.near ?? 0.1;
-      const far = options_?.far ?? 100;
-      camera.value.fov = fov;
-      camera.value.near = near;
-      camera.value.far = far;
+      const resolved = resolveCameraOptions();
+      Object.assign(camera.value, resolved);
       camera.value.updateProjectionMatrix();
       resetCamera();
-      callbacks.onCameraOptionsChange?.({ fov, near, far });
+      callbacks.onCameraOptionsChange?.(resolved);
     },
     { deep: true }
   );
 
-  watch(
-    () => options.cameraInteraction(),
-    () => {
-      setupOrbitControls();
-    },
-    { deep: true }
-  );
+  watch(options.cameraInteraction, setupOrbitControls, { deep: true });
 
   return {
     camera,

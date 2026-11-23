@@ -1,17 +1,20 @@
 import { type ComputedRef, computed, type Ref, ref } from 'vue';
 
 import type { CanvasSize, CanvasSizeOptions } from '@/types/CanvasSizeTypes';
+
+const DEFAULT_ASPECT_RATIO = 9 / 16;
+
 /**
  * Manage DOM sizing for VrmCanvas: derives the renderer's pixel size from the
  * container's measured width (via ResizeObserver) and exposes the CSS style
  * used to size the container element.
  *
- * @param containerRef The container element to observe and size.
+ * @param container The container element to observe and size.
  * @param options Reactive getters for width / maxWidth / aspectRatio props.
  * @returns Reactive `size`, `containerStyle`, and `init` / `dispose` lifecycle functions.
  */
 export function useCanvasSize(
-  containerRef: Ref<HTMLElement | null>,
+  container: Readonly<Ref<HTMLElement | undefined>>,
   options: CanvasSizeOptions
 ): {
   size: ComputedRef<CanvasSize>;
@@ -20,48 +23,46 @@ export function useCanvasSize(
   dispose: () => void;
 } {
   const containerWidth = ref(0);
-  let resizeObserver: ResizeObserver | null = null;
+  let resizeObserver: ResizeObserver | undefined;
+
+  const ratio = (): number =>
+    options.aspectRatio() > 0 ? options.aspectRatio() : DEFAULT_ASPECT_RATIO;
 
   const size = computed<CanvasSize>(() => {
-    let width = containerWidth.value;
-    if (width <= 0) {
-      width = options.width();
-    }
+    let width = containerWidth.value > 0 ? containerWidth.value : options.width();
     const maxWidth = options.maxWidth();
-    if (maxWidth !== null) width = Math.min(width, maxWidth);
-
-    const ratio = options.aspectRatio() > 0 ? options.aspectRatio() : 9 / 16;
-    const height = width / ratio;
+    if (maxWidth !== undefined) width = Math.min(width, maxWidth);
 
     return {
       width: Math.max(1, Math.floor(width)),
-      height: Math.max(1, Math.floor(height))
+      height: Math.max(1, Math.floor(width / ratio()))
     };
   });
 
   const containerStyle = computed<Record<string, string>>(() => {
-    const style: Record<string, string> = {};
     const width = options.width();
-    const ratio = options.aspectRatio() > 0 ? options.aspectRatio() : 9 / 16;
-    const height = width / ratio;
-    style.width = `${width}px`;
-    style.height = `${height}px`;
+    const style: Record<string, string> = {
+      width: `${String(width)}px`,
+      height: `${String(width / ratio())}px`
+    };
     const maxWidth = options.maxWidth();
-    if (maxWidth !== null) style.maxWidth = `${maxWidth}px`;
+    if (maxWidth !== undefined) style.maxWidth = `${String(maxWidth)}px`;
     return style;
   });
 
+  function measure(): void {
+    containerWidth.value = container.value?.clientWidth ?? 0;
+  }
+
   function init(): void {
-    containerWidth.value = containerRef.value?.clientWidth ?? 0;
-    resizeObserver = new ResizeObserver(() => {
-      containerWidth.value = containerRef.value?.clientWidth ?? 0;
-    });
-    if (containerRef.value) resizeObserver.observe(containerRef.value);
+    measure();
+    resizeObserver = new ResizeObserver(measure);
+    if (container.value) resizeObserver.observe(container.value);
   }
 
   function dispose(): void {
     resizeObserver?.disconnect();
-    resizeObserver = null;
+    resizeObserver = undefined;
   }
 
   return { size, containerStyle, init, dispose };

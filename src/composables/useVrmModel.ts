@@ -1,7 +1,12 @@
-import { type AnimationAction, type AnimationMixer, LoopOnce, LoopRepeat } from 'three/webgpu';
+import { type AnimationMixer } from 'three/webgpu';
 import { type ShallowRef, shallowRef, watch } from 'vue';
 
-import type { VrmModelCallbacks, VrmModelDeps, VrmModelOptions } from '@/types/VrmModelTypes';
+import type {
+  AnimationData,
+  VrmModelCallbacks,
+  VrmModelDependencies,
+  VrmModelOptions
+} from '@/types/VrmModelTypes';
 import type { VRM } from '@pixiv/three-vrm';
 
 import {
@@ -16,65 +21,56 @@ import { autoPositionY, disposeVrm, loadVrm } from '@/composables/useVrmLoader';
  * model, loading and blending VRMA animations, and playback control.
  *
  * @param options Reactive getters for model/animation-related props.
- * @param deps Getter for state owned by other composables (the scene).
+ * @param dependencies Getter for state owned by other composables (the scene).
  * @param callbacks Optional hooks invoked on load/playback lifecycle events.
  */
 export function useVrmModel(
   options: VrmModelOptions,
-  deps: VrmModelDeps,
+  dependencies: VrmModelDependencies,
   callbacks: VrmModelCallbacks = {}
 ): {
-  vrm: ShallowRef<VRM | null>;
-  mixer: ShallowRef<AnimationMixer | null>;
-  init: () => void;
+  vrm: ShallowRef<VRM | undefined>;
+  mixer: ShallowRef<AnimationMixer | undefined>;
+  init: () => Promise<void>;
   dispose: () => void;
-  loadAnimation: (
-    data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null
-  ) => Promise<void>;
+  loadAnimation: (data?: AnimationData, weights?: number[]) => Promise<void>;
   pauseAnimation: () => void;
   resumeAnimation: () => void;
   stopAnimation: () => void;
-  update: (dt: number) => void;
+  update: (deltaSeconds: number) => void;
 } {
-  const vrm = shallowRef<VRM | null>(null);
-  const mixer = shallowRef<AnimationMixer | null>(null);
+  const vrm = shallowRef<VRM>();
+  const mixer = shallowRef<AnimationMixer>();
 
-  async function loadAnimation(
-    data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null
-  ): Promise<void> {
-    if (mixer.value) {
-      disposeMixer(mixer.value);
-      mixer.value = null;
-    }
-    if (!(data && vrm.value)) return;
+  // Incremented on every load request so that results of superseded
+  // (out-of-order) async loads are discarded.
+  let modelRequest = 0;
+  let animationRequest = 0;
+
+  function releaseMixer(): void {
+    if (!mixer.value) return;
+    disposeMixer(mixer.value);
+    mixer.value = undefined;
+  }
+
+  async function loadAnimation(data?: AnimationData, weights?: number[]): Promise<void> {
+    const request = ++animationRequest;
+    releaseMixer();
+    const target = vrm.value;
+    if (!(data && target)) return;
 
     callbacks.onAnimationLoading?.();
     try {
       const buffers = Array.isArray(data) ? data : [data];
-      const animations = await Promise.all(
-        buffers.map(async b => {
-          const animation = await loadVRMAnimation(b);
-          if (!animation) throw new Error('[VrmCanvas] Animation buffer is null.');
-          return animation;
-        })
-      );
-      mixer.value = createMixerWithClips(vrm.value, animations, weights);
-      if (!mixer.value) {
-        throw new Error('[VrmCanvas] Failed to create AnimationMixer.');
-      }
-      mixer.value.addEventListener('finished', () => {
+      const animations = await Promise.all(buffers.map(buffer => loadVRMAnimation(buffer)));
+      if (request !== animationRequest || target !== vrm.value) return;
+
+      const loop = options.loop();
+      const newMixer = createMixerWithClips(target, animations, weights, { loop });
+      newMixer.addEventListener('finished', () => {
         if (!options.loop()) callbacks.onAnimationEnd?.();
       });
-      mixer.value.timeScale = 1;
-      // Apply loop mode to all registered actions via the (undocumented)
-      // `_actions` array exposed by AnimationMixer.
-      const actions = (mixer.value as unknown as { _actions: AnimationAction[] })._actions;
-      for (const a of actions) {
-        a.setLoop(options.loop() ? LoopRepeat : LoopOnce, options.loop() ? Infinity : 1);
-        a.clampWhenFinished = !options.loop();
-      }
+      mixer.value = newMixer;
 
       callbacks.onAnimationLoaded?.(Array.isArray(data) ? animations : animations[0]);
       callbacks.onAnimationStart?.();
@@ -83,41 +79,40 @@ export function useVrmModel(
     }
   }
 
-  async function loadModel(buffer: ArrayBuffer | null): Promise<void> {
-    const scene = deps.getScene();
-    if (!scene) return;
+  function unloadModel(): void {
+    if (!vrm.value) return;
+    releaseMixer();
+    dependencies.getScene()?.remove(vrm.value.scene);
+    disposeVrm(vrm.value);
+    vrm.value = undefined;
+    callbacks.onModelUnloaded?.();
+  }
 
-    // Unload previous.
-    if (vrm.value) {
-      scene.remove(vrm.value.scene);
-      disposeVrm(vrm.value);
-      vrm.value = null;
-      if (mixer.value) {
-        disposeMixer(mixer.value);
-        mixer.value = null;
-      }
-      callbacks.onModelUnloaded?.();
-    }
-
+  async function loadModel(buffer?: ArrayBuffer): Promise<void> {
+    const request = ++modelRequest;
+    unloadModel();
     if (!buffer) return;
 
     callbacks.onModelLoading?.();
     try {
       const newVrm = await loadVrm(buffer);
+      const scene = dependencies.getScene();
+      if (request !== modelRequest || !scene) {
+        disposeVrm(newVrm);
+        return;
+      }
       autoPositionY(newVrm);
       scene.add(newVrm.scene);
       vrm.value = newVrm;
       callbacks.afterModelLoaded?.(newVrm);
       callbacks.onModelLoaded?.(newVrm);
-
-      // Re-apply animation if we already have animationData.
-      const animationData = options.animationData();
-      if (animationData) {
-        await loadAnimation(animationData, options.animationWeights());
-      }
     } catch (error) {
       callbacks.onModelError?.(error);
+      return;
     }
+
+    // Re-apply the current animation to the new model.
+    await loadAnimation(options.animationData(), options.animationWeights());
   }
 
   function pauseAnimation(): void {
@@ -139,41 +134,29 @@ export function useVrmModel(
     callbacks.onAnimationStop?.();
   }
 
-  function update(dt: number): void {
-    mixer.value?.update(dt);
-    vrm.value?.update(dt);
+  function update(deltaSeconds: number): void {
+    mixer.value?.update(deltaSeconds);
+    vrm.value?.update(deltaSeconds);
   }
 
-  function init(): void {
-    const modelData = options.modelData();
-    if (modelData) {
-      loadModel(modelData);
-    }
+  async function init(): Promise<void> {
+    await loadModel(options.modelData());
   }
 
   function dispose(): void {
-    if (mixer.value) {
-      disposeMixer(mixer.value);
-      mixer.value = null;
-    }
+    modelRequest++;
+    animationRequest++;
+    releaseMixer();
     if (vrm.value) {
       disposeVrm(vrm.value);
-      vrm.value = null;
+      vrm.value = undefined;
     }
   }
 
-  watch(
-    () => options.modelData(),
-    buffer => {
-      loadModel(buffer ?? null);
-    }
-  );
-
+  watch(options.modelData, buffer => loadModel(buffer));
   watch(
     () => [options.animationData(), options.animationWeights()] as const,
-    ([data, weights]) => {
-      loadAnimation(data ?? null, weights ?? null);
-    }
+    ([data, weights]) => loadAnimation(data, weights)
   );
 
   return {
