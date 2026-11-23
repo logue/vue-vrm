@@ -18,7 +18,7 @@
   const vrmCanvas = ref<VrmCanvasExposed>();
 
   const interaction = ref({
-    enabled: false,
+    enabled: true,
     rotate: true,
     pan: true,
     zoom: true,

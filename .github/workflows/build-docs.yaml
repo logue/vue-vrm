@@ -1,38 +1,61 @@
-name: NodeJS with Vite/Rspack
+name: Build and deploy to GitHub Pages
 
 on:
+  workflow_dispatch: {}
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [24.x]
-
+    runs-on: ubuntu-slim
     steps:
-      - name: Checkout ✅
-        uses: actions/checkout@v6
+      - name: Checkout ✔
+        uses: actions/checkout@v7
 
-      - name: Use Node.js ${{ matrix.node-version }} ⚡
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install pnpm 🎁
+      - name: Install pnpm 📦
         uses: pnpm/action-setup@v6
-
-      - name: Build 🔧
-        run: |
-          pnpm install
-          pnpm run build:docs
-
-      - name: Deploy to gh-pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: docs # The folder the action should deploy.
+          run_install: false
+
+      - name: Install Node.js ⚡️
+        uses: actions/setup-node@v7
+        with:
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          node-version: 26
+
+      - name: Install dependencies 🧩
+        run: pnpm install --frozen-lockfile
+
+      - name: Build demo and docs 🔧
+        run: |
+          pnpm run build:demo
+          pnpm run build:rspress
+
+      - name: Upload Pages artifact 📜
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-slim
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
