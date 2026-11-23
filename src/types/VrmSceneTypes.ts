@@ -1,7 +1,6 @@
+import type { LightOptions, Vec3 } from '@/types/VrmCanvasOptions';
 import type * as THREE from 'three';
 import type { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-
-import type { LightOptions, Vec3 } from '@/types/VrmCanvasOptions';
 
 /**
  * Reactive getters for the scene-related props of VrmCanvas.
@@ -21,9 +20,7 @@ export type VrmSceneDeps = {
 };
 
 export type VrmSceneCallbacks = {
-  onError?: (err: unknown) => void;
+  onError?: (error: unknown) => void;
   onAmbientLightChange?: (payload: LightOptions) => void;
-  onDirectionalLightChange?: (
-    payload: LightOptions & { position: THREE.Vector3 },
-  ) => void;
+  onDirectionalLightChange?: (payload: LightOptions & { position: THREE.Vector3 }) => void;
 };

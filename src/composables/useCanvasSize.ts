@@ -12,7 +12,7 @@ import type { CanvasSize, CanvasSizeOptions } from '@/types/CanvasSizeTypes';
  */
 export function useCanvasSize(
   containerRef: Ref<HTMLElement | null>,
-  options: CanvasSizeOptions,
+  options: CanvasSizeOptions
 ): {
   size: ComputedRef<CanvasSize>;
   containerStyle: ComputedRef<Record<string, string>>;
@@ -35,7 +35,7 @@ export function useCanvasSize(
 
     return {
       width: Math.max(1, Math.floor(width)),
-      height: Math.max(1, Math.floor(height)),
+      height: Math.max(1, Math.floor(height))
     };
   });
 

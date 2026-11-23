@@ -1,36 +1,71 @@
 diff --git a/lib/nodes/index.cjs b/lib/nodes/index.cjs
-index 353fd912ee056301f8c02832b9b4dc65194f3ec5..af1984199c57bdc370ba7d2db95f6e559a2638bc 100644
+index 353fd912ee056301f8c02832b9b4dc65194f3ec5..f7ba543af55489f889749a036a09d9e6dd5f66c5 100644
 --- a/lib/nodes/index.cjs
 +++ b/lib/nodes/index.cjs
-@@ -121,12 +121,7 @@ var rimMultiply = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").to
- var matcap = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").toVar("matcap");
- var parametricRim = (0, import_tsl4.nodeImmutable)(THREE3.PropertyNode, "vec3").toVar("ParametricRim");
- var FnCompat = (jsFunc) => {
--  const threeRevision2 = parseInt(THREE_WEBGPU.REVISION, 10);
--  if (threeRevision2 >= 168) {
--    return THREE_TSL.Fn(jsFunc);
--  } else {
+@@ -125,7 +125,7 @@ var FnCompat = (jsFunc) => {
+   if (threeRevision2 >= 168) {
+     return THREE_TSL.Fn(jsFunc);
+   } else {
 -    return THREE_WEBGPU.tslFn(jsFunc);
--  }
-+  return THREE_TSL.Fn(jsFunc);
++    return THREE_TSL.Fn(jsFunc);
+   }
  };
  var linearstep = FnCompat(
-   ({
+@@ -167,7 +167,7 @@ var MToonLightingModel = class extends THREE4.LightingModel {
+     lightColor,
+     reflectedLight
+   }) {
+-    const dotNL = import_tsl3.transformedNormalView.dot(lightDirection).clamp(-1, 1);
++    const dotNL = import_tsl3.normalView.dot(lightDirection).clamp(-1, 1);
+     const shading = getShading({
+       dotNL
+     });
+@@ -213,7 +213,7 @@ var mtoonParametricRim = FnCompat(
+     parametricRimColor
+   }) => {
+     const viewDir = import_tsl6.modelViewPosition.normalize();
+-    const dotNV = import_tsl6.transformedNormalView.dot(viewDir.negate());
++    const dotNV = import_tsl6.normalView.dot(viewDir.negate());
+     const rim = (0, import_tsl6.float)(1).sub(dotNV).add(parametricRimLift).clamp().pow(parametricRimFresnelPower);
+     return rim.mul(parametricRimColor);
+   }
 diff --git a/lib/nodes/index.module.js b/lib/nodes/index.module.js
-index 9d9c8bac8803e282570a212852df0824ba4a1e72..aebe5ce8c24331e98475b86d7063f3c3deb36006 100644
+index 9d9c8bac8803e282570a212852df0824ba4a1e72..e9c8202f0c726f90b2dfb986f2c37253cc3b04f0 100644
 --- a/lib/nodes/index.module.js
 +++ b/lib/nodes/index.module.js
-@@ -99,12 +99,7 @@ var rimMultiply = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("RimMultiply"
- var matcap = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("matcap");
- var parametricRim = nodeImmutable(THREE3.PropertyNode, "vec3").toVar("ParametricRim");
- var FnCompat = (jsFunc) => {
--  const threeRevision2 = parseInt(THREE_WEBGPU.REVISION, 10);
--  if (threeRevision2 >= 168) {
--    return THREE_TSL.Fn(jsFunc);
--  } else {
+@@ -13,7 +13,7 @@ import * as THREE2 from "three/webgpu";
+ import { cos, mat2, sin, uv, vec2, vec4 } from "three/tsl";
+ import { materialReference } from "three/tsl";
+ import * as THREE4 from "three/webgpu";
+-import { BRDF_Lambert, diffuseColor, float, mix, transformedNormalView, vec3 } from "three/tsl";
++import { BRDF_Lambert, diffuseColor, float, mix, normalView, vec3 } from "three/tsl";
+ import * as THREE3 from "three/webgpu";
+ import { nodeImmutable } from "three/tsl";
+ import * as THREE_TSL from "three/tsl";
+@@ -35,7 +35,7 @@ import {
+   vec3 as vec32,
+   vec4 as vec42
+ } from "three/tsl";
+-import { float as float2, modelViewPosition, transformedNormalView as transformedNormalView2 } from "three/tsl";
++import { float as float2, modelViewPosition, normalView as transformedNormalView2 } from "three/tsl";
+ var threeRevision = parseInt(THREE.REVISION, 10);
+ if (threeRevision < 167) {
+   console.warn(
+@@ -103,7 +103,7 @@ var FnCompat = (jsFunc) => {
+   if (threeRevision2 >= 168) {
+     return THREE_TSL.Fn(jsFunc);
+   } else {
 -    return THREE_WEBGPU.tslFn(jsFunc);
--  }
-+  return THREE_TSL.Fn(jsFunc);
++    return THREE_TSL.Fn(jsFunc);
+   }
  };
  var linearstep = FnCompat(
-   ({
+@@ -145,7 +145,7 @@ var MToonLightingModel = class extends THREE4.LightingModel {
+     lightColor,
+     reflectedLight
+   }) {
+-    const dotNL = transformedNormalView.dot(lightDirection).clamp(-1, 1);
++    const dotNL = normalView.dot(lightDirection).clamp(-1, 1);
+     const shading = getShading({
+       dotNL
+     });

@@ -15,17 +15,17 @@ describe('loadVrm - input validation', () => {
     const json = JSON.stringify({ extensions: { VRM: {} } });
     const jsonBytes = new TextEncoder().encode(json);
     const padding = (4 - (jsonBytes.length % 4)) % 4;
-    const totalJsonLen = jsonBytes.length + padding;
-    const buffer = new ArrayBuffer(12 + 8 + totalJsonLen);
+    const totalJsonLength = jsonBytes.length + padding;
+    const buffer = new ArrayBuffer(12 + 8 + totalJsonLength);
     const view = new DataView(buffer);
     view.setUint32(0, 0x46546c67, true);
     view.setUint32(4, 2, true);
     view.setUint32(8, buffer.byteLength, true);
-    view.setUint32(12, totalJsonLen, true);
+    view.setUint32(12, totalJsonLength, true);
     view.setUint32(16, 0x4e4f534a, true);
     new Uint8Array(buffer, 20, jsonBytes.length).set(jsonBytes);
-    for (let i = 0; i < padding; i++) {
-      view.setUint8(20 + jsonBytes.length + i, 0x20);
+    for (let index = 0; index < padding; index++) {
+      view.setUint8(20 + jsonBytes.length + index, 0x20);
     }
     await expect(loadVrm(buffer)).rejects.toThrow(vrm0xRegex);
   });

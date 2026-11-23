@@ -1,23 +1,16 @@
-import type { VRM } from '@pixiv/three-vrm';
-import {
-  type AnimationAction,
-  type AnimationMixer,
-  LoopOnce,
-  LoopRepeat,
-} from 'three/webgpu';
+import { type AnimationAction, type AnimationMixer, LoopOnce, LoopRepeat } from 'three/webgpu';
 import { type ShallowRef, shallowRef, watch } from 'vue';
+
+import type { VrmModelCallbacks, VrmModelDeps, VrmModelOptions } from '@/types/VrmModelTypes';
+import type { VRM } from '@pixiv/three-vrm';
 
 import {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation,
+  loadVRMAnimation
 } from '@/composables/useVrmAnimation';
 import { autoPositionY, disposeVrm, loadVrm } from '@/composables/useVrmLoader';
-import type {
-  VrmModelCallbacks,
-  VrmModelDeps,
-  VrmModelOptions,
-} from '@/types/VrmModelTypes';
+
 /**
  * Manage the loaded VRM model and its AnimationMixer: loading/unloading the
  * model, loading and blending VRMA animations, and playback control.
@@ -29,7 +22,7 @@ import type {
 export function useVrmModel(
   options: VrmModelOptions,
   deps: VrmModelDeps,
-  callbacks: VrmModelCallbacks = {},
+  callbacks: VrmModelCallbacks = {}
 ): {
   vrm: ShallowRef<VRM | null>;
   mixer: ShallowRef<AnimationMixer | null>;
@@ -37,7 +30,7 @@ export function useVrmModel(
   dispose: () => void;
   loadAnimation: (
     data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null,
+    weights: number[] | null
   ) => Promise<void>;
   pauseAnimation: () => void;
   resumeAnimation: () => void;
@@ -49,7 +42,7 @@ export function useVrmModel(
 
   async function loadAnimation(
     data: ArrayBuffer | ArrayBuffer[] | null,
-    weights: number[] | null,
+    weights: number[] | null
   ): Promise<void> {
     if (mixer.value) {
       disposeMixer(mixer.value);
@@ -61,12 +54,11 @@ export function useVrmModel(
     try {
       const buffers = Array.isArray(data) ? data : [data];
       const animations = await Promise.all(
-        buffers.map(async (b) => {
+        buffers.map(async b => {
           const animation = await loadVRMAnimation(b);
-          if (!animation)
-            throw new Error('[VrmCanvas] Animation buffer is null.');
+          if (!animation) throw new Error('[VrmCanvas] Animation buffer is null.');
           return animation;
-        }),
+        })
       );
       mixer.value = createMixerWithClips(vrm.value, animations, weights);
       if (!mixer.value) {
@@ -78,23 +70,16 @@ export function useVrmModel(
       mixer.value.timeScale = 1;
       // Apply loop mode to all registered actions via the (undocumented)
       // `_actions` array exposed by AnimationMixer.
-      const actions = (
-        mixer.value as unknown as { _actions: AnimationAction[] }
-      )._actions;
+      const actions = (mixer.value as unknown as { _actions: AnimationAction[] })._actions;
       for (const a of actions) {
-        a.setLoop(
-          options.loop() ? LoopRepeat : LoopOnce,
-          options.loop() ? Number.POSITIVE_INFINITY : 1,
-        );
+        a.setLoop(options.loop() ? LoopRepeat : LoopOnce, options.loop() ? Infinity : 1);
         a.clampWhenFinished = !options.loop();
       }
 
-      callbacks.onAnimationLoaded?.(
-        Array.isArray(data) ? animations : animations[0],
-      );
+      callbacks.onAnimationLoaded?.(Array.isArray(data) ? animations : animations[0]);
       callbacks.onAnimationStart?.();
-    } catch (err) {
-      callbacks.onAnimationError?.(err);
+    } catch (error) {
+      callbacks.onAnimationError?.(error);
     }
   }
 
@@ -130,8 +115,8 @@ export function useVrmModel(
       if (animationData) {
         await loadAnimation(animationData, options.animationWeights());
       }
-    } catch (err) {
-      callbacks.onModelError?.(err);
+    } catch (error) {
+      callbacks.onModelError?.(error);
     }
   }
 
@@ -179,16 +164,16 @@ export function useVrmModel(
 
   watch(
     () => options.modelData(),
-    (buf) => {
-      loadModel(buf ?? null);
-    },
+    buffer => {
+      loadModel(buffer ?? null);
+    }
   );
 
   watch(
     () => [options.animationData(), options.animationWeights()] as const,
     ([data, weights]) => {
       loadAnimation(data ?? null, weights ?? null);
-    },
+    }
   );
 
   return {
@@ -200,6 +185,6 @@ export function useVrmModel(
     pauseAnimation,
     resumeAnimation,
     stopAnimation,
-    update,
+    update
   };
 }

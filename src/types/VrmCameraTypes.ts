@@ -1,9 +1,5 @@
+import type { CameraInteractionOptions, CameraOptions, Vec3 } from './VrmCanvasOptions';
 import type * as THREE from 'three/webgpu';
-import type {
-  CameraInteractionOptions,
-  CameraOptions,
-  Vec3,
-} from './VrmCanvasOptions';
 
 /**
  * Reactive getters for the camera-related props of VrmCanvas.

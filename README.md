@@ -47,16 +47,16 @@ pnpm add vue-vrm vue three @pixiv/three-vrm @pixiv/three-vrm-animation
 
 ```vue
 <script setup lang="ts">
-import { ref } from "vue";
-import { VrmCanvas } from "vue-vrm";
+  import { ref } from 'vue';
+  import { VrmCanvas } from 'vue-vrm';
 
-const modelData = ref<ArrayBuffer | null>(null);
+  const modelData = ref<ArrayBuffer | null>(null);
 
-async function onModelFile(event: Event): Promise<void> {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  modelData.value = await file.arrayBuffer();
-}
+  async function onModelFile(event: Event): Promise<void> {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    modelData.value = await file.arrayBuffer();
+  }
 </script>
 
 <template>
@@ -71,60 +71,45 @@ async function onModelFile(event: Event): Promise<void> {
 
 ```vue
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import {
-  resetVrmCanvasCamera,
-  type VrmCanvasExposed,
-  VrmCanvas,
-} from "vue-vrm";
+  import { computed, ref } from 'vue';
+  import { resetVrmCanvasCamera, type VrmCanvasExposed, VrmCanvas } from 'vue-vrm';
 
-const modelData = ref<ArrayBuffer | null>(null);
-const animationData = ref<ArrayBuffer | null>(null);
-const canvasRef = ref<VrmCanvasExposed | null>(null);
+  const modelData = ref<ArrayBuffer | null>(null);
+  const animationData = ref<ArrayBuffer | null>(null);
+  const canvasRef = ref<VrmCanvasExposed | null>(null);
 
-const cameraInteraction = computed(() => ({
-  enabled: true,
-  rotate: true,
-  pan: true,
-  zoom: true,
-  roll: true,
-  damping: true,
-}));
+  const cameraInteraction = computed(() => ({
+    enabled: true,
+    rotate: true,
+    pan: true,
+    zoom: true,
+    roll: true,
+    damping: true
+  }));
 
-async function loadFile(
-  event: Event,
-  target: "model" | "animation",
-): Promise<void> {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  const buffer = await file.arrayBuffer();
+  async function loadFile(event: Event, target: 'model' | 'animation'): Promise<void> {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const buffer = await file.arrayBuffer();
 
-  if (target === "model") {
-    modelData.value = buffer;
-    return;
+    if (target === 'model') {
+      modelData.value = buffer;
+      return;
+    }
+
+    animationData.value = buffer;
   }
 
-  animationData.value = buffer;
-}
-
-function resetCamera(): void {
-  resetVrmCanvasCamera(canvasRef.value);
-}
+  function resetCamera(): void {
+    resetVrmCanvasCamera(canvasRef.value);
+  }
 </script>
 
 <template>
   <fieldset>
     <legend>VRM Demo</legend>
-    <input
-      type="file"
-      accept=".vrm,.glb"
-      @change="(event) => loadFile(event, 'model')"
-    />
-    <input
-      type="file"
-      accept=".vrma,.glb"
-      @change="(event) => loadFile(event, 'animation')"
-    />
+    <input type="file" accept=".vrm,.glb" @change="event => loadFile(event, 'model')" />
+    <input type="file" accept=".vrma,.glb" @change="event => loadFile(event, 'animation')" />
 
     <button type="button" @click="resetCamera">Reset camera</button>
 
@@ -137,11 +122,11 @@ function resetCamera(): void {
       :directional-light="{
         color: '#ffffff',
         intensity: 1,
-        position: [1, 1, 1],
+        position: [1, 1, 1]
       }"
       @model:loaded="() => console.log('model loaded')"
       @animation:start="() => console.log('animation started')"
-      @error="(error) => console.error(error)"
+      @error="error => console.error(error)"
     />
   </fieldset>
 </template>
@@ -235,8 +220,8 @@ import {
   meta,
   resetVrmCanvasCamera,
   validateVrm,
-  validateVrma,
-} from "vue-vrm";
+  validateVrma
+} from 'vue-vrm';
 ```
 
 | Export                                            | Description                                                                                                    |
@@ -264,29 +249,29 @@ import {
 When bundling with Vite or another Rollup-based tool, splitting `three` and the VRM packages into separate chunks improves cacheability and initial bundle loading behavior.
 
 ```ts
-import type { UserConfig } from "vite";
+import type { UserConfig } from 'vite';
 
 const config: UserConfig = {
   build: {
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (id.includes("/node_modules/three/")) {
-            return "three";
+          if (id.includes('/node_modules/three/')) {
+            return 'three';
           }
 
           if (
-            id.includes("/node_modules/@pixiv/three-vrm") ||
-            id.includes("/node_modules/@pixiv/three-vrm-animation")
+            id.includes('/node_modules/@pixiv/three-vrm') ||
+            id.includes('/node_modules/@pixiv/three-vrm-animation')
           ) {
-            return "three-vrm";
+            return 'three-vrm';
           }
 
-          return "vendor";
-        },
-      },
-    },
-  },
+          return 'vendor';
+        }
+      }
+    }
+  }
 };
 
 export default config;

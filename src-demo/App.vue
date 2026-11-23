@@ -1,87 +1,87 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import VrmCanvas from "@/components/VrmCanvas.vue";
-import { resetVrmCanvasCamera, type VrmCanvasExposed } from "@/index";
-import ToggleTheme from "./components/ToggleTheme.vue";
+  import { computed, onMounted, ref } from 'vue';
+  import VrmCanvas from '@/components/VrmCanvas.vue';
+  import { resetVrmCanvasCamera, type VrmCanvasExposed } from '@/index';
+  import ToggleTheme from './components/ToggleTheme.vue';
 
-const modelData = ref<ArrayBuffer>();
-const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
-const showGrid = ref(true);
-const bgTransparent = ref(false);
-const isLoading = ref(false);
-const errorMessage = ref<string>();
-const vrmCanvasRef = ref<VrmCanvasExposed>();
+  const modelData = ref<ArrayBuffer>();
+  const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
+  const showGrid = ref(true);
+  const bgTransparent = ref(false);
+  const isLoading = ref(false);
+  const errorMessage = ref<string>();
+  const vrmCanvasRef = ref<VrmCanvasExposed>();
 
-const cameraInteractionEnabled = ref(false);
-const cameraRotate = ref(true);
-const cameraPan = ref(true);
-const cameraZoom = ref(true);
-const cameraRoll = ref(true);
+  const cameraInteractionEnabled = ref(false);
+  const cameraRotate = ref(true);
+  const cameraPan = ref(true);
+  const cameraZoom = ref(true);
+  const cameraRoll = ref(true);
 
-const cameraInteraction = computed(() => {
-  if (!cameraInteractionEnabled.value) return;
-  return {
-    enabled: true,
-    rotate: cameraRotate.value,
-    pan: cameraPan.value,
-    zoom: cameraZoom.value,
-    roll: cameraRoll.value,
-    damping: true,
-    dampingFactor: 0.08,
-    rotateSpeed: 1,
-    panSpeed: 1,
-    zoomSpeed: 1,
-    minDistance: 0.5,
-    maxDistance: 20,
-    rollSpeed: 0.03,
-  };
-});
+  const cameraInteraction = computed(() => {
+    if (!cameraInteractionEnabled.value) return;
+    return {
+      enabled: true,
+      rotate: cameraRotate.value,
+      pan: cameraPan.value,
+      zoom: cameraZoom.value,
+      roll: cameraRoll.value,
+      damping: true,
+      dampingFactor: 0.08,
+      rotateSpeed: 1,
+      panSpeed: 1,
+      zoomSpeed: 1,
+      minDistance: 0.5,
+      maxDistance: 20,
+      rollSpeed: 0.03
+    };
+  });
 
-async function loadAvatarSample(): Promise<void> {
-  isLoading.value = true;
-  try {
-    const response = await fetch("./assets/AvatarSample_A.vrm");
-    if (!response.ok) {
-      throw new Error(`Failed to load sample VRM: ${response.status}`);
+  async function loadAvatarSample(): Promise<void> {
+    isLoading.value = true;
+    try {
+      const response = await fetch('./assets/AvatarSample_A.vrm');
+      if (!response.ok) {
+        throw new Error(`Failed to load sample VRM: ${response.status}`);
+      }
+      modelData.value = await response.arrayBuffer();
+    } finally {
+      isLoading.value = false;
     }
-    modelData.value = await response.arrayBuffer();
-  } finally {
+  }
+
+  async function onModelFile(e: Event): Promise<void> {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    modelData.value = await file.arrayBuffer();
+  }
+
+  async function onAnimationFile(e: Event): Promise<void> {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    animationData.value = await file.arrayBuffer();
+  }
+
+  function onLoading(): void {
+    isLoading.value = true;
+  }
+
+  function onLoaded(): void {
     isLoading.value = false;
   }
-}
 
-async function onModelFile(e: Event): Promise<void> {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  modelData.value = await file.arrayBuffer();
-}
+  function onError(err: Error): void {
+    isLoading.value = false;
+    errorMessage.value = err.message;
+  }
 
-async function onAnimationFile(e: Event): Promise<void> {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  animationData.value = await file.arrayBuffer();
-}
+  function onResetCamera(): void {
+    resetVrmCanvasCamera(vrmCanvasRef.value);
+  }
 
-function onLoading(): void {
-  isLoading.value = true;
-}
-
-function onLoaded(): void {
-  isLoading.value = false;
-}
-
-function onError(err: Error): void {
-  isLoading.value = false;
-  errorMessage.value = err.message;
-}
-
-function onResetCamera(): void {
-  resetVrmCanvasCamera(vrmCanvasRef.value);
-}
-
-onMounted(() => {
-  loadAvatarSample().catch(onError);
-});
+  onMounted(() => {
+    loadAvatarSample().catch(onError);
+  });
 </script>
 
 <template>
@@ -92,11 +92,7 @@ onMounted(() => {
       <div id="navbarCollapse" class="collapse navbar-collapse flex-grow-0">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a
-              class="nav-link"
-              href="https://github.com/logue/vue-vrm"
-              aria-label="GitHub"
-            >
+            <a class="nav-link" href="https://github.com/logue/vue-vrm" aria-label="GitHub">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -124,9 +120,9 @@ onMounted(() => {
     <div class="container py-3">
       <h1>Vue VRM Demo</h1>
       <p class="lead">
-        A simple demo of loading and displaying VRM models in Vue.js. You can
-        load your own VRM files using the file input on the left, or use the
-        sample VRM provided by clicking the "Sample VRM" button.
+        A simple demo of loading and displaying VRM models in Vue.js. You can load your own VRM
+        files using the file input on the left, or use the sample VRM provided by clicking the
+        "Sample VRM" button.
       </p>
     </div>
   </header>
@@ -144,19 +140,13 @@ onMounted(() => {
                 accept=".vrm,.glb"
                 @change="onModelFile"
               />
-              <button
-                type="button"
-                class="btn btn-secondary"
-                @click="loadAvatarSample"
-              >
+              <button type="button" class="btn btn-secondary" @click="loadAvatarSample">
                 Sample VRM
               </button>
             </div>
           </div>
           <div class="mb-3">
-            <label for="fileVrma" class="form-label"
-              >VRMA (VRM Animation) file:</label
-            >
+            <label for="fileVrma" class="form-label">VRMA (VRM Animation) file:</label>
             <input
               id="fileVrma"
               class="form-control"
@@ -165,8 +155,7 @@ onMounted(() => {
               @change="onAnimationFile"
             />
             <div class="form-text">
-              Due to licensing restrictions, a VRMA file is not available.
-              Please download it from
+              Due to licensing restrictions, a VRMA file is not available. Please download it from
               <a
                 href="https://vroid.booth.pm/items/5512385"
                 target="_blank"
@@ -196,9 +185,7 @@ onMounted(() => {
               id="checkBgTransparent"
               switch
             />
-            <label class="form-check-label" for="checkBgTransparent"
-              >Transparent Background</label
-            >
+            <label class="form-check-label" for="checkBgTransparent">Transparent Background</label>
           </div>
 
           <fieldset class="border p-2">
@@ -224,9 +211,7 @@ onMounted(() => {
                 id="checkCameraRotate"
                 switch
               />
-              <label class="form-check-label" for="checkCameraRotate"
-                >Orbit Rotate</label
-              >
+              <label class="form-check-label" for="checkCameraRotate">Orbit Rotate</label>
               <div class="form-text">Drag.</div>
             </div>
             <div class="form-check form-switch">
@@ -275,11 +260,7 @@ onMounted(() => {
                 for roll.
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-outline-secondary btn-sm"
-              @click="onResetCamera"
-            >
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="onResetCamera">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -303,9 +284,7 @@ onMounted(() => {
           </fieldset>
         </div>
         <div class="col">
-          <div v-if="isLoading" class="alert alert-primary" role="alert">
-            Loading...
-          </div>
+          <div v-if="isLoading" class="alert alert-primary" role="alert">Loading...</div>
           <div v-if="errorMessage" class="alert alert-danger" role="alert">
             {{ errorMessage }}
           </div>
@@ -323,9 +302,7 @@ onMounted(() => {
               @model:error="onError"
               @animation:error="onError"
             />
-            <figcaption class="figure-caption text-center">
-              VRM Model Preview
-            </figcaption>
+            <figcaption class="figure-caption text-center">VRM Model Preview</figcaption>
           </figure>
         </div>
       </div>

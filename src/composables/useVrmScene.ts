@@ -11,16 +11,11 @@ import {
   SRGBColorSpace,
   type Texture,
   TextureLoader,
-  WebGPURenderer,
+  WebGPURenderer
 } from 'three/webgpu';
-
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
-import type {
-  VrmSceneCallbacks,
-  VrmSceneDeps,
-  VrmSceneOptions,
-} from '@/types/VrmSceneTypes';
+import type { VrmSceneCallbacks, VrmSceneDeps, VrmSceneOptions } from '@/types/VrmSceneTypes';
 /**
  * Manage the Three.js scene: renderer, scene graph, lights, background,
  * grid helper, and the optional postprocessing composer.
@@ -34,7 +29,7 @@ export function useVrmScene(
   canvasRef: Ref<HTMLCanvasElement | null>,
   options: VrmSceneOptions,
   deps: VrmSceneDeps,
-  callbacks: VrmSceneCallbacks = {},
+  callbacks: VrmSceneCallbacks = {}
 ): {
   renderer: ShallowRef<WebGPURenderer | null>;
   scene: ShallowRef<Scene | null>;
@@ -47,8 +42,8 @@ export function useVrmScene(
 } {
   const renderer = shallowRef<WebGPURenderer | null>(null);
   const scene = shallowRef<Scene | null>(null);
-  const ambientLightRef = shallowRef<AmbientLight | null>(null);
-  const directionalLightRef = shallowRef<DirectionalLight | null>(null);
+  const ambientLightReference = shallowRef<AmbientLight | null>(null);
+  const directionalLightReference = shallowRef<DirectionalLight | null>(null);
   const grid = shallowRef<GridHelper | null>(null);
   const bgTexture = shallowRef<Texture | null>(null);
   const composer = shallowRef<EffectComposer | null>(null);
@@ -73,13 +68,13 @@ export function useVrmScene(
       const loader = new TextureLoader();
       loader.load(
         bgImage,
-        (tex) => {
+        tex => {
           if (bgTexture.value) bgTexture.value.dispose();
           bgTexture.value = tex;
           if (scene.value) scene.value.background = tex;
         },
         undefined,
-        (err) => callbacks.onError?.(err),
+        error => callbacks.onError?.(error)
       );
     } else {
       if (bgTexture.value) {
@@ -119,9 +114,7 @@ export function useVrmScene(
     // EffectComposer's types still assume the legacy WebGLRenderer, but at
     // runtime it only calls methods also present on the unified WebGPURenderer.
     const c = new EffectComposer(
-      renderer.value as unknown as ConstructorParameters<
-        typeof EffectComposer
-      >[0],
+      renderer.value as unknown as ConstructorParameters<typeof EffectComposer>[0]
     );
     const rp = new RenderPass(scene.value, camera);
     const op = new OutputPass();
@@ -157,7 +150,7 @@ export function useVrmScene(
     const r = new WebGPURenderer({
       canvas: canvasRef.value,
       antialias: true,
-      alpha: true,
+      alpha: true
     });
     // MToonNodeMaterial is a Node material; it can only be rendered by the
     // unified WebGPURenderer (WebGPU with automatic WebGL2 fallback), which
@@ -171,20 +164,14 @@ export function useVrmScene(
     scene.value = s;
 
     const ambientLight = options.ambientLight();
-    const al = new AmbientLight(
-      new Color(ambientLight.color),
-      ambientLight.intensity,
-    );
-    ambientLightRef.value = al;
+    const al = new AmbientLight(new Color(ambientLight.color), ambientLight.intensity);
+    ambientLightReference.value = al;
     s.add(al);
 
     const directionalLight = options.directionalLight();
-    const dl = new DirectionalLight(
-      new Color(directionalLight.color),
-      directionalLight.intensity,
-    );
+    const dl = new DirectionalLight(new Color(directionalLight.color), directionalLight.intensity);
     dl.position.set(...directionalLight.position);
-    directionalLightRef.value = dl;
+    directionalLightReference.value = dl;
     s.add(dl);
 
     applyBackground();
@@ -211,51 +198,57 @@ export function useVrmScene(
       renderer.value = null;
     }
     scene.value = null;
-    ambientLightRef.value = null;
-    directionalLightRef.value = null;
+    ambientLightReference.value = null;
+    directionalLightReference.value = null;
   }
 
   watch(
     () => [options.bgTransparent(), options.bgImage()],
-    () => applyBackground(),
+    () => {
+      applyBackground();
+    }
   );
 
   watch(
     () => options.showGrid(),
-    () => applyGrid(),
+    () => {
+      applyGrid();
+    }
   );
 
   watch(
     () => options.ambientLight(),
     () => {
-      if (!ambientLightRef.value) return;
+      if (!ambientLightReference.value) return;
       const ambientLight = options.ambientLight();
-      ambientLightRef.value.color.set(ambientLight.color);
-      ambientLightRef.value.intensity = ambientLight.intensity;
+      ambientLightReference.value.color.set(ambientLight.color);
+      ambientLightReference.value.intensity = ambientLight.intensity;
       callbacks.onAmbientLightChange?.({ ...ambientLight });
     },
-    { deep: true },
+    { deep: true }
   );
 
   watch(
     () => options.directionalLight(),
     () => {
-      if (!directionalLightRef.value) return;
+      if (!directionalLightReference.value) return;
       const directionalLight = options.directionalLight();
-      directionalLightRef.value.color.set(directionalLight.color);
-      directionalLightRef.value.intensity = directionalLight.intensity;
-      directionalLightRef.value.position.set(...directionalLight.position);
+      directionalLightReference.value.color.set(directionalLight.color);
+      directionalLightReference.value.intensity = directionalLight.intensity;
+      directionalLightReference.value.position.set(...directionalLight.position);
       callbacks.onDirectionalLightChange?.({
         ...directionalLight,
-        position: directionalLightRef.value.position.clone(),
+        position: directionalLightReference.value.position.clone()
       });
     },
-    { deep: true },
+    { deep: true }
   );
 
   watch(
     () => options.shaderPass(),
-    () => rebuildComposer(),
+    () => {
+      rebuildComposer();
+    }
   );
 
   return {
@@ -266,6 +259,6 @@ export function useVrmScene(
     dispose,
     setSize,
     rebuildComposer,
-    render,
+    render
   };
 }

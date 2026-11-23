@@ -1,11 +1,14 @@
+import { describe, expect, test } from '@rstest/core';
+
+import { AnimationMixer, Object3D } from 'three';
+
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
-import { describe, expect, test } from '@rstest/core';
-import { AnimationMixer, Object3D } from 'three';
+
 import {
   createMixerWithClips,
   disposeMixer,
-  loadVRMAnimation,
+  loadVRMAnimation
 } from '@/composables/useVrmAnimation';
 
 /** Build a fake VRM-like object with just enough surface for the mixer. */
@@ -15,8 +18,7 @@ function makeFakeVrm(): VRM {
   return { scene } as unknown as VRM;
 }
 
-const weightsSumExceedsRegex =
-  /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/;
+const weightsSumExceedsRegex = /\[VrmCanvas\] The sum of animationWeights exceeds 1\.0:/;
 const notGlbRegex = /too small|magic|GLB/;
 const missingVrmcVrmAnimationRegex = /VRMC_vrm_animation/;
 
@@ -24,9 +26,7 @@ describe('createMixerWithClips - weight validation', () => {
   test('throws when weights sum exceeds 1.0', () => {
     const vrm = makeFakeVrm();
     const animations = [{}, {}] as VRMAnimation[];
-    expect(() => createMixerWithClips(vrm, animations, [0.7, 0.5])).toThrow(
-      weightsSumExceedsRegex,
-    );
+    expect(() => createMixerWithClips(vrm, animations, [0.7, 0.5])).toThrow(weightsSumExceedsRegex);
   });
 
   test('does not throw when weights sum equals 1.0 exactly (validation only)', () => {
@@ -48,9 +48,7 @@ describe('createMixerWithClips - weight validation', () => {
   test('falls back to equal split when weights contain non-finite values', () => {
     const vrm = makeFakeVrm();
     const animations: VRMAnimation[] = [];
-    expect(() =>
-      createMixerWithClips(vrm, animations, [Number.NaN]),
-    ).not.toThrow();
+    expect(() => createMixerWithClips(vrm, animations, [NaN])).not.toThrow();
   });
 });
 
@@ -58,15 +56,15 @@ describe('disposeMixer', () => {
   test('stops actions and uncaches the root without throwing', () => {
     const root = new Object3D();
     const mixer = new AnimationMixer(root);
-    expect(() => disposeMixer(mixer)).not.toThrow();
+    expect(() => {
+      disposeMixer(mixer);
+    }).not.toThrow();
   });
 });
 
 describe('loadVRMAnimation - input validation', () => {
   test('rejects buffers that are not GLB', async () => {
-    await expect(loadVRMAnimation(new ArrayBuffer(4))).rejects.toThrow(
-      notGlbRegex,
-    );
+    await expect(loadVRMAnimation(new ArrayBuffer(4))).rejects.toThrow(notGlbRegex);
   });
 
   test('rejects GLB without VRMC_vrm_animation extension', async () => {
@@ -74,20 +72,18 @@ describe('loadVRMAnimation - input validation', () => {
     const json = JSON.stringify({ extensions: {} });
     const jsonBytes = new TextEncoder().encode(json);
     const padding = (4 - (jsonBytes.length % 4)) % 4;
-    const totalJsonLen = jsonBytes.length + padding;
-    const buffer = new ArrayBuffer(12 + 8 + totalJsonLen);
+    const totalJsonLength = jsonBytes.length + padding;
+    const buffer = new ArrayBuffer(12 + 8 + totalJsonLength);
     const view = new DataView(buffer);
     view.setUint32(0, 0x46546c67, true);
     view.setUint32(4, 2, true);
     view.setUint32(8, buffer.byteLength, true);
-    view.setUint32(12, totalJsonLen, true);
+    view.setUint32(12, totalJsonLength, true);
     view.setUint32(16, 0x4e4f534a, true);
     new Uint8Array(buffer, 20, jsonBytes.length).set(jsonBytes);
-    for (let i = 0; i < padding; i++) {
-      view.setUint8(20 + jsonBytes.length + i, 0x20);
+    for (let index = 0; index < padding; index++) {
+      view.setUint8(20 + jsonBytes.length + index, 0x20);
     }
-    await expect(loadVRMAnimation(buffer)).rejects.toThrow(
-      missingVrmcVrmAnimationRegex,
-    );
+    await expect(loadVRMAnimation(buffer)).rejects.toThrow(missingVrmcVrmAnimationRegex);
   });
 });

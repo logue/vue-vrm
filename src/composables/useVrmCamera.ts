@@ -1,18 +1,12 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import {
-  Box3,
-  Euler,
-  type Object3D,
-  PerspectiveCamera,
-  Vector3,
-} from 'three/webgpu';
+import { Box3, Euler, type Object3D, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {
   CameraChangePayload,
   CameraOptionsChangePayload,
   VrmCameraDeps,
-  VrmCameraOptions,
+  VrmCameraOptions
 } from '@/types/VrmCameraTypes';
 
 export type VrmCameraCallbacks = {
@@ -32,7 +26,7 @@ export function useVrmCamera(
   canvasRef: Ref<HTMLCanvasElement | null>,
   options: VrmCameraOptions,
   deps: VrmCameraDeps,
-  callbacks: VrmCameraCallbacks = {},
+  callbacks: VrmCameraCallbacks = {}
 ): {
   camera: ShallowRef<PerspectiveCamera | null>;
   orbitControls: ShallowRef<OrbitControls | null>;
@@ -62,7 +56,7 @@ export function useVrmCamera(
     callbacks.onCameraChange?.({
       position: camera.value.position.clone(),
       lookAt: target.clone(),
-      distance: camera.value.position.distanceTo(target),
+      distance: camera.value.position.distanceTo(target)
     });
   }
 
@@ -85,7 +79,7 @@ export function useVrmCamera(
     const renderer = deps.getRenderer();
     const cameraInteraction = options.cameraInteraction();
     if (!(camera.value && renderer)) return;
-    if (!cameraInteraction || cameraInteraction.enabled === false) return;
+    if (!cameraInteraction?.enabled) return;
 
     const controls = new OrbitControls(camera.value, renderer.domElement);
     controls.enableRotate = cameraInteraction.rotate ?? true;
@@ -97,8 +91,7 @@ export function useVrmCamera(
     controls.enableDamping = cameraInteraction.damping ?? true;
     controls.dampingFactor = cameraInteraction.dampingFactor ?? 0.08;
     controls.minDistance = cameraInteraction.minDistance ?? 0.1;
-    controls.maxDistance =
-      cameraInteraction.maxDistance ?? Number.POSITIVE_INFINITY;
+    controls.maxDistance = cameraInteraction.maxDistance ?? Infinity;
     controls.target.copy(initialCameraTarget.value);
     controls.update();
     controls.addEventListener('change', handleControlsChange);
@@ -111,28 +104,21 @@ export function useVrmCamera(
 
   function applyCameraTransform(): void {
     if (!camera.value) return;
-    const dist = options.cameraDistance() ?? initialCameraDistance.value;
+    const distribution = options.cameraDistance() ?? initialCameraDistance.value;
     const cameraOffset = options.cameraOffset();
     const target = new Vector3(
       initialCameraTarget.value.x + cameraOffset[0],
       initialCameraTarget.value.y + cameraOffset[1],
-      initialCameraTarget.value.z + cameraOffset[2],
+      initialCameraTarget.value.z + cameraOffset[2]
     );
 
     // Camera position: target + (0, 0, dist) rotated by cameraEuler.
     const cameraEuler = options.cameraEuler();
-    const euler = new Euler(
-      cameraEuler[0],
-      cameraEuler[1],
-      cameraEuler[2],
-      'XYZ',
-    );
-    const offset = new Vector3(0, 0, dist).applyEuler(euler);
+    const euler = new Euler(cameraEuler[0], cameraEuler[1], cameraEuler[2], 'XYZ');
+    const offset = new Vector3(0, 0, distribution).applyEuler(euler);
     camera.value.position.copy(target).add(offset);
 
-    const lookAt = orbitControls.value
-      ? target.clone()
-      : new Vector3(...options.cameraLookAt());
+    const lookAt = orbitControls.value ? target.clone() : new Vector3(...options.cameraLookAt());
     camera.value.lookAt(lookAt);
     if (orbitControls.value) {
       orbitControls.value.target.copy(lookAt);
@@ -149,9 +135,9 @@ export function useVrmCamera(
     initialCameraTarget.value.copy(center);
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = (fovDeg * Math.PI) / 180;
-    const dist = maxDim / 2 / Math.tan(fov / 2);
+    const distribution = maxDim / 2 / Math.tan(fov / 2);
     // Add some padding so head/feet aren't clipped.
-    return dist * 1.4;
+    return distribution * 1.4;
   }
 
   /**
@@ -206,12 +192,12 @@ export function useVrmCamera(
   }
 
   function init(): void {
-    const opts = options.cameraOptions();
+    const options_ = options.cameraOptions();
     const cam = new PerspectiveCamera(
-      opts.fov ?? 30,
+      options_.fov ?? 30,
       1,
-      opts.near ?? 0.1,
-      opts.far ?? 100,
+      options_.near ?? 0.1,
+      options_.far ?? 100
     );
     camera.value = cam;
     initialCameraTarget.value = new Vector3(...options.cameraLookAt());
@@ -230,19 +216,21 @@ export function useVrmCamera(
       options.cameraDistance(),
       options.cameraEuler(),
       options.cameraOffset(),
-      options.cameraLookAt(),
+      options.cameraLookAt()
     ],
-    () => applyCameraTransform(),
-    { deep: true },
+    () => {
+      applyCameraTransform();
+    },
+    { deep: true }
   );
 
   watch(
     () => options.cameraOptions(),
-    (opts) => {
+    options_ => {
       if (!camera.value) return;
-      const fov = opts?.fov ?? 30;
-      const near = opts?.near ?? 0.1;
-      const far = opts?.far ?? 100;
+      const fov = options_?.fov ?? 30;
+      const near = options_?.near ?? 0.1;
+      const far = options_?.far ?? 100;
       camera.value.fov = fov;
       camera.value.near = near;
       camera.value.far = far;
@@ -250,13 +238,15 @@ export function useVrmCamera(
       resetCamera();
       callbacks.onCameraOptionsChange?.({ fov, near, far });
     },
-    { deep: true },
+    { deep: true }
   );
 
   watch(
     () => options.cameraInteraction(),
-    () => setupOrbitControls(),
-    { deep: true },
+    () => {
+      setupOrbitControls();
+    },
+    { deep: true }
   );
 
   return {
@@ -267,6 +257,6 @@ export function useVrmCamera(
     resetCamera,
     updateAspect,
     update,
-    handleCanvasKeydown,
+    handleCanvasKeydown
   };
 }
