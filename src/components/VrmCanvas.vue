@@ -206,11 +206,14 @@
     aspectRatio: () => props.aspectRatio
   });
 
-  const renderLoop = useRenderLoop(deltaSeconds => {
-    modelApi.update(deltaSeconds);
-    cameraApi.update();
-    sceneApi.render(deltaSeconds, cameraApi.camera.value);
-  });
+  const renderLoop = useRenderLoop(
+    () => sceneApi.renderer.value,
+    deltaSeconds => {
+      modelApi.update(deltaSeconds);
+      cameraApi.update();
+      sceneApi.render(deltaSeconds, cameraApi.camera.value);
+    }
+  );
 
   function applySize(): void {
     const { width, height } = canvasSizeApi.size.value;

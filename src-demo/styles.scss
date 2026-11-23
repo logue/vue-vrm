@@ -1,0 +1,19 @@
+// Carbon theme tokens for the demo (white / g100).
+@use '@carbon/styles/scss/reset';
+@use '@carbon/styles/scss/theme';
+@use '@carbon/styles/scss/themes';
+
+:root {
+  @include theme.theme(themes.$white);
+}
+
+:root[data-carbon-theme='g100'] {
+  @include theme.theme(themes.$g100);
+}
+
+body {
+  margin: 0;
+  background: theme.$background;
+  color: theme.$text-primary;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+}

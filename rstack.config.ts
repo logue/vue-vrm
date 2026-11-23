@@ -176,7 +176,18 @@ define.lib({
  * @see {@link https://rsbuild.rs/config | Rsbuild Config}
  */
 define.app({
-  plugins: [pluginSass(), pluginTypeCheck(), pluginVue()],
+  plugins: [
+    pluginSass(),
+    pluginTypeCheck(),
+    pluginVue({
+      vueLoaderOptions: {
+        compilerOptions: {
+          // Carbon Web Components are native custom elements.
+          isCustomElement: tag => tag.startsWith('cds-')
+        }
+      }
+    })
+  ],
   source: {
     define: createBuildDefines(),
     entry: {

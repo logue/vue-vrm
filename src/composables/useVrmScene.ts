@@ -20,6 +20,9 @@ import type {
   VrmSceneOptions
 } from '@/types/VrmSceneTypes';
 
+/** Upper bound for the renderer's device pixel ratio. */
+const MAX_PIXEL_RATIO = 2;
+
 /**
  * Manage the Three.js scene: renderer, scene graph, lights, background,
  * grid helper, and the optional postprocessing composer.
@@ -167,7 +170,8 @@ export function useVrmScene(
     // requires an async init before the first render.
     const r = new WebGPURenderer({ canvas: canvas.value, antialias: true, alpha: true });
     await r.init();
-    r.setPixelRatio(globalThis.devicePixelRatio);
+    // Cap the pixel ratio: beyond 2 the cost grows with little visible benefit.
+    r.setPixelRatio(Math.min(globalThis.devicePixelRatio, MAX_PIXEL_RATIO));
     r.outputColorSpace = SRGBColorSpace;
     renderer.value = r;
 

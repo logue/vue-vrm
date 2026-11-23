@@ -1,320 +1,216 @@
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, watchEffect } from 'vue';
+
   import VrmCanvas from '@/components/VrmCanvas.vue';
-  import { resetVrmCanvasCamera, type VrmCanvasExposed } from '@/index';
+  import type { AnimationData, CameraInteractionOptions, VrmCanvasExposed } from '@/index';
+
   import ToggleTheme from './components/ToggleTheme.vue';
 
+  const sampleVrmUrl = new URL('./assets/AvatarSample_A.vrm', import.meta.url).href;
+
   const modelData = ref<ArrayBuffer>();
-  const animationData = ref<ArrayBuffer | ArrayBuffer[]>();
+  const animationData = ref<AnimationData>();
   const showGrid = ref(true);
   const bgTransparent = ref(false);
   const isLoading = ref(false);
   const errorMessage = ref<string>();
-  const vrmCanvasRef = ref<VrmCanvasExposed>();
+  const vrmCanvas = ref<VrmCanvasExposed>();
+  const dark = ref(globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  const cameraInteractionEnabled = ref(false);
-  const cameraRotate = ref(true);
-  const cameraPan = ref(true);
-  const cameraZoom = ref(true);
-  const cameraRoll = ref(true);
-
-  const cameraInteraction = computed(() => {
-    if (!cameraInteractionEnabled.value) return;
-    return {
-      enabled: true,
-      rotate: cameraRotate.value,
-      pan: cameraPan.value,
-      zoom: cameraZoom.value,
-      roll: cameraRoll.value,
-      damping: true,
-      dampingFactor: 0.08,
-      rotateSpeed: 1,
-      panSpeed: 1,
-      zoomSpeed: 1,
-      minDistance: 0.5,
-      maxDistance: 20,
-      rollSpeed: 0.03
-    };
+  const interaction = ref({
+    enabled: false,
+    rotate: true,
+    pan: true,
+    zoom: true,
+    roll: true
   });
 
+  const cameraInteraction = computed<CameraInteractionOptions | undefined>(() =>
+    interaction.value.enabled
+      ? { ...interaction.value, minDistance: 0.5, maxDistance: 20 }
+      : undefined
+  );
+
+  watchEffect(() => {
+    document.documentElement.dataset.carbonTheme = dark.value ? 'g100' : 'white';
+  });
+
+  /** Read the new state from a `cds-toggle-changed` event. */
+  function checked(event: Event): boolean {
+    return (event as CustomEvent<{ checked: boolean }>).detail.checked;
+  }
+
+  function onError(error: Error): void {
+    isLoading.value = false;
+    errorMessage.value = error.message;
+  }
+
   async function loadAvatarSample(): Promise<void> {
+    errorMessage.value = undefined;
     isLoading.value = true;
     try {
-      const response = await fetch('./assets/AvatarSample_A.vrm');
+      const response = await fetch(sampleVrmUrl);
       if (!response.ok) {
-        throw new Error(`Failed to load sample VRM: ${response.status}`);
+        throw new Error(`Failed to load sample VRM: ${String(response.status)}`);
       }
       modelData.value = await response.arrayBuffer();
-    } finally {
-      isLoading.value = false;
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  async function onModelFile(e: Event): Promise<void> {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    modelData.value = await file.arrayBuffer();
+  async function readFile(event: Event): Promise<ArrayBuffer | undefined> {
+    errorMessage.value = undefined;
+    return (event.target as HTMLInputElement).files?.[0]?.arrayBuffer();
   }
 
-  async function onAnimationFile(e: Event): Promise<void> {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    animationData.value = await file.arrayBuffer();
+  async function onModelFile(event: Event): Promise<void> {
+    const buffer = await readFile(event);
+    if (buffer) modelData.value = buffer;
   }
 
-  function onLoading(): void {
-    isLoading.value = true;
+  async function onAnimationFile(event: Event): Promise<void> {
+    const buffer = await readFile(event);
+    if (buffer) animationData.value = buffer;
   }
 
-  function onLoaded(): void {
-    isLoading.value = false;
-  }
-
-  function onError(err: Error): void {
-    isLoading.value = false;
-    errorMessage.value = err.message;
-  }
-
-  function onResetCamera(): void {
-    resetVrmCanvasCamera(vrmCanvasRef.value);
-  }
-
-  onMounted(() => {
-    loadAvatarSample().catch(onError);
-  });
+  onMounted(loadAvatarSample);
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <div class="container-fluid">
-      <span class="navbar-brand">Vue VRM Demo</span>
-
-      <div id="navbarCollapse" class="collapse navbar-collapse flex-grow-0">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="https://github.com/logue/vue-vrm" aria-label="GitHub">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                class="bi bi-github"
-                viewBox="0 0 16 16"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                />
-              </svg>
-            </a>
-          </li>
-          <li class="nav-item">
-            <ToggleTheme class="nav-link" attribute="data-bs-theme" />
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-  <header class="bg-body-tertiary mt-5">
-    <div class="container py-3">
-      <h1>Vue VRM Demo</h1>
-      <p class="lead">
-        A simple demo of loading and displaying VRM models in Vue.js. You can load your own VRM
-        files using the file input on the left, or use the sample VRM provided by clicking the
-        "Sample VRM" button.
-      </p>
-    </div>
+  <header class="demo-header">
+    <strong>Vue VRM Demo</strong>
+    <a href="https://github.com/logue/vue-vrm">GitHub</a>
+    <ToggleTheme v-model="dark" />
   </header>
-  <main class="flex-shrink-0 my-5">
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <div class="mb-3">
-            <label for="fileVrm" class="form-label">VRM file:</label>
-            <div class="input-group">
-              <input
-                id="fileVrm"
-                class="form-control"
-                type="file"
-                accept=".vrm,.glb"
-                @change="onModelFile"
-              />
-              <button type="button" class="btn btn-secondary" @click="loadAvatarSample">
-                Sample VRM
-              </button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="fileVrma" class="form-label">VRMA (VRM Animation) file:</label>
-            <input
-              id="fileVrma"
-              class="form-control"
-              type="file"
-              accept=".vrma,.glb"
-              @change="onAnimationFile"
-            />
-            <div class="form-text">
-              Due to licensing restrictions, a VRMA file is not available. Please download it from
-              <a
-                href="https://vroid.booth.pm/items/5512385"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Download VRMA sample from BOOTH"
-              >
-                here
-              </a>
-              and load it yourself.
-            </div>
-          </div>
-          <div class="form-check form-switch">
-            <input
-              v-model="showGrid"
-              class="form-check-input"
-              type="checkbox"
-              id="checkGrid"
-              switch
-            />
-            <label class="form-check-label" for="checkGrid">Show grid</label>
-          </div>
-          <div class="form-check form-switch">
-            <input
-              v-model="bgTransparent"
-              class="form-check-input"
-              type="checkbox"
-              id="checkBgTransparent"
-              switch
-            />
-            <label class="form-check-label" for="checkBgTransparent">Transparent Background</label>
-          </div>
 
-          <fieldset class="border p-2">
-            <legend class="w-auto">Camera Control</legend>
-            <div class="form-check form-switch">
-              <input
-                v-model="cameraInteractionEnabled"
-                class="form-check-input"
-                type="checkbox"
-                id="checkCameraInteraction"
-                switch
-              />
-              <label class="form-check-label" for="checkCameraInteraction">
-                Enable Interaction
-              </label>
-            </div>
-            <div class="form-check form-switch">
-              <input
-                v-model="cameraRotate"
-                :disabled="!cameraInteractionEnabled"
-                class="form-check-input"
-                type="checkbox"
-                id="checkCameraRotate"
-                switch
-              />
-              <label class="form-check-label" for="checkCameraRotate">Orbit Rotate</label>
-              <div class="form-text">Drag.</div>
-            </div>
-            <div class="form-check form-switch">
-              <input
-                v-model="cameraPan"
-                :disabled="!cameraInteractionEnabled"
-                class="form-check-input"
-                type="checkbox"
-                id="checkCameraPan"
-                switch
-              />
-              <label class="form-check-label" for="checkCameraPan">Pan</label>
-              <div class="form-text">
-                Right mouse button and drag or
-                <kbd>Ctrl</kbd>
-                + Left mouse button and drag.
-              </div>
-            </div>
-            <div class="form-check form-switch">
-              <input
-                v-model="cameraZoom"
-                :disabled="!cameraInteractionEnabled"
-                class="form-check-input"
-                type="checkbox"
-                id="checkCameraZoom"
-                switch
-              />
-              <label class="form-check-label" for="checkCameraZoom">Zoom</label>
-              <div class="form-text">Mouse wheel.</div>
-            </div>
-            <div class="form-check form-switch mb-2">
-              <input
-                v-model="cameraRoll"
-                :disabled="!cameraInteractionEnabled"
-                class="form-check-input"
-                type="checkbox"
-                id="checkCameraRoll"
-                switch
-              />
-              <label class="form-check-label" for="checkCameraRoll">Roll</label>
-              <div class="form-text">
-                Click the canvas to focus, then press
-                <kbd>Q</kbd>
-                /
-                <kbd>E</kbd>
-                for roll.
-              </div>
-            </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click="onResetCamera">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                class="bi bi-arrow-clockwise"
-                viewBox="0 0 16 16"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
-                />
-                <path
-                  d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"
-                />
-              </svg>
-              Reset Camera
-            </button>
-          </fieldset>
-        </div>
-        <div class="col">
-          <div v-if="isLoading" class="alert alert-primary" role="alert">Loading...</div>
-          <div v-if="errorMessage" class="alert alert-danger" role="alert">
-            {{ errorMessage }}
-          </div>
-          <figure class="mx-auto">
-            <VrmCanvas
-              ref="vrmCanvasRef"
-              :model-data="modelData"
-              :animation-data="animationData"
-              :show-grid="showGrid"
-              :bg-transparent="bgTransparent"
-              :camera-interaction="cameraInteraction"
-              class="img-fluid img-thumbnail"
-              @model:loading="onLoading"
-              @model:loaded="onLoaded"
-              @model:error="onError"
-              @animation:error="onError"
-            />
-            <figcaption class="figure-caption text-center">VRM Model Preview</figcaption>
-          </figure>
-        </div>
-      </div>
-    </div>
+  <main class="demo-main">
+    <section class="demo-controls">
+      <p>
+        Load your own VRM file, or use the sample VRM provided by clicking the "Sample VRM" button.
+      </p>
+
+      <label for="fileVrm">VRM file</label>
+      <input id="fileVrm" type="file" accept=".vrm,.glb" @change="onModelFile" />
+      <cds-button kind="secondary" size="sm" @click="loadAvatarSample">Sample VRM</cds-button>
+
+      <label for="fileVrma">VRMA (VRM Animation) file</label>
+      <input id="fileVrma" type="file" accept=".vrma,.glb" @change="onAnimationFile" />
+      <p class="demo-helper">
+        Due to licensing restrictions, a VRMA file is not bundled. Download one from
+        <a href="https://vroid.booth.pm/items/5512385" target="_blank" rel="noopener noreferrer">
+          BOOTH
+        </a>
+        and load it yourself.
+      </p>
+
+      <cds-toggle
+        label-text="Show grid"
+        :toggled="showGrid"
+        @cds-toggle-changed="showGrid = checked($event)"
+      />
+      <cds-toggle
+        label-text="Transparent background"
+        :toggled="bgTransparent"
+        @cds-toggle-changed="bgTransparent = checked($event)"
+      />
+
+      <fieldset>
+        <legend>Camera control</legend>
+        <cds-toggle
+          label-text="Enable interaction"
+          :toggled="interaction.enabled"
+          @cds-toggle-changed="interaction.enabled = checked($event)"
+        />
+        <cds-toggle
+          label-text="Orbit rotate (drag)"
+          :disabled="!interaction.enabled"
+          :toggled="interaction.rotate"
+          @cds-toggle-changed="interaction.rotate = checked($event)"
+        />
+        <cds-toggle
+          label-text="Pan (right drag / Ctrl + drag)"
+          :disabled="!interaction.enabled"
+          :toggled="interaction.pan"
+          @cds-toggle-changed="interaction.pan = checked($event)"
+        />
+        <cds-toggle
+          label-text="Zoom (mouse wheel)"
+          :disabled="!interaction.enabled"
+          :toggled="interaction.zoom"
+          @cds-toggle-changed="interaction.zoom = checked($event)"
+        />
+        <cds-toggle
+          label-text="Roll (focus canvas, then Q / E)"
+          :disabled="!interaction.enabled"
+          :toggled="interaction.roll"
+          @cds-toggle-changed="interaction.roll = checked($event)"
+        />
+        <cds-button kind="tertiary" size="sm" @click="vrmCanvas?.resetCamera()">
+          Reset camera
+        </cds-button>
+      </fieldset>
+    </section>
+
+    <section class="demo-preview">
+      <cds-inline-notification
+        v-if="errorMessage"
+        kind="error"
+        title="Error"
+        :subtitle="errorMessage"
+        hide-close-button
+      />
+      <p v-if="isLoading">Loading…</p>
+      <VrmCanvas
+        ref="vrmCanvas"
+        :model-data="modelData"
+        :animation-data="animationData"
+        :show-grid="showGrid"
+        :bg-transparent="bgTransparent"
+        :camera-interaction="cameraInteraction"
+        @model:loading="isLoading = true"
+        @model:loaded="isLoading = false"
+        @model:error="onError"
+        @animation:error="onError"
+        @error="onError"
+      />
+    </section>
   </main>
-  <footer class="footer mt-auto py-3 mb-0 bg-body-tertiary">
-    <div class="container mb-0">
-      &copy; 2026 by
-      <a href="https://logue.dev/">Logue</a>
-      . Licensed under the
-      <a href="https://opensource.org/licenses/mit-license.php">MIT License</a>
-      .
-    </div>
+
+  <footer class="demo-footer">
+    &copy; 2026 by <a href="https://logue.dev/">Logue</a>. Licensed under the
+    <a href="https://opensource.org/licenses/mit-license.php">MIT License</a>.
   </footer>
 </template>
+
+<style scoped>
+  .demo-header,
+  .demo-footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .demo-main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  .demo-controls {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .demo-preview {
+    flex: 1 1 480px;
+  }
+
+  .demo-helper {
+    font-size: 0.75rem;
+  }
+</style>

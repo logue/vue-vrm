@@ -1,31 +1,36 @@
-import { Timer } from 'three';
+import { Timer, type WebGPURenderer } from 'three/webgpu';
 
 /**
- * Drive a `requestAnimationFrame` loop and report the elapsed time between
- * frames in seconds. Carries no rendering or domain knowledge of its own.
+ * Drive the renderer's animation loop and report the elapsed time between
+ * frames in seconds. Uses `renderer.setAnimationLoop()` so the loop also works
+ * with WebXR and pauses correctly with the renderer.
  *
+ * @param getRenderer Returns the renderer whose animation loop should be driven.
  * @param callback Invoked once per frame with the delta time in seconds.
  */
-export function useRenderLoop(callback: (deltaSeconds: number) => void): {
+export function useRenderLoop(
+  getRenderer: () => WebGPURenderer | undefined,
+  callback: (deltaSeconds: number) => void
+): {
   start: () => void;
   stop: () => void;
 } {
-  const clock = new Timer();
-  let rafId = 0;
-
-  function tick(timestamp: number): void {
-    rafId = requestAnimationFrame(tick);
-    clock.update(timestamp);
-    callback(clock.getDelta());
-  }
+  const timer = new Timer();
 
   function start(): void {
-    tick(performance.now());
+    const renderer = getRenderer();
+    if (!renderer) return;
+    timer.reset();
+    void renderer.setAnimationLoop(timestamp => {
+      timer.update(timestamp);
+      callback(timer.getDelta());
+    });
   }
 
   function stop(): void {
-    cancelAnimationFrame(rafId);
-    clock.dispose();
+    // eslint-disable-next-line unicorn/no-null -- three.js uses `null` to clear the loop.
+    void getRenderer()?.setAnimationLoop(null);
+    timer.dispose();
   }
 
   return { start, stop };
