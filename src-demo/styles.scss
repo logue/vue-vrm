@@ -1,19 +1,102 @@
-// Carbon theme tokens for the demo (white / g100).
+/*
+  Global styles for the demo (Playground): IBM Plex Sans, Carbon reset/type styles,
+  and Carbon theme tokens (white / g100, switched via `data-carbon-theme`).
+*/
+// Only what the demo needs: config, IBM Plex Sans (Latin), the reset (which
+// also applies Carbon's type reset and default type styles), and theme tokens.
+// Component styles ship inside the Carbon Web Components themselves.
+@use '@carbon/styles/scss/config' with (
+  $use-per-family-plex: true,
+  $use-akamai-cdn: true
+);
+@use '@carbon/styles/scss/fonts' with (
+  $fonts: (
+    IBM-Plex-Mono: false,
+    IBM-Plex-Serif: false
+  )
+);
 @use '@carbon/styles/scss/reset';
-@use '@carbon/styles/scss/theme';
-@use '@carbon/styles/scss/themes';
+@use '@carbon/styles/scss/theme' as carbon-theme;
+@use '@carbon/styles/scss/themes' as carbon-themes;
 
 :root {
-  @include theme.theme(themes.$white);
+  @include carbon-theme.theme(carbon-themes.$white);
 }
 
 :root[data-carbon-theme='g100'] {
-  @include theme.theme(themes.$g100);
+  @include carbon-theme.theme(carbon-themes.$g100);
 }
 
 body {
   margin: 0;
-  background: theme.$background;
-  color: theme.$text-primary;
+  background: carbon-theme.$background;
+  color: carbon-theme.$text-primary;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-main {
+  flex: 1;
+  // `cds-header` is fixed-positioned (48px high).
+  padding-top: 3rem;
+}
+
+// Embedded in the documentation site (iframe): no header/footer, size to content.
+:root[data-embedded] {
+  #app {
+    min-height: 0;
+  }
+
+  .app-main {
+    padding-top: 0;
+  }
+}
+
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--cds-spacing-05, 1rem);
+  min-height: 3rem; /* 48px */
+  padding: var(--cds-spacing-04, 0.75rem) var(--cds-spacing-05, 1rem);
+  background-color: var(--cds-layer-01, #f4f4f4);
+  border-top: 1px solid var(--cds-border-subtle-01, #e0e0e0);
+  color: var(--cds-text-secondary, #525252);
+  font-size: var(--cds-label-01-font-size, 0.75rem);
+  line-height: var(--cds-label-01-line-height, 1.33333);
+  letter-spacing: var(--cds-label-01-letter-spacing, 0.32px);
+}
+
+// Light-DOM wrapper for the header's global actions. Carbon WC has no element
+// for it, and its rule lives in the ui-shell component CSS we no longer load.
+.cds--header__global {
+  display: flex;
+  flex: 1 1 0%;
+  justify-content: flex-end;
+  block-size: 100%;
+}
+
+// The global action renders as a ghost button, whose icon takes the link color.
+cds-header-global-action cds-icon {
+  color: var(--cds-icon-primary, #161616);
+  fill: currentColor;
+}
+
+.header-theme-toggle {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: var(--cds-spacing-05, 1rem);
+}
+
+.label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

@@ -1,6 +1,6 @@
 {
   "name": "vue-vrm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Vrm viewer component for Vue 3.",
   "keywords": [
     "vrm",
@@ -67,6 +67,7 @@
     "prepare": "rs hooks"
   },
   "devDependencies": {
+    "@carbon/icons": "^11.92.0",
     "@carbon/styles": "^1.120.0",
     "@carbon/type": "^11.71.0",
     "@carbon/web-components": "^2.68.0",

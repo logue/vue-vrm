@@ -189,6 +189,10 @@ snapshots:
 				},
 			},
 			"devDependencies": {
+				"@carbon/icons": {
+					"specifier": "^11.92.0",
+					"version": "11.92.0",
+				},
 				"@carbon/styles": {
 					"specifier": "^1.120.0",
 					"version": "1.120.0",
