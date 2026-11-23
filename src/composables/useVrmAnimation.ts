@@ -3,8 +3,8 @@ import {
   type VRMAnimation,
   VRMAnimationLoaderPlugin
 } from '@pixiv/three-vrm-animation';
+import { AnimationMixer, LoopOnce, LoopRepeat } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { AnimationMixer, LoopOnce, LoopRepeat } from 'three/webgpu';
 
 import type { VRM } from '@pixiv/three-vrm';
 

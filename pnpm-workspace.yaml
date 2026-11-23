@@ -46,6 +46,3 @@ skills:
 permissions:
   taze:
     skills: true
-
-patchedDependencies:
-  '@pixiv/three-vrm@3.5.5': patches/@pixiv__three-vrm@3.5.5.patch

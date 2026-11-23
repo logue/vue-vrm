@@ -1,14 +1,12 @@
-import { MToonMaterialLoaderPlugin, type VRM, VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
-import { MToonNodeMaterial } from '@pixiv/three-vrm/nodes';
+import { type VRM, VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import { Box3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3 } from 'three/webgpu';
 
 import { validateVrm } from '@/utils/validateGlb';
 
 /**
  * Load a VRM 1.0 model from an ArrayBuffer.
- * Validates the GLB binary first, then parses with three-vrm using
- * WebGPU-compatible MToon node materials.
+ * Validates the GLB binary first, then parses it with three-vrm.
  *
  * @param buffer The GLB file as an ArrayBuffer.
  * @returns The loaded VRM instance.
@@ -18,14 +16,7 @@ export async function loadVrm(buffer: ArrayBuffer): Promise<VRM> {
   validateVrm(buffer);
 
   const loader = new GLTFLoader();
-  loader.register(
-    parser =>
-      new VRMLoaderPlugin(parser, {
-        mtoonMaterialPlugin: new MToonMaterialLoaderPlugin(parser, {
-          materialType: MToonNodeMaterial
-        })
-      })
-  );
+  loader.register(parser => new VRMLoaderPlugin(parser));
 
   const gltf = await loader.parseAsync(buffer, '');
   const vrm = (gltf.userData as { vrm?: VRM }).vrm;

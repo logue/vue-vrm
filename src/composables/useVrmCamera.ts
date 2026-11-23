@@ -1,5 +1,5 @@
+import { Box3, Euler, MathUtils, type Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Box3, Euler, MathUtils, type Object3D, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {

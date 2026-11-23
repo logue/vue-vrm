@@ -1,4 +1,4 @@
-import { type AnimationMixer } from 'three/webgpu';
+import { type AnimationMixer } from 'three';
 import { type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {

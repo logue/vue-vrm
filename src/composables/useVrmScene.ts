@@ -1,6 +1,3 @@
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import {
   AmbientLight,
   DirectionalLight,
@@ -10,8 +7,11 @@ import {
   SRGBColorSpace,
   type Texture,
   TextureLoader,
-  WebGPURenderer
-} from 'three/webgpu';
+  WebGLRenderer
+} from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { type Ref, type ShallowRef, shallowRef, watch } from 'vue';
 
 import type {
@@ -38,16 +38,16 @@ export function useVrmScene(
   dependencies: VrmSceneDependencies,
   callbacks: VrmSceneCallbacks = {}
 ): {
-  renderer: ShallowRef<WebGPURenderer | undefined>;
+  renderer: ShallowRef<WebGLRenderer | undefined>;
   scene: ShallowRef<Scene | undefined>;
   composer: ShallowRef<EffectComposer | undefined>;
-  init: () => Promise<void>;
+  init: () => void;
   dispose: () => void;
   setSize: (width: number, height: number) => void;
   rebuildComposer: () => void;
   render: (deltaSeconds: number, camera?: PerspectiveCamera) => void;
 } {
-  const renderer = shallowRef<WebGPURenderer>();
+  const renderer = shallowRef<WebGLRenderer>();
   const scene = shallowRef<Scene>();
   const composer = shallowRef<EffectComposer>();
 
@@ -118,11 +118,7 @@ export function useVrmScene(
     const shaderPass = options.shaderPass();
     if (!shaderPass) return;
 
-    // EffectComposer's types still assume the legacy WebGLRenderer, but at
-    // runtime it only calls methods also present on the unified WebGPURenderer.
-    const c = new EffectComposer(
-      renderer.value as unknown as ConstructorParameters<typeof EffectComposer>[0]
-    );
+    const c = new EffectComposer(renderer.value);
     c.addPass(new RenderPass(scene.value, camera));
     c.addPass(shaderPass);
     c.addPass(new OutputPass());
@@ -162,14 +158,12 @@ export function useVrmScene(
    * Does not build the composer — call `rebuildComposer()` once the camera
    * (owned by the caller) exists, since the composer's RenderPass needs it.
    */
-  async function init(): Promise<void> {
+  function init(): void {
     if (!canvas.value) return;
 
-    // MToonNodeMaterial is a Node material; it can only be rendered by the
-    // unified WebGPURenderer (WebGPU with automatic WebGL2 fallback), which
-    // requires an async init before the first render.
-    const r = new WebGPURenderer({ canvas: canvas.value, antialias: true, alpha: true });
-    await r.init();
+    // WebGLRenderer: three-vrm's MToonMaterial is GLSL-based, and the optional
+    // postprocessing (EffectComposer / ShaderPass) targets WebGL as well.
+    const r = new WebGLRenderer({ canvas: canvas.value, antialias: true, alpha: true });
     // Cap the pixel ratio: beyond 2 the cost grows with little visible benefit.
     r.setPixelRatio(Math.min(globalThis.devicePixelRatio, MAX_PIXEL_RATIO));
     r.outputColorSpace = SRGBColorSpace;
@@ -193,7 +187,7 @@ export function useVrmScene(
     grid = undefined;
     setBackground();
     disposeComposer();
-    void renderer.value?.dispose();
+    renderer.value?.dispose();
     renderer.value = undefined;
     scene.value = undefined;
     ambientLight = undefined;

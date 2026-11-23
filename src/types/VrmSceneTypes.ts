@@ -1,6 +1,6 @@
 import type { DirectionalLightOptions, LightOptions } from '@/types/VrmCanvasOptions';
+import type { PerspectiveCamera, Vector3 } from 'three';
 import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import type { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 /**
  * Reactive getters for the scene-related props of VrmCanvas.

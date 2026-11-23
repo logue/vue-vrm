@@ -2,13 +2,7 @@
   import type { VRM } from '@pixiv/three-vrm';
   import type { VRMAnimation } from '@pixiv/three-vrm-animation';
   import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-  import type {
-    AnimationMixer,
-    PerspectiveCamera,
-    Scene,
-    Vector3,
-    WebGPURenderer
-  } from 'three/webgpu';
+  import type { AnimationMixer, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
   import { onMounted, onUnmounted, ref, watch } from 'vue';
 
   import { useCanvasSize } from '@/composables/useCanvasSize';
@@ -222,18 +216,12 @@
   }
 
   // ---------- Lifecycle ----------
-  let unmounted = false;
-
   onMounted(async () => {
     try {
-      // WebGPURenderer requires an async init before the first render.
-      await sceneApi.init();
+      sceneApi.init();
     } catch (error) {
+      // e.g. WebGL is unavailable.
       emit('error', toError(error));
-      return;
-    }
-    if (unmounted) {
-      sceneApi.dispose();
       return;
     }
     // The camera must exist before the composer's RenderPass is built.
@@ -246,7 +234,6 @@
   });
 
   onUnmounted(() => {
-    unmounted = true;
     renderLoop.stop();
     canvasSizeApi.dispose();
     modelApi.dispose();
@@ -296,8 +283,8 @@
     getScene: (): Scene | undefined => sceneApi.scene.value,
     /** Returns the `PerspectiveCamera` instance, or `undefined` before mount. */
     getCamera: (): PerspectiveCamera | undefined => cameraApi.camera.value,
-    /** Returns the `WebGPURenderer` instance, or `undefined` before mount. */
-    getRenderer: (): WebGPURenderer | undefined => sceneApi.renderer.value,
+    /** Returns the `WebGLRenderer` instance, or `undefined` before mount. */
+    getRenderer: (): WebGLRenderer | undefined => sceneApi.renderer.value,
     /** Returns the `AnimationMixer` instance, or `undefined` when no animation is active. */
     getMixer: (): AnimationMixer | undefined => modelApi.mixer.value,
     /** Returns the currently loaded `VRM` instance, or `undefined` when no model is loaded. */

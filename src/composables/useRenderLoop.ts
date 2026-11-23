@@ -1,4 +1,4 @@
-import { Timer, type WebGPURenderer } from 'three/webgpu';
+import { Timer, type WebGLRenderer } from 'three';
 
 /**
  * Drive the renderer's animation loop and report the elapsed time between
@@ -9,7 +9,7 @@ import { Timer, type WebGPURenderer } from 'three/webgpu';
  * @param callback Invoked once per frame with the delta time in seconds.
  */
 export function useRenderLoop(
-  getRenderer: () => WebGPURenderer | undefined,
+  getRenderer: () => WebGLRenderer | undefined,
   callback: (deltaSeconds: number) => void
 ): {
   start: () => void;
@@ -21,7 +21,7 @@ export function useRenderLoop(
     const renderer = getRenderer();
     if (!renderer) return;
     timer.reset();
-    void renderer.setAnimationLoop(timestamp => {
+    renderer.setAnimationLoop(timestamp => {
       timer.update(timestamp);
       callback(timer.getDelta());
     });
@@ -29,7 +29,7 @@ export function useRenderLoop(
 
   function stop(): void {
     // eslint-disable-next-line unicorn/no-null -- three.js uses `null` to clear the loop.
-    void getRenderer()?.setAnimationLoop(null);
+    getRenderer()?.setAnimationLoop(null);
     timer.dispose();
   }
 

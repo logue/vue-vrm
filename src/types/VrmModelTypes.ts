@@ -1,6 +1,6 @@
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
-import type { Scene } from 'three/webgpu';
+import type { Scene } from 'three';
 
 /** One or more VRMA buffers. */
 export type AnimationData = ArrayBuffer | ArrayBuffer[];

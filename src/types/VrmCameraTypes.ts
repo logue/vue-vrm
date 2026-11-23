@@ -1,5 +1,5 @@
 import type { CameraInteractionOptions, CameraOptions, Vec3 } from '@/types/VrmCanvasOptions';
-import type { Object3D, Vector3, WebGPURenderer } from 'three/webgpu';
+import type { Object3D, Vector3, WebGLRenderer } from 'three';
 
 /**
  * Reactive getters for the camera-related props of VrmCanvas.
@@ -15,7 +15,7 @@ export type VrmCameraOptions = {
 
 export type VrmCameraDependencies = {
   /** Returns the current renderer, used to construct OrbitControls. */
-  getRenderer: () => WebGPURenderer | undefined;
+  getRenderer: () => WebGLRenderer | undefined;
   /** Returns the object the camera should fit to when resetting. */
   getFitTarget: () => Object3D | undefined;
 };

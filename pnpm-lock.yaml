@@ -175,9 +175,6 @@ snapshots:
 			"minimatch": ">=11.0.4",
 			"glob": ">=14.0.6",
 		},
-		"patchedDependencies": {
-			"@pixiv/three-vrm@3.5.5": "77a9f0c99542802e6f06705bfb3bbb4f333633286497be31125e0141374cb1a3",
-		},
 	},
 
 	"projects": {
@@ -210,10 +207,6 @@ snapshots:
 					"version": "3.5.5",
 				},
 				"@pixiv/three-vrm-animation": {
-					"specifier": "^3.5.5",
-					"version": "3.5.5",
-				},
-				"@pixiv/three-vrm-materials-mtoon": {
 					"specifier": "^3.5.5",
 					"version": "3.5.5",
 				},
