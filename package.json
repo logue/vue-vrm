@@ -24,7 +24,12 @@
     "email": "logue@hotmail.co.jp",
     "url": "https://logue.dev/"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/wc-auto.es.js",
+    "./dist/wc-auto.umd.js",
+    "./src/wc-auto.ts",
+    "./src/helpers/vue-flags.ts"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -32,8 +37,24 @@
       "import": "./dist/index.es.js",
       "default": "./dist/index.es.js"
     },
+    "./wc": {
+      "types": "./dist/wc.d.ts",
+      "import": "./dist/wc.es.js",
+      "default": "./dist/wc.es.js"
+    },
+    "./wc-auto": {
+      "types": "./dist/wc-auto.d.ts",
+      "import": "./dist/wc-auto.es.js",
+      "default": "./dist/wc-auto.es.js"
+    },
     "./umd": {
       "default": "./dist/index.umd.js"
+    },
+    "./wc/umd": {
+      "default": "./dist/wc.umd.js"
+    },
+    "./wc-auto/umd": {
+      "default": "./dist/wc-auto.umd.js"
     },
     "./package.json": "./package.json"
   },

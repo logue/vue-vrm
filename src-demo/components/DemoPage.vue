@@ -4,7 +4,7 @@
   import Pedestrian16 from '@carbon/icons/es/pedestrian/16';
   import ModelAlt16 from '@carbon/icons/es/model--alt/16';
 
-  import VrmCanvas from '@/components/VrmCanvas.vue';
+  import VrmCanvas from '@/components/VrmCanvas';
   import type { AnimationData, CameraInteractionOptions, VrmCanvasExposed } from '@/index';
 
   const sampleVrmUrl = new URL('../assets/AvatarSample_A.vrm', import.meta.url).href;
