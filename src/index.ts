@@ -25,6 +25,7 @@ export type {
   Vec3
 } from '@/types/VrmCanvasOptions';
 export type { VrmCanvasExposed } from '@/types/VrmCanvasExposed';
+export type { VrmExpressionNames, VrmExpressions } from '@/types/VrmExpressionTypes';
 export type { AnimationData } from '@/types/VrmModelTypes';
 export type {
   VrmRenderContext,
@@ -32,6 +33,7 @@ export type {
   VrmRenderTargets,
   VrmResizePayload
 } from '@/types/VrmRenderTypes';
+export { VRMExpressionPresetName } from '@pixiv/three-vrm';
 export { validateVrm, validateVrma } from '@/utils/validateGlb';
 
 /**

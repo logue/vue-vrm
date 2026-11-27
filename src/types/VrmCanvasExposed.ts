@@ -1,5 +1,6 @@
+import type { VrmExpressionNames } from '@/types/VrmExpressionTypes';
 import type { AnimationData } from '@/types/VrmModelTypes';
-import type { VRM } from '@pixiv/three-vrm';
+import type { VRM, VRMExpressionPresetName } from '@pixiv/three-vrm';
 import type { AnimationMixer, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 
 /** Public API exposed from a `VrmCanvas` instance (template ref or custom element). */
@@ -37,6 +38,22 @@ export type VrmCanvasExposed = {
   getVrm: () => VRM | undefined;
   /** The internal `<canvas>` element, or `undefined` before mount. */
   getCanvas: () => HTMLCanvasElement | undefined;
+  /**
+   * Preset and custom expression names defined by the loaded model.
+   * Empty arrays when no model is loaded. Call after `model:loaded`.
+   */
+  getExpressionNames: () => VrmExpressionNames;
+  /**
+   * Set an expression weight (clamped to 0–1) without going through Vue reactivity.
+   * Applied right before the next frame's `vrm.update()`, so it suits per-frame
+   * input such as lip sync. Keys also given in the `expressions` prop are overridden by the prop.
+   * Values persist until changed, `resetExpressions()` is called, or the component unmounts.
+   * @param name - Preset or custom expression name.
+   * @param weight - Weight between 0 and 1.
+   */
+  setExpression: (name: VRMExpressionPresetName | (string & {}), weight: number) => void;
+  /** Clear all values set with `setExpression()`; those expressions return to 0 on the next frame. */
+  resetExpressions: () => void;
   /** @deprecated Use `resetCamera()`. */
   resetCameraPose: () => void;
 };

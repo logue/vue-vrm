@@ -6,6 +6,7 @@ import { renderVrmCanvas } from '@/helpers/renderVrmCanvas';
 
 export { Meta } from '@/types/Meta';
 export type { VrmCanvasExposed } from '@/types/VrmCanvasExposed';
+export type { VrmExpressionNames, VrmExpressions } from '@/types/VrmExpressionTypes';
 export type {
   VrmRenderContext,
   VrmRenderFunction,

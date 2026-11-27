@@ -19,6 +19,7 @@ import type {
   LightOptions,
   Vec3
 } from '@/types/VrmCanvasOptions';
+import type { VrmExpressions } from '@/types/VrmExpressionTypes';
 import type { AnimationData } from '@/types/VrmModelTypes';
 import type { VrmRenderFunction, VrmRenderTargets, VrmResizePayload } from '@/types/VrmRenderTypes';
 import type { VRM } from '@pixiv/three-vrm';
@@ -29,6 +30,7 @@ import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { useCanvasSize } from '@/composables/useCanvasSize';
 import { useRenderLoop } from '@/composables/useRenderLoop';
 import { useVrmCamera } from '@/composables/useVrmCamera';
+import { useVrmExpressions } from '@/composables/useVrmExpressions';
 import { useVrmModel } from '@/composables/useVrmModel';
 import { useVrmScene } from '@/composables/useVrmScene';
 
@@ -42,6 +44,11 @@ export const vrmCanvasProps = {
   animationWeights: { type: Array as PropType<number[]> },
   /** Whether the animation should loop. */
   loop: { type: Boolean, default: true },
+  /**
+   * Expression weights (0–1) keyed by preset or custom expression name, e.g. `{ happy: 1 }`.
+   * Applied every frame after the animation; expressions not listed are left untouched.
+   */
+  expressions: { type: Object as PropType<VrmExpressions> },
   /** Whether the background should be transparent. */
   bgTransparent: { type: Boolean, default: false },
   /** The background image URL. */
@@ -234,6 +241,8 @@ export function useVrmCanvas(
     }
   );
 
+  const expressionsApi = useVrmExpressions(() => props.expressions);
+
   const modelApi = useVrmModel(
     {
       modelData: () => props.modelData,
@@ -247,9 +256,11 @@ export function useVrmCanvas(
         emit('model:loading');
       },
       onModelLoaded: vrm => {
+        expressionsApi.onModelChanged();
         emit('model:loaded', vrm);
       },
       onModelUnloaded: () => {
+        expressionsApi.onModelChanged();
         emit('model:unloaded');
       },
       onModelError: error => {
@@ -294,7 +305,7 @@ export function useVrmCanvas(
   const renderLoop = useRenderLoop(
     () => sceneApi.renderer.value,
     (deltaSeconds, elapsedSeconds) => {
-      modelApi.update(deltaSeconds);
+      modelApi.update(deltaSeconds, expressionsApi.apply);
       cameraApi.update();
       renderFrame(deltaSeconds, elapsedSeconds);
     }
@@ -385,6 +396,9 @@ export function useVrmCanvas(
     getMixer: () => modelApi.mixer.value,
     getVrm: () => modelApi.vrm.value,
     getCanvas: () => canvas.value,
+    getExpressionNames: () => expressionsApi.getExpressionNames(modelApi.vrm.value),
+    setExpression: expressionsApi.setExpression,
+    resetExpressions: expressionsApi.resetExpressions,
     resetCameraPose: cameraApi.resetCamera
   };
 

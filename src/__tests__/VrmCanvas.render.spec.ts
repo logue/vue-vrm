@@ -164,6 +164,28 @@ describe('VrmCanvas render loop hooks', () => {
     model.vrm.value = undefined;
   });
 
+  it('should apply expressions after the mixer and before vrm.update', async () => {
+    const order: string[] = [];
+    const { frame } = await setup({ expressions: { aa: 1 } });
+
+    const model = modelState.api;
+    if (!model) throw new Error('model API was not captured');
+    model.mixer.value = { update: () => order.push('mixer') };
+    model.vrm.value = {
+      update: () => order.push('vrm'),
+      expressionManager: {
+        getExpression: () => ({}),
+        setValue: (name: string, weight: number) => order.push(`${name}=${String(weight)}`)
+      }
+    };
+
+    frame(16);
+
+    expect(order).toEqual(['mixer', 'aa=1', 'vrm']);
+    model.mixer.value = undefined;
+    model.vrm.value = undefined;
+  });
+
   it('should use a new render prop from the next frame', async () => {
     const first = rs.fn();
     const second = rs.fn();

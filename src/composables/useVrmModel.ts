@@ -37,7 +37,7 @@ export function useVrmModel(
   pauseAnimation: () => void;
   resumeAnimation: () => void;
   stopAnimation: () => void;
-  update: (deltaSeconds: number) => void;
+  update: (deltaSeconds: number, beforeVrmUpdate?: (vrm: VRM) => void) => void;
 } {
   const vrm = shallowRef<VRM>();
   const mixer = shallowRef<AnimationMixer>();
@@ -134,9 +134,16 @@ export function useVrmModel(
     callbacks.onAnimationStop?.();
   }
 
-  function update(deltaSeconds: number): void {
+  /**
+   * Advance the mixer, then the VRM.
+   * @param beforeVrmUpdate Runs between the two, e.g. to override expression weights
+   *   set by the animation before `vrm.update()` applies them.
+   */
+  function update(deltaSeconds: number, beforeVrmUpdate?: (vrm: VRM) => void): void {
     mixer.value?.update(deltaSeconds);
-    vrm.value?.update(deltaSeconds);
+    if (!vrm.value) return;
+    beforeVrmUpdate?.(vrm.value);
+    vrm.value.update(deltaSeconds);
   }
 
   async function init(): Promise<void> {

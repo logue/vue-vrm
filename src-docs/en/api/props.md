@@ -14,6 +14,7 @@ Props are written in kebab-case in templates (`model-data`) and camelCase in Jav
 | `animation-data`    | `ArrayBuffer \| ArrayBuffer[]` | `undefined` | VRMA file, or several files to blend. See [Animation](../guide/animation).                                          |
 | `animation-weights` | `number[]`                     | `undefined` | Weight of each clip. Equal weights when omitted or when the length does not match. Must not sum to more than `1.0`. |
 | `loop`              | `boolean`                      | `true`      | Repeats the animation. When `false`, it plays once and keeps the last frame.                                        |
+| `expressions`       | `VrmExpressions`               | `undefined` | Expression weights (0–1) keyed by preset or custom name. See [Expressions](../guide/expressions).                   |
 
 ## Canvas
 
@@ -142,4 +143,8 @@ type VrmRenderTargets = { renderer: WebGLRenderer; scene: Scene; camera: Perspec
 type VrmRenderContext = VrmRenderTargets & { delta: number; elapsed: number };
 
 type VrmRenderFunction = (context: VrmRenderContext) => void;
+
+type VrmExpressions = Partial<Record<VRMExpressionPresetName, number>> & Record<string, number>;
+
+type VrmExpressionNames = { preset: VRMExpressionPresetName[]; custom: string[] };
 ```

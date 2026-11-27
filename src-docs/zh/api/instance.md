@@ -38,6 +38,14 @@ description: vue-vrm 组件实例暴露的方法，用于播放控制、截图�
 | `resumeAnimation()`             | `void`          | 继续播放已暂停的动画。         |
 | `stopAnimation()`               | `void`          | 停止并回到开头。               |
 
+## 表情
+
+| 方法                          | 返回值               | 说明                                                          |
+| ----------------------------- | -------------------- | ------------------------------------------------------------- |
+| `getExpressionNames()`        | `VrmExpressionNames` | 模型定义的预设和自定义表情名称。未加载模型时为空。            |
+| `setExpression(name, weight)` | `void`               | 不经过 Vue 响应式系统设置权重，在下一帧应用。适用于口型同步。 |
+| `resetExpressions()`          | `void`               | 清除通过 `setExpression()` 设置的值，这些表情恢复为 `0`。     |
+
 ## 相机和输出
 
 | 方法                         | 返回值   | 说明                                                                                   |

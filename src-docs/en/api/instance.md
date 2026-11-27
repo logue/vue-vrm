@@ -38,6 +38,14 @@ The renderer is created after mount, and the model after it has loaded. Until th
 | `resumeAnimation()`             | `void`          | Resumes a paused animation.                                |
 | `stopAnimation()`               | `void`          | Stops and rewinds to the start.                            |
 
+## Expressions
+
+| Method                        | Returns              | Description                                                                             |
+| ----------------------------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `getExpressionNames()`        | `VrmExpressionNames` | Preset and custom expression names defined by the model. Empty when no model is loaded. |
+| `setExpression(name, weight)` | `void`               | Sets a weight without Vue reactivity. Applied on the next frame. Suited to lip sync.    |
+| `resetExpressions()`          | `void`               | Clears values set with `setExpression()`. Those expressions return to `0`.              |
+
 ## Camera and output
 
 | Method                       | Returns  | Description                                                                                                                |
