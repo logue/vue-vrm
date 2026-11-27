@@ -8,13 +8,14 @@ Props are written in kebab-case in templates (`model-data`) and camelCase in Jav
 
 ## Model and animation
 
-| Prop                | Type                           | Default     | Description                                                                                                         |
-| ------------------- | ------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| `model-data`        | `ArrayBuffer`                  | `undefined` | VRM 1.0 file. A new value replaces the model; `undefined` unloads it.                                               |
-| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]` | `undefined` | VRMA file, or several files to blend. See [Animation](../guide/animation).                                          |
-| `animation-weights` | `number[]`                     | `undefined` | Weight of each clip. Equal weights when omitted or when the length does not match. Must not sum to more than `1.0`. |
-| `loop`              | `boolean`                      | `true`      | Repeats the animation. When `false`, it plays once and keeps the last frame.                                        |
-| `expressions`       | `VrmExpressions`               | `undefined` | Expression weights (0–1) keyed by preset or custom name. See [Expressions](../guide/expressions).                   |
+| Prop                | Type                             | Default     | Description                                                                                                         |
+| ------------------- | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `model-data`        | `ArrayBuffer`                    | `undefined` | VRM 1.0 file. A new value replaces the model; `undefined` unloads it.                                               |
+| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]`   | `undefined` | VRMA file, or several files to blend. See [Animation](../guide/animation).                                          |
+| `animation-weights` | `number[]`                       | `undefined` | Weight of each clip. Equal weights when omitted or when the length does not match. Must not sum to more than `1.0`. |
+| `loop`              | `boolean`                        | `true`      | Repeats the animation. When `false`, it plays once and keeps the last frame.                                        |
+| `expressions`       | `VrmExpressions`                 | `undefined` | Expression weights (0–1) keyed by preset or custom name. See [Expressions](../guide/expressions).                   |
+| `auto-blink`        | `boolean \| VrmAutoBlinkOptions` | `false`     | Blinks automatically at random intervals. See [Expressions](../guide/expressions#auto-blink).                       |
 
 ## Canvas
 
@@ -147,4 +148,6 @@ type VrmRenderFunction = (context: VrmRenderContext) => void;
 type VrmExpressions = Partial<Record<VRMExpressionPresetName, number>> & Record<string, number>;
 
 type VrmExpressionNames = { preset: VRMExpressionPresetName[]; custom: string[] };
+
+type VrmAutoBlinkOptions = { interval?: [number, number]; duration?: number };
 ```

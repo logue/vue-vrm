@@ -64,6 +64,19 @@ function onAudioEnded(): void {
 
 If the same key is also given in the `expressions` prop, the prop wins. Values set with `setExpression()` persist when the model is replaced.
 
+## Automatic blinking {#auto-blink}
+
+Set `auto-blink` to make the model blink at random intervals. Pass an object to change the timing: `interval` is the random wait between blinks as `[min, max]` seconds (default `[2, 6]`), and `duration` is the length of one blink in seconds (default `0.15`).
+
+```vue
+<template>
+  <VrmCanvas :model-data="modelData" auto-blink />
+  <VrmCanvas :model-data="modelData" :auto-blink="{ interval: [3, 8], duration: 0.2 }" />
+</template>
+```
+
+While `blink` is set through the `expressions` prop or `setExpression()`, automatic blinking pauses and the explicit value is used. Models without a `blink` expression are skipped. Expressions such as `happy` that close the eyes on their own suppress blinking according to the model's settings.
+
 ## Order of updates {#order}
 
 Each frame, the animation mixer runs first, then the expression weights are applied, and then `vrm.update()` runs. Expression weights therefore override the same expressions animated by a VRMA file.

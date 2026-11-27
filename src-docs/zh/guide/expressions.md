@@ -64,6 +64,19 @@ function onAudioEnded(): void {
 
 如果同一个键也出现在 `expressions` prop 中，则以 prop 为准。通过 `setExpression()` 设置的值在更换模型后仍会保留。
 
+## 自动眨眼 {#auto-blink}
+
+设置 `auto-blink` 后，模型会以随机间隔眨眼。传入对象可以调整时机：`interval` 是两次眨眼之间的随机等待时间，以 `[最小, 最大]` 秒指定（默认 `[2, 6]`），`duration` 是一次眨眼的秒数（默认 `0.15`）。
+
+```vue
+<template>
+  <VrmCanvas :model-data="modelData" auto-blink />
+  <VrmCanvas :model-data="modelData" :auto-blink="{ interval: [3, 8], duration: 0.2 }" />
+</template>
+```
+
+通过 `expressions` prop 或 `setExpression()` 设置了 `blink` 时，自动眨眼会暂停并使用指定的值。没有 `blink` 表情的模型会被跳过。`happy` 等本身会闭眼的表情会根据模型设置抑制眨眼。
+
 ## 更新顺序 {#order}
 
 每一帧先更新动画混合器，然后应用表情权重，最后执行 `vrm.update()`。因此，这里指定的权重会覆盖 VRMA 文件中驱动的同名表情。

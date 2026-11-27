@@ -14,3 +14,11 @@ export type VrmExpressionNames = {
   /** Custom expressions the model defines, in file order. */
   custom: string[];
 };
+
+/** Options for automatic blinking. Omitted fields use their defaults. */
+export type VrmAutoBlinkOptions = {
+  /** Random wait between blinks, as `[min, max]` seconds (default: `[2, 6]`). */
+  interval?: [number, number];
+  /** Duration of one blink (close and open) in seconds (default: `0.15`). */
+  duration?: number;
+};

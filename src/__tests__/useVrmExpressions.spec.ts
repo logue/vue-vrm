@@ -151,4 +151,69 @@ describe('useVrmExpressions', () => {
       });
     });
   });
+
+  describe('auto blink', () => {
+    beforeEach(() => {
+      // Wait is always `min` of the interval.
+      rs.spyOn(Math, 'random').mockReturnValue(0);
+    });
+
+    it('should not touch blink when disabled', () => {
+      const { vrm, setValue } = createVrm(['blink']);
+      useVrmExpressions(getExpressions).apply(vrm, 1);
+      expect(setValue).not.toHaveBeenCalled();
+    });
+
+    it('should close and open the eyes after the interval', () => {
+      const { vrm, values } = createVrm(['blink']);
+      const api = useVrmExpressions(getExpressions, () => ({ interval: [1, 1], duration: 0.2 }));
+
+      api.apply(vrm, 0.5); // waiting
+      expect(values.get('blink')).toBe(0);
+      api.apply(vrm, 0.5); // wait reaches 0
+      api.apply(vrm, 0.1); // half of the blink: fully closed
+      expect(values.get('blink')).toBeCloseTo(1);
+      api.apply(vrm, 0.05); // opening
+      expect(values.get('blink')).toBeCloseTo(0.5);
+      api.apply(vrm, 0.05); // finished
+      expect(values.get('blink')).toBe(0);
+    });
+
+    it('should accept true and use the default timing', () => {
+      const { vrm, values } = createVrm(['blink']);
+      const api = useVrmExpressions(getExpressions, () => true);
+      api.apply(vrm, 2); // default min interval is 2 s
+      api.apply(vrm, 0.075); // half of the default 0.15 s blink
+      expect(values.get('blink')).toBeCloseTo(1);
+    });
+
+    it('should yield to an explicit blink value', () => {
+      const { vrm, values } = createVrm(['blink']);
+      const api = useVrmExpressions(getExpressions, () => ({ interval: [0, 0], duration: 0.2 }));
+      expressions = { blink: 0.3 };
+      api.apply(vrm, 0.1);
+      expect(values.get('blink')).toBe(0.3);
+    });
+
+    it('should reset blink to 0 when turned off', () => {
+      const { vrm, values } = createVrm(['blink']);
+      let enabled = true;
+      const api = useVrmExpressions(getExpressions, () =>
+        enabled ? { interval: [0, 0], duration: 0.2 } : false
+      );
+      api.apply(vrm, 0);
+      api.apply(vrm, 0.1);
+      expect(values.get('blink')).toBeCloseTo(1);
+      enabled = false;
+      api.apply(vrm, 0.01);
+      expect(values.get('blink')).toBe(0);
+    });
+
+    it('should skip models without a blink expression silently', () => {
+      const { vrm, setValue } = createVrm(['happy']);
+      useVrmExpressions(getExpressions, () => true).apply(vrm, 10);
+      expect(setValue).not.toHaveBeenCalled();
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+  });
 });

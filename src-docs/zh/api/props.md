@@ -8,13 +8,14 @@ description: vue-vrm 组件接受的全部 props，包括类型和默认值。
 
 ## 模型和动画
 
-| Prop                | 类型                           | 默认值      | 说明                                                                        |
-| ------------------- | ------------------------------ | ----------- | --------------------------------------------------------------------------- |
-| `model-data`        | `ArrayBuffer`                  | `undefined` | VRM 1.0 文件。传入新值会替换模型；传入 `undefined` 会卸载模型。             |
-| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]` | `undefined` | VRMA 文件，或要混合的多个文件。请参阅[动画](../guide/animation)。           |
-| `animation-weights` | `number[]`                     | `undefined` | 每个片段的权重。省略或长度不一致时使用相同权重。总和不得超过 `1.0`。        |
-| `loop`              | `boolean`                      | `true`      | 循环播放动画。为 `false` 时只播放一次并停在最后一帧。                       |
-| `expressions`       | `VrmExpressions`               | `undefined` | 以预设名或自定义名为键的表情权重（0–1）。参见[表情](../guide/expressions)。 |
+| Prop                | 类型                             | 默认值      | 说明                                                                        |
+| ------------------- | -------------------------------- | ----------- | --------------------------------------------------------------------------- |
+| `model-data`        | `ArrayBuffer`                    | `undefined` | VRM 1.0 文件。传入新值会替换模型；传入 `undefined` 会卸载模型。             |
+| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]`   | `undefined` | VRMA 文件，或要混合的多个文件。请参阅[动画](../guide/animation)。           |
+| `animation-weights` | `number[]`                       | `undefined` | 每个片段的权重。省略或长度不一致时使用相同权重。总和不得超过 `1.0`。        |
+| `loop`              | `boolean`                        | `true`      | 循环播放动画。为 `false` 时只播放一次并停在最后一帧。                       |
+| `expressions`       | `VrmExpressions`                 | `undefined` | 以预设名或自定义名为键的表情权重（0–1）。参见[表情](../guide/expressions)。 |
+| `auto-blink`        | `boolean \| VrmAutoBlinkOptions` | `false`     | 以随机间隔自动眨眼。参见[表情](../guide/expressions#auto-blink)。           |
 
 ## 画布
 
@@ -147,4 +148,6 @@ type VrmRenderFunction = (context: VrmRenderContext) => void;
 type VrmExpressions = Partial<Record<VRMExpressionPresetName, number>> & Record<string, number>;
 
 type VrmExpressionNames = { preset: VRMExpressionPresetName[]; custom: string[] };
+
+type VrmAutoBlinkOptions = { interval?: [number, number]; duration?: number };
 ```

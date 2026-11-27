@@ -64,6 +64,19 @@ function onAudioEnded(): void {
 
 同じキーが`expressions` propにもある場合はpropが優先されます。`setExpression()`で設定した値は、モデルを差し替えても保持されます。
 
+## 自動まばたき {#auto-blink}
+
+`auto-blink`を指定すると、モデルがランダムな間隔でまばたきします。オブジェクトを渡すとタイミングを変更できます。`interval`はまばたきの間の待ち時間を`[最小, 最大]`の秒数で指定し（既定値`[2, 6]`）、`duration`は1回のまばたきの秒数です（既定値`0.15`）。
+
+```vue
+<template>
+  <VrmCanvas :model-data="modelData" auto-blink />
+  <VrmCanvas :model-data="modelData" :auto-blink="{ interval: [3, 8], duration: 0.2 }" />
+</template>
+```
+
+`expressions` propや`setExpression()`で`blink`を指定している間は自動まばたきを止め、指定した値を使います。`blink`表情を持たないモデルでは何もしません。`happy`のように目を閉じる表情では、モデルの設定に従ってまばたきが抑えられます。
+
 ## 更新の順序 {#order}
 
 毎フレーム、まずアニメーションのミキサーが更新され、次に表情の重みが適用され、最後に`vrm.update()`が実行されます。そのため、VRMAファイルが動かす表情よりも、ここで指定した重みが優先されます。

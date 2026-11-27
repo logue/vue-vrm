@@ -8,13 +8,14 @@ propsは、テンプレートではケバブケース（`model-data`）、JavaSc
 
 ## モデルとアニメーション
 
-| Prop                | 型                             | 既定値      | 説明                                                                                                             |
-| ------------------- | ------------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| `model-data`        | `ArrayBuffer`                  | `undefined` | VRM 1.0ファイルです。新しい値を渡すとモデルが差し替わり、`undefined`でモデルを外します。                         |
-| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]` | `undefined` | VRMAファイル、またはブレンドする複数のファイルです。[アニメーション](../guide/animation)を参照してください。     |
-| `animation-weights` | `number[]`                     | `undefined` | 各クリップの重みです。省略時や要素数が合わないときは均等になります。合計は`1.0`以下にしてください。              |
-| `loop`              | `boolean`                      | `true`      | アニメーションを繰り返します。`false`のときは1回再生して最後のフレームで止まります。                             |
-| `expressions`       | `VrmExpressions`               | `undefined` | プリセット名またはカスタム名をキーにした表情の重み（0〜1）です。[表情](../guide/expressions)を参照してください。 |
+| Prop                | 型                               | 既定値      | 説明                                                                                                             |
+| ------------------- | -------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `model-data`        | `ArrayBuffer`                    | `undefined` | VRM 1.0ファイルです。新しい値を渡すとモデルが差し替わり、`undefined`でモデルを外します。                         |
+| `animation-data`    | `ArrayBuffer \| ArrayBuffer[]`   | `undefined` | VRMAファイル、またはブレンドする複数のファイルです。[アニメーション](../guide/animation)を参照してください。     |
+| `animation-weights` | `number[]`                       | `undefined` | 各クリップの重みです。省略時や要素数が合わないときは均等になります。合計は`1.0`以下にしてください。              |
+| `loop`              | `boolean`                        | `true`      | アニメーションを繰り返します。`false`のときは1回再生して最後のフレームで止まります。                             |
+| `expressions`       | `VrmExpressions`                 | `undefined` | プリセット名またはカスタム名をキーにした表情の重み（0〜1）です。[表情](../guide/expressions)を参照してください。 |
+| `auto-blink`        | `boolean \| VrmAutoBlinkOptions` | `false`     | ランダムな間隔で自動的にまばたきします。[表情](../guide/expressions#auto-blink)を参照してください。              |
 
 ## キャンバス
 
@@ -147,4 +148,6 @@ type VrmRenderFunction = (context: VrmRenderContext) => void;
 type VrmExpressions = Partial<Record<VRMExpressionPresetName, number>> & Record<string, number>;
 
 type VrmExpressionNames = { preset: VRMExpressionPresetName[]; custom: string[] };
+
+type VrmAutoBlinkOptions = { interval?: [number, number]; duration?: number };
 ```

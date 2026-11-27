@@ -19,7 +19,7 @@ import type {
   LightOptions,
   Vec3
 } from '@/types/VrmCanvasOptions';
-import type { VrmExpressions } from '@/types/VrmExpressionTypes';
+import type { VrmAutoBlinkOptions, VrmExpressions } from '@/types/VrmExpressionTypes';
 import type { AnimationData } from '@/types/VrmModelTypes';
 import type { VrmRenderFunction, VrmRenderTargets, VrmResizePayload } from '@/types/VrmRenderTypes';
 import type { VRM } from '@pixiv/three-vrm';
@@ -49,6 +49,14 @@ export const vrmCanvasProps = {
    * Applied every frame after the animation; expressions not listed are left untouched.
    */
   expressions: { type: Object as PropType<VrmExpressions> },
+  /**
+   * Blink automatically at random intervals. `true` uses the defaults; pass an object to tune them.
+   * Ignored while `blink` is set through `expressions` or `setExpression()`.
+   */
+  autoBlink: {
+    type: [Boolean, Object] as PropType<boolean | VrmAutoBlinkOptions>,
+    default: false
+  },
   /** Whether the background should be transparent. */
   bgTransparent: { type: Boolean, default: false },
   /** The background image URL. */
@@ -241,7 +249,10 @@ export function useVrmCanvas(
     }
   );
 
-  const expressionsApi = useVrmExpressions(() => props.expressions);
+  const expressionsApi = useVrmExpressions(
+    () => props.expressions,
+    () => props.autoBlink
+  );
 
   const modelApi = useVrmModel(
     {
