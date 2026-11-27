@@ -27,6 +27,69 @@ propsは、テンプレートではケバブケース（`model-data`）、JavaSc
 | `show-grid`      | `boolean`    | `false`     | 床にグリッドを表示します。                                            |
 | `shader-pass`    | `ShaderPass` | `undefined` | 描画後に適用するthree.jsの`ShaderPass`です。                          |
 
+## 描画 {#rendering}
+
+| Prop     | 型                  | 既定値      | 説明                                                                                           |
+| -------- | ------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| `render` | `VrmRenderFunction` | `undefined` | 既定の`renderer.render(scene, camera)`の代わりに毎フレーム呼ばれます。下記を参照してください。 |
+
+`render`を指定しても、アニメーションのミキサーと`vrm.update()`はコンポーネント側で同じ`delta`を使って先に更新されます。既定の描画と組み込みの`shader-pass`のコンポーザーは置き換えられ、`captureScreenshot()`でも使われます。関数を差し替えると、次のフレームから新しい関数が使われます。
+
+次の例では、自作のグリッチパスを含む`EffectComposer`を適用します。コンポーザーは`renderer:ready`で作成し、`resize`でサイズを更新し、`renderer:dispose`で破棄します（[イベント](./events#rendering)を参照）。モデルを差し替えてもレンダラー・シーン・カメラは変わらないため、`model:loaded`でコンポーザーを作り直す必要はありません。
+
+```vue
+<script setup lang="ts">
+  import type { VrmRenderContext, VrmRenderTargets, VrmResizePayload } from 'vue-vrm';
+  import { VrmCanvas } from 'vue-vrm';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+  import { GlitchShader } from './GlitchShader'; // 自作のShaderMaterialパラメーター
+
+  let composer: EffectComposer | undefined;
+  let glitchPass: ShaderPass | undefined;
+
+  function onReady({ renderer, scene, camera }: VrmRenderTargets): void {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    glitchPass = new ShaderPass(GlitchShader);
+    composer.addPass(glitchPass);
+    composer.addPass(new OutputPass());
+  }
+
+  function onResize({ width, height, pixelRatio }: VrmResizePayload): void {
+    composer?.setPixelRatio(pixelRatio);
+    composer?.setSize(width, height);
+    glitchPass?.uniforms.uResolution?.value.set(width * pixelRatio, height * pixelRatio);
+  }
+
+  function onRender({ delta, elapsed }: VrmRenderContext): void {
+    if (!(composer && glitchPass)) return;
+    glitchPass.uniforms.uIntensity.value = getBeatIntensity(); // 0〜1。音声解析などから取得
+    glitchPass.uniforms.uTime.value = elapsed;
+    composer.render(delta);
+  }
+
+  function onDispose(): void {
+    composer?.dispose();
+    composer = undefined;
+    glitchPass = undefined;
+  }
+</script>
+
+<template>
+  <VrmCanvas
+    :model-data="modelData"
+    :render="onRender"
+    @renderer:ready="onReady"
+    @resize="onResize"
+    @renderer:dispose="onDispose"
+  />
+</template>
+```
+
 ## カメラ
 
 | Prop                 | 型                         | 既定値                             | 説明                                                                                                  |
@@ -73,4 +136,10 @@ type CameraInteractionOptions = {
   maxDistance?: number;
   rollSpeed?: number;
 };
+
+type VrmRenderTargets = { renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera };
+
+type VrmRenderContext = VrmRenderTargets & { delta: number; elapsed: number };
+
+type VrmRenderFunction = (context: VrmRenderContext) => void;
 ```

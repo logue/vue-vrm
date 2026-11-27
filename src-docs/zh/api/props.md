@@ -27,6 +27,69 @@ description: vue-vrm 组件接受的全部 props，包括类型和默认值。
 | `show-grid`      | `boolean`    | `false`     | 在地面上显示网格。                               |
 | `shader-pass`    | `ShaderPass` | `undefined` | 渲染后应用的 three.js `ShaderPass`。             |
 
+## 渲染 {#rendering}
+
+| Prop     | 类型                | 默认值      | 说明                                                            |
+| -------- | ------------------- | ----------- | --------------------------------------------------------------- |
+| `render` | `VrmRenderFunction` | `undefined` | 每帧调用，替代默认的 `renderer.render(scene, camera)`。见下文。 |
+
+设置 `render` 后，组件仍会在调用它之前使用相同的 `delta` 更新动画混合器和 `vrm.update()`。它会替代默认渲染和内置的 `shader-pass` 合成器，`captureScreenshot()` 也会使用它。更换函数后，从下一帧开始生效。
+
+下面的示例应用了带有自定义故障（glitch）通道的 `EffectComposer`。合成器在 `renderer:ready` 时创建，在 `resize` 时调整尺寸，在 `renderer:dispose` 时释放（参见[事件](./events#rendering)）。更换模型时渲染器、场景和相机保持不变，因此无需在 `model:loaded` 时重建合成器。
+
+```vue
+<script setup lang="ts">
+  import type { VrmRenderContext, VrmRenderTargets, VrmResizePayload } from 'vue-vrm';
+  import { VrmCanvas } from 'vue-vrm';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+  import { GlitchShader } from './GlitchShader'; // 自定义 ShaderMaterial 参数
+
+  let composer: EffectComposer | undefined;
+  let glitchPass: ShaderPass | undefined;
+
+  function onReady({ renderer, scene, camera }: VrmRenderTargets): void {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    glitchPass = new ShaderPass(GlitchShader);
+    composer.addPass(glitchPass);
+    composer.addPass(new OutputPass());
+  }
+
+  function onResize({ width, height, pixelRatio }: VrmResizePayload): void {
+    composer?.setPixelRatio(pixelRatio);
+    composer?.setSize(width, height);
+    glitchPass?.uniforms.uResolution?.value.set(width * pixelRatio, height * pixelRatio);
+  }
+
+  function onRender({ delta, elapsed }: VrmRenderContext): void {
+    if (!(composer && glitchPass)) return;
+    glitchPass.uniforms.uIntensity.value = getBeatIntensity(); // 0–1，例如来自音频分析
+    glitchPass.uniforms.uTime.value = elapsed;
+    composer.render(delta);
+  }
+
+  function onDispose(): void {
+    composer?.dispose();
+    composer = undefined;
+    glitchPass = undefined;
+  }
+</script>
+
+<template>
+  <VrmCanvas
+    :model-data="modelData"
+    :render="onRender"
+    @renderer:ready="onReady"
+    @resize="onResize"
+    @renderer:dispose="onDispose"
+  />
+</template>
+```
+
 ## 相机
 
 | Prop                 | 类型                       | 默认值                             | 说明                                                                        |
@@ -73,4 +136,10 @@ type CameraInteractionOptions = {
   maxDistance?: number;
   rollSpeed?: number;
 };
+
+type VrmRenderTargets = { renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera };
+
+type VrmRenderContext = VrmRenderTargets & { delta: number; elapsed: number };
+
+type VrmRenderFunction = (context: VrmRenderContext) => void;
 ```

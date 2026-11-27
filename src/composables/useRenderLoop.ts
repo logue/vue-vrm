@@ -6,11 +6,11 @@ import { Timer, type WebGLRenderer } from 'three';
  * with WebXR and pauses correctly with the renderer.
  *
  * @param getRenderer Returns the renderer whose animation loop should be driven.
- * @param callback Invoked once per frame with the delta time in seconds.
+ * @param callback Invoked once per frame with the delta and elapsed time in seconds.
  */
 export function useRenderLoop(
   getRenderer: () => WebGLRenderer | undefined,
-  callback: (deltaSeconds: number) => void
+  callback: (deltaSeconds: number, elapsedSeconds: number) => void
 ): {
   start: () => void;
   stop: () => void;
@@ -23,7 +23,7 @@ export function useRenderLoop(
     timer.reset();
     renderer.setAnimationLoop(timestamp => {
       timer.update(timestamp);
-      callback(timer.getDelta());
+      callback(timer.getDelta(), timer.getElapsed());
     });
   }
 

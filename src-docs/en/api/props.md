@@ -27,6 +27,69 @@ Props are written in kebab-case in templates (`model-data`) and camelCase in Jav
 | `show-grid`      | `boolean`    | `false`     | Shows a grid on the floor.                                  |
 | `shader-pass`    | `ShaderPass` | `undefined` | A three.js `ShaderPass` applied after rendering.            |
 
+## Rendering {#rendering}
+
+| Prop     | Type                | Default     | Description                                                                            |
+| -------- | ------------------- | ----------- | -------------------------------------------------------------------------------------- |
+| `render` | `VrmRenderFunction` | `undefined` | Called every frame instead of the default `renderer.render(scene, camera)`. See below. |
+
+When `render` is set, the component still updates the animation mixer and `vrm.update()` before calling it, with the same `delta`. It replaces the default rendering and the built-in `shader-pass` composer, and it is also used by `captureScreenshot()`. A new function takes effect from the next frame.
+
+The following example applies an `EffectComposer` with a custom glitch pass. The composer is created on `renderer:ready`, resized on `resize`, and disposed on `renderer:dispose` (see [Events](./events#rendering)). The renderer, scene, and camera stay the same while models are swapped, so the composer does not need to be rebuilt on `model:loaded`.
+
+```vue
+<script setup lang="ts">
+  import type { VrmRenderContext, VrmRenderTargets, VrmResizePayload } from 'vue-vrm';
+  import { VrmCanvas } from 'vue-vrm';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+  import { GlitchShader } from './GlitchShader'; // your own ShaderMaterial parameters
+
+  let composer: EffectComposer | undefined;
+  let glitchPass: ShaderPass | undefined;
+
+  function onReady({ renderer, scene, camera }: VrmRenderTargets): void {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    glitchPass = new ShaderPass(GlitchShader);
+    composer.addPass(glitchPass);
+    composer.addPass(new OutputPass());
+  }
+
+  function onResize({ width, height, pixelRatio }: VrmResizePayload): void {
+    composer?.setPixelRatio(pixelRatio);
+    composer?.setSize(width, height);
+    glitchPass?.uniforms.uResolution?.value.set(width * pixelRatio, height * pixelRatio);
+  }
+
+  function onRender({ delta, elapsed }: VrmRenderContext): void {
+    if (!(composer && glitchPass)) return;
+    glitchPass.uniforms.uIntensity.value = getBeatIntensity(); // 0–1, e.g. from audio analysis
+    glitchPass.uniforms.uTime.value = elapsed;
+    composer.render(delta);
+  }
+
+  function onDispose(): void {
+    composer?.dispose();
+    composer = undefined;
+    glitchPass = undefined;
+  }
+</script>
+
+<template>
+  <VrmCanvas
+    :model-data="modelData"
+    :render="onRender"
+    @renderer:ready="onReady"
+    @resize="onResize"
+    @renderer:dispose="onDispose"
+  />
+</template>
+```
+
 ## Camera
 
 | Prop                 | Type                       | Default                            | Description                                                                           |
@@ -73,4 +136,10 @@ type CameraInteractionOptions = {
   maxDistance?: number;
   rollSpeed?: number;
 };
+
+type VrmRenderTargets = { renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera };
+
+type VrmRenderContext = VrmRenderTargets & { delta: number; elapsed: number };
+
+type VrmRenderFunction = (context: VrmRenderContext) => void;
 ```

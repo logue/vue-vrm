@@ -35,6 +35,16 @@ description: Events emitted by the vue-vrm component and their payloads.
 | `light:ambient-change`     | `LightOptions`                                             | `ambient-light` changed.               |
 | `light:directional-change` | `LightOptions & { position: Vector3 }`                     | `directional-light` changed.           |
 
+## Rendering {#rendering}
+
+| Event              | Payload                                                 | Emitted when                                                                                         |
+| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `renderer:ready`   | `VrmRenderTargets`                                      | On mount, once the renderer, scene, and camera exist, before the first frame and the first `resize`. |
+| `resize`           | `{ width: number; height: number; pixelRatio: number }` | After the renderer and camera have been resized. Also emitted once on mount.                         |
+| `renderer:dispose` | —                                                       | On unmount, before the renderer is disposed.                                                         |
+
+Use these events with the [`render` prop](./props#rendering) to manage custom postprocessing. `renderer:ready` is not emitted when WebGL is unavailable (an `error` event is emitted instead).
+
 ## Other
 
 | Event   | Payload | Emitted when                                                                                    |

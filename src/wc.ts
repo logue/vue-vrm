@@ -6,6 +6,12 @@ import { renderVrmCanvas } from '@/helpers/renderVrmCanvas';
 
 export { Meta } from '@/types/Meta';
 export type { VrmCanvasExposed } from '@/types/VrmCanvasExposed';
+export type {
+  VrmRenderContext,
+  VrmRenderFunction,
+  VrmRenderTargets,
+  VrmResizePayload
+} from '@/types/VrmRenderTypes';
 
 // Wrap the same composable for use as a Web Component.
 // Events are dispatched as `CustomEvent`s whose `detail` is the argument array.

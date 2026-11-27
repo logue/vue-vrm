@@ -35,6 +35,16 @@ description: vue-vrm 组件触发的事件及其参数。
 | `light:ambient-change`     | `LightOptions`                                             | `ambient-light` 变化时。     |
 | `light:directional-change` | `LightOptions & { position: Vector3 }`                     | `directional-light` 变化时。 |
 
+## 渲染 {#rendering}
+
+| 事件               | 参数                                                    | 触发时机                                                            |
+| ------------------ | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| `renderer:ready`   | `VrmRenderTargets`                                      | 挂载时，渲染器、场景和相机创建完成后。早于第一帧和第一次 `resize`。 |
+| `resize`           | `{ width: number; height: number; pixelRatio: number }` | 渲染器和相机调整尺寸之后。挂载时也会触发一次。                      |
+| `renderer:dispose` | —                                                       | 卸载时，释放渲染器之前。                                            |
+
+与 [`render` prop](./props#rendering) 配合使用，管理自定义后期处理。WebGL 不可用时不会触发 `renderer:ready`，而是触发 `error` 事件。
+
 ## 其他
 
 | 事件    | 参数    | 触发时机                                               |

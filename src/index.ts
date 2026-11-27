@@ -26,6 +26,12 @@ export type {
 } from '@/types/VrmCanvasOptions';
 export type { VrmCanvasExposed } from '@/types/VrmCanvasExposed';
 export type { AnimationData } from '@/types/VrmModelTypes';
+export type {
+  VrmRenderContext,
+  VrmRenderFunction,
+  VrmRenderTargets,
+  VrmResizePayload
+} from '@/types/VrmRenderTypes';
 export { validateVrm, validateVrma } from '@/utils/validateGlb';
 
 /**

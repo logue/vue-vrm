@@ -35,6 +35,16 @@ description: vue-vrmコンポーネントが発生させるイベントと、そ
 | `light:ambient-change`     | `LightOptions`                                             | `ambient-light`が変わったとき。      |
 | `light:directional-change` | `LightOptions & { position: Vector3 }`                     | `directional-light`が変わったとき。  |
 
+## 描画 {#rendering}
+
+| イベント           | 引数                                                    | 発生するタイミング                                                                             |
+| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `renderer:ready`   | `VrmRenderTargets`                                      | マウント時、レンダラー・シーン・カメラが揃ったとき。最初のフレームと最初の`resize`より前です。 |
+| `resize`           | `{ width: number; height: number; pixelRatio: number }` | レンダラーとカメラのリサイズが終わった後。マウント時にも1回発生します。                        |
+| `renderer:dispose` | —                                                       | アンマウント時、レンダラーを破棄する前。                                                       |
+
+[`render` prop](./props#rendering)と組み合わせて、独自のポストエフェクトを管理するために使います。WebGLが使えない場合は`renderer:ready`は発生せず、代わりに`error`イベントが発生します。
+
 ## その他
 
 | イベント | 引数    | 発生するタイミング                                                                            |

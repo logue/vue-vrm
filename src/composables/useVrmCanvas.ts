@@ -20,6 +20,7 @@ import type {
   Vec3
 } from '@/types/VrmCanvasOptions';
 import type { AnimationData } from '@/types/VrmModelTypes';
+import type { VrmRenderFunction, VrmRenderTargets, VrmResizePayload } from '@/types/VrmRenderTypes';
 import type { VRM } from '@pixiv/three-vrm';
 import type { VRMAnimation } from '@pixiv/three-vrm-animation';
 import type { Vector3 } from 'three';
@@ -83,7 +84,13 @@ export const vrmCanvasProps = {
   /** An optional postprocessing shader pass to apply. */
   shaderPass: { type: Object as PropType<ShaderPass> },
   /** Optional camera interaction controls. */
-  cameraInteraction: { type: Object as PropType<CameraInteractionOptions> }
+  cameraInteraction: { type: Object as PropType<CameraInteractionOptions> },
+  /**
+   * Custom per-frame render function. When set, it is called instead of the default
+   * `renderer.render(scene, camera)` (and instead of the built-in `shaderPass` composer),
+   * after the mixer and `vrm.update()` have run for the frame.
+   */
+  render: { type: Function as PropType<VrmRenderFunction> }
 } as const;
 
 /** Resolved prop types for {@link vrmCanvasProps}. */
@@ -127,6 +134,18 @@ export const vrmCanvasEmits = {
   'light:ambient-change': (_payload: LightOptions) => true,
   /** Emitted when the directional light changes. */
   'light:directional-change': (_payload: LightOptions & { position: Vector3 }) => true,
+  /**
+   * Emitted once the renderer, scene, and camera exist (on mount), before the first frame.
+   * Create custom postprocessing (e.g. an `EffectComposer`) here.
+   */
+  'renderer:ready': (_targets: VrmRenderTargets) => true,
+  /**
+   * Emitted on unmount, before the renderer is disposed.
+   * Dispose custom postprocessing here.
+   */
+  'renderer:dispose': () => true,
+  /** Emitted after the renderer and camera have been resized (also once on mount). */
+  resize: (_payload: VrmResizePayload) => true,
   /** Emitted on other errors (e.g. background image failed to load). */
   error: (_error: Error) => true
 };
@@ -274,17 +293,41 @@ export function useVrmCanvas(
 
   const renderLoop = useRenderLoop(
     () => sceneApi.renderer.value,
-    deltaSeconds => {
+    (deltaSeconds, elapsedSeconds) => {
       modelApi.update(deltaSeconds);
       cameraApi.update();
-      sceneApi.render(deltaSeconds, cameraApi.camera.value);
+      renderFrame(deltaSeconds, elapsedSeconds);
     }
   );
+
+  /** Seconds since the loop started, as of the last frame (used for screenshots). */
+  let lastElapsed = 0;
+
+  function getTargets(): VrmRenderTargets | undefined {
+    const renderer = sceneApi.renderer.value;
+    const scene = sceneApi.scene.value;
+    const camera = cameraApi.camera.value;
+    return renderer && scene && camera ? { renderer, scene, camera } : undefined;
+  }
+
+  /** Draw one frame, using the `render` prop when provided (read every frame). */
+  function renderFrame(delta: number, elapsed: number): void {
+    lastElapsed = elapsed;
+    const customRender = props.render;
+    if (!customRender) {
+      sceneApi.render(delta, cameraApi.camera.value);
+      return;
+    }
+    const targets = getTargets();
+    if (targets) customRender({ ...targets, delta, elapsed });
+  }
 
   function applySize(): void {
     const { width, height } = canvasSizeApi.size.value;
     sceneApi.setSize(width, height);
     cameraApi.updateAspect(width, height);
+    const renderer = sceneApi.renderer.value;
+    if (renderer) emit('resize', { width, height, pixelRatio: renderer.getPixelRatio() });
   }
 
   // ---------- Lifecycle ----------
@@ -299,6 +342,8 @@ export function useVrmCanvas(
     // The camera must exist before the composer's RenderPass is built.
     cameraApi.init();
     sceneApi.rebuildComposer();
+    const targets = getTargets();
+    if (targets) emit('renderer:ready', targets);
     canvasSizeApi.init();
     applySize();
     renderLoop.start();
@@ -307,6 +352,7 @@ export function useVrmCanvas(
 
   onUnmounted(() => {
     renderLoop.stop();
+    if (sceneApi.renderer.value) emit('renderer:dispose');
     canvasSizeApi.dispose();
     modelApi.dispose();
     cameraApi.dispose();
@@ -322,7 +368,7 @@ export function useVrmCanvas(
       throw new Error('[VrmCanvas] Renderer is not initialized.');
     }
     // Render right before reading so the drawing buffer is up to date.
-    sceneApi.render(0, cameraApi.camera.value);
+    renderFrame(0, lastElapsed);
     return renderer.domElement.toDataURL(format);
   }
 
