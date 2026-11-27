@@ -19,15 +19,15 @@ propsは、テンプレートではケバブケース（`model-data`）、JavaSc
 
 ## キャンバス
 
-| Prop             | 型           | 既定値      | 説明                                                                  |
-| ---------------- | ------------ | ----------- | --------------------------------------------------------------------- |
-| `width`          | `number`     | `480`       | 幅（ピクセル）です。                                                  |
-| `max-width`      | `number`     | `undefined` | 幅の上限です。                                                        |
-| `aspect-ratio`   | `number`     | `3 / 4`     | 幅÷高さです。                                                         |
-| `bg-transparent` | `boolean`    | `false`     | 背景を透明にします。                                                  |
-| `bg-image`       | `string`     | `undefined` | 背景画像のURLです。`bg-transparent`を指定しているときは無視されます。 |
-| `show-grid`      | `boolean`    | `false`     | 床にグリッドを表示します。                                            |
-| `shader-pass`    | `ShaderPass` | `undefined` | 描画後に適用するthree.jsの`ShaderPass`です。                          |
+| Prop             | 型                 | 既定値      | 説明                                                                          |
+| ---------------- | ------------------ | ----------- | ----------------------------------------------------------------------------- |
+| `width`          | `number \| string` | `480`       | 幅（ピクセル）です。`'100%'`のようなCSSの長さを指定すると親要素に追従します。 |
+| `max-width`      | `number`           | `undefined` | 幅の上限です。                                                                |
+| `aspect-ratio`   | `number`           | `3 / 4`     | 幅÷高さです。                                                                 |
+| `bg-transparent` | `boolean`          | `false`     | 背景を透明にします。                                                          |
+| `bg-image`       | `string`           | `undefined` | 背景画像のURLです。`bg-transparent`を指定しているときは無視されます。         |
+| `show-grid`      | `boolean`          | `false`     | 床にグリッドを表示します。                                                    |
+| `shader-pass`    | `ShaderPass`       | `undefined` | 描画後に適用するthree.jsの`ShaderPass`です。                                  |
 
 ## 描画 {#rendering}
 

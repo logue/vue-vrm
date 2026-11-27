@@ -8,15 +8,23 @@ description: vue-vrm 的日常用法：画布尺寸、背景和网格、加载�
 
 画布保持固定的宽高比，高度由宽度计算得出。
 
-| Prop           | 默认值  | 作用                                 |
-| -------------- | ------- | ------------------------------------ |
-| `width`        | `480`   | 画布宽度（像素）。                   |
-| `max-width`    | —       | 宽度上限。容器较窄时画布会随之缩小。 |
-| `aspect-ratio` | `3 / 4` | 宽度除以高度。默认是竖向画布。       |
+| Prop           | 默认值  | 作用                                      |
+| -------------- | ------- | ----------------------------------------- |
+| `width`        | `480`   | 画布宽度（像素），或 `100%` 等 CSS 长度。 |
+| `max-width`    | —       | 宽度上限（像素）。                        |
+| `aspect-ratio` | `3 / 4` | 宽度除以高度。默认是竖向画布。            |
 
 ```vue
 <template>
   <VrmCanvas :model-data="modelData" :width="640" :max-width="640" :aspect-ratio="16 / 9" />
+</template>
+```
+
+要让画布适应父元素的宽度，请将 `width` 设置为 `100%` 等 CSS 长度。高度通过 CSS `aspect-ratio` 跟随，元素尺寸变化时渲染器会重新调整尺寸，并触发 `resize` 事件。数字或 `"480"` 这样的纯数字字符串仍按像素处理。
+
+```vue
+<template>
+  <VrmCanvas :model-data="modelData" width="100%" :max-width="640" />
 </template>
 ```
 

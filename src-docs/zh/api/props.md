@@ -19,15 +19,15 @@ description: vue-vrm 组件接受的全部 props，包括类型和默认值。
 
 ## 画布
 
-| Prop             | 类型         | 默认值      | 说明                                             |
-| ---------------- | ------------ | ----------- | ------------------------------------------------ |
-| `width`          | `number`     | `480`       | 宽度（像素）。                                   |
-| `max-width`      | `number`     | `undefined` | 宽度上限。                                       |
-| `aspect-ratio`   | `number`     | `3 / 4`     | 宽度除以高度。                                   |
-| `bg-transparent` | `boolean`    | `false`     | 透明背景。                                       |
-| `bg-image`       | `string`     | `undefined` | 背景图片 URL。设置 `bg-transparent` 时会被忽略。 |
-| `show-grid`      | `boolean`    | `false`     | 在地面上显示网格。                               |
-| `shader-pass`    | `ShaderPass` | `undefined` | 渲染后应用的 three.js `ShaderPass`。             |
+| Prop             | 类型               | 默认值      | 说明                                                |
+| ---------------- | ------------------ | ----------- | --------------------------------------------------- |
+| `width`          | `number \| string` | `480`       | 宽度（像素），或 `'100%'` 等 CSS 长度以跟随父元素。 |
+| `max-width`      | `number`           | `undefined` | 宽度上限。                                          |
+| `aspect-ratio`   | `number`           | `3 / 4`     | 宽度除以高度。                                      |
+| `bg-transparent` | `boolean`          | `false`     | 透明背景。                                          |
+| `bg-image`       | `string`           | `undefined` | 背景图片 URL。设置 `bg-transparent` 时会被忽略。    |
+| `show-grid`      | `boolean`          | `false`     | 在地面上显示网格。                                  |
+| `shader-pass`    | `ShaderPass`       | `undefined` | 渲染后应用的 three.js `ShaderPass`。                |
 
 ## 渲染 {#rendering}
 

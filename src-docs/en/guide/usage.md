@@ -8,15 +8,23 @@ description: Everyday usage of vue-vrm — canvas sizing, background and grid, l
 
 The canvas keeps a fixed aspect ratio. Its height is derived from the width.
 
-| Prop           | Default | Effect                                                                     |
-| -------------- | ------- | -------------------------------------------------------------------------- |
-| `width`        | `480`   | Width of the canvas in pixels.                                             |
-| `max-width`    | —       | Upper limit for the width. The canvas shrinks to fit a narrower container. |
-| `aspect-ratio` | `3 / 4` | Width divided by height. The default is a portrait canvas.                 |
+| Prop           | Default | Effect                                                         |
+| -------------- | ------- | -------------------------------------------------------------- |
+| `width`        | `480`   | Width of the canvas in pixels, or a CSS length such as `100%`. |
+| `max-width`    | —       | Upper limit for the width, in pixels.                          |
+| `aspect-ratio` | `3 / 4` | Width divided by height. The default is a portrait canvas.     |
 
 ```vue
 <template>
   <VrmCanvas :model-data="modelData" :width="640" :max-width="640" :aspect-ratio="16 / 9" />
+</template>
+```
+
+To fit the canvas to its parent, set `width` to a CSS length such as `100%`. The height follows through CSS `aspect-ratio`, the renderer is resized whenever the element changes size, and a `resize` event is emitted. A number, or a numeric string such as `"480"`, is still treated as pixels.
+
+```vue
+<template>
+  <VrmCanvas :model-data="modelData" width="100%" :max-width="640" />
 </template>
 ```
 

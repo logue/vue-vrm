@@ -132,13 +132,13 @@
       <cds-inline-loading v-if="isLoading" status="active">Loading…</cds-inline-loading>
       <VrmCanvas
         ref="vrmCanvas"
+        width="100%"
         :model-data="modelData"
         :animation-data="animationData"
         :show-grid="showGrid"
         :bg-transparent="bgTransparent"
         :camera-interaction="cameraInteraction"
         :auto-blink="autoBlink"
-        :max-width="640"
         @model:loading="isLoading = true"
         @model:loaded="onModelLoaded"
         @model:error="onError"

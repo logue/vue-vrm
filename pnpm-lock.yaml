@@ -3032,7 +3032,7 @@ snapshots:
 				"mdast-util-gfm": "3.1.0",
 				"mdast-util-mdx": "3.0.0",
 				"mdast-util-mdxjs-esm": "2.0.1",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"medium-zoom": "1.1.2",
 				"nprogress": "0.2.0",
 				"react": "19.3.1",
@@ -6686,7 +6686,7 @@ snapshots:
 				"@types/mdast": "4.0.4",
 				"devlop": "1.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"micromark-util-normalize-identifier": "2.0.1",
 			},
 		},
@@ -6702,7 +6702,7 @@ snapshots:
 			"dependencies": {
 				"@types/mdast": "4.0.4",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6719,7 +6719,7 @@ snapshots:
 				"devlop": "1.1.0",
 				"markdown-table": "3.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"mdast-util-to-string": "4.0.0",
 				"unist-util-visit": "5.2.0",
 			},
@@ -6737,7 +6737,7 @@ snapshots:
 				"@types/mdast": "4.0.4",
 				"devlop": "1.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6756,7 +6756,7 @@ snapshots:
 				"mdast-util-gfm-strikethrough": "2.0.1",
 				"mdast-util-gfm-table": "2.0.1",
 				"mdast-util-gfm-task-list-item": "2.0.1",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6774,7 +6774,7 @@ snapshots:
 				"@types/mdast": "4.0.4",
 				"devlop": "1.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6794,7 +6794,7 @@ snapshots:
 				"ccount": "2.0.1",
 				"devlop": "1.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"parse-entities": "4.0.2",
 				"stringify-entities": "4.0.5",
 				"unist-util-stringify-position": "4.0.0",
@@ -6815,7 +6815,7 @@ snapshots:
 				"mdast-util-mdx-expression": "2.0.1",
 				"mdast-util-mdx-jsx": "3.2.2",
 				"mdast-util-mdxjs-esm": "2.0.1",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6833,7 +6833,7 @@ snapshots:
 				"@types/mdast": "4.0.4",
 				"devlop": "1.1.0",
 				"mdast-util-from-markdown": "2.1.0",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 			},
 		},
 
@@ -6880,7 +6880,7 @@ snapshots:
 			},
 			"dependencies": {
 				"mdast-util-gfm-strikethrough": "2.0.1",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"mdast-util-to-markdown-cjk-friendly": "1.0.2",
 			},
 		},
@@ -6900,7 +6900,7 @@ snapshots:
 				},
 			},
 			"dependencies": {
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"micromark-extension-cjk-friendly-util": "3.0.1",
 				"micromark-util-character": "2.1.1",
 				"micromark-util-classify-character": "2.0.1",
@@ -6908,8 +6908,8 @@ snapshots:
 			},
 		},
 
-		"mdast-util-to-markdown@2.2.4": {
-			"integrity": "sha512-aCsogoZ2Oz1EItAlC12A+/uGuzp+CWlDU0xZ3o5jbJaepLsOu2tlxpvHslnX5dRhspD1gxNVkBtYG0yMiIpXoQ==",
+		"mdast-util-to-markdown@2.2.5": {
+			"integrity": "sha512-mxOMQQ8NgisvTarkSUqZwi6GmzNo490V932DpEK/0+OETIeVJBzq4QuMt45fqqcsF5EYMlJENjSSAZxh89VJsg==",
 			"dependencies": {
 				"@types/mdast": "4.0.4",
 				"@types/unist": "3.0.3",
@@ -8251,7 +8251,7 @@ snapshots:
 			"integrity": "sha512-1OSmLd3awB/t8qdoEOMazZkNsfVTeY4fTsgzcQFdXNq8ToTN4ZGwrMnlda4K6smTFKD+GRV6O48i6Z4iKgPPpw==",
 			"dependencies": {
 				"@types/mdast": "4.0.4",
-				"mdast-util-to-markdown": "2.2.4",
+				"mdast-util-to-markdown": "2.2.5",
 				"unified": "11.0.5",
 			},
 		},

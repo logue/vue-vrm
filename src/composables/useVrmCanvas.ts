@@ -63,8 +63,11 @@ export const vrmCanvasProps = {
   bgImage: { type: String },
   /** Whether to show the grid helper. */
   showGrid: { type: Boolean, default: false },
-  /** The width of the canvas in pixels. */
-  width: { type: Number, default: 480 },
+  /**
+   * The width of the canvas: pixels as a number, or a CSS length such as `'100%'`
+   * to follow the parent's width while keeping `aspectRatio`.
+   */
+  width: { type: [Number, String] as PropType<number | string>, default: 480 },
   /** The maximum width of the canvas in pixels. */
   maxWidth: { type: Number },
   /** The aspect ratio (width / height) to maintain. Height is derived from width and this ratio. */

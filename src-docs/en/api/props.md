@@ -19,15 +19,15 @@ Props are written in kebab-case in templates (`model-data`) and camelCase in Jav
 
 ## Canvas
 
-| Prop             | Type         | Default     | Description                                                 |
-| ---------------- | ------------ | ----------- | ----------------------------------------------------------- |
-| `width`          | `number`     | `480`       | Width in pixels.                                            |
-| `max-width`      | `number`     | `undefined` | Upper limit for the width.                                  |
-| `aspect-ratio`   | `number`     | `3 / 4`     | Width divided by height.                                    |
-| `bg-transparent` | `boolean`    | `false`     | Transparent background.                                     |
-| `bg-image`       | `string`     | `undefined` | Background image URL. Ignored when `bg-transparent` is set. |
-| `show-grid`      | `boolean`    | `false`     | Shows a grid on the floor.                                  |
-| `shader-pass`    | `ShaderPass` | `undefined` | A three.js `ShaderPass` applied after rendering.            |
+| Prop             | Type               | Default     | Description                                                             |
+| ---------------- | ------------------ | ----------- | ----------------------------------------------------------------------- |
+| `width`          | `number \| string` | `480`       | Width in pixels, or a CSS length such as `'100%'` to follow the parent. |
+| `max-width`      | `number`           | `undefined` | Upper limit for the width.                                              |
+| `aspect-ratio`   | `number`           | `3 / 4`     | Width divided by height.                                                |
+| `bg-transparent` | `boolean`          | `false`     | Transparent background.                                                 |
+| `bg-image`       | `string`           | `undefined` | Background image URL. Ignored when `bg-transparent` is set.             |
+| `show-grid`      | `boolean`          | `false`     | Shows a grid on the floor.                                              |
+| `shader-pass`    | `ShaderPass`       | `undefined` | A three.js `ShaderPass` applied after rendering.                        |
 
 ## Rendering {#rendering}
 

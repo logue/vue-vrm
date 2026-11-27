@@ -21,7 +21,7 @@ const TAG = 'vrm-canvas-test-element';
 /** Writable props plus the exposed API, as seen on the element instance. */
 type VrmCanvasNode = HTMLElement &
   VrmCanvasExposed & {
-    width: number;
+    width: number | string;
     maxWidth?: number;
     aspectRatio: number;
     showGrid: boolean;
@@ -98,14 +98,26 @@ describe('VrmCanvas Web Component', () => {
       expect(element.showGrid).toBe(false);
     });
 
-    it('should cast a numeric width attribute and apply it to the container', async () => {
+    it('should apply a numeric width attribute to the container in pixels', async () => {
       const element = createElement();
       element.setAttribute('width', '300');
       document.body.append(element);
       await flush();
 
-      expect(element.width).toBe(300);
+      // `width` accepts CSS lengths too, so the attribute is kept as a string.
+      expect(element.width).toBe('300');
       expect(element.shadowRoot?.querySelector('figure')?.style.width).toBe('300px');
+    });
+
+    it('should apply a CSS width attribute and keep the ratio with aspect-ratio', async () => {
+      const element = createElement();
+      element.setAttribute('width', '100%');
+      document.body.append(element);
+      await flush();
+
+      const style = element.shadowRoot?.querySelector('figure')?.style;
+      expect(style?.width).toBe('100%');
+      expect(style?.aspectRatio).toMatch(/^0\.75/);
     });
   });
 
