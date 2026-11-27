@@ -63,6 +63,27 @@
       "sourceType": "github",
       "skillPath": "skills/three-best-practices/SKILL.md",
       "computedHash": "01abee3b74806e3fbd01bf0df352af8cea353809b349dfcadc2b846205242874"
+    },
+    "threejs": {
+      "source": "nexu-io/open-design",
+      "commit": "6a74a1521ea2745fcf448bda7cdb8114f20d19b5",
+      "sourceType": "github",
+      "skillPath": "skills/threejs/SKILL.md",
+      "computedHash": "84701fc2ccc6ff78ad9fdf8a094ec35e5cf932855a7eaf7af4784cfeba32c924"
+    },
+    "vrm-mtoon-outline": {
+      "source": "Project-N-E-K-O/N.E.K.O",
+      "commit": "b654505a4350df40b2192d836d5879709a704b3b",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/vrm-mtoon-outline/SKILL.md",
+      "computedHash": "ae505f482a9cf34aefba2cc1da34081d0169005663e8cd542756b6e145e6eb64"
+    },
+    "vrm-springbone-physics": {
+      "source": "Project-N-E-K-O/N.E.K.O",
+      "commit": "b654505a4350df40b2192d836d5879709a704b3b",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/vrm-physics/SKILL.md",
+      "computedHash": "5c2b7f16a4c368e5004ecb6d352468760fb7aab4b6f8b5610e3835f6aaccd526"
     }
   }
 }
