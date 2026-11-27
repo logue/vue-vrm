@@ -11,13 +11,20 @@
 );
 @use '@carbon/styles/scss/fonts' with (
   $fonts: (
-    IBM-Plex-Mono: false,
+    IBM-Plex-Mono: true,
     IBM-Plex-Serif: false
   )
 );
-@use '@carbon/styles/scss/reset';
+@use '@carbon/type';
 @use '@carbon/styles/scss/theme' as carbon-theme;
 @use '@carbon/styles/scss/themes' as carbon-themes;
+
+// Include type reset
+@include type.reset();
+// Include default type styles, targets h1, h2, h3, etc
+@include type.default-type();
+// Include utility classes for type-related properties
+@include type.type-classes();
 
 :root {
   @include carbon-theme.theme(carbon-themes.$white);

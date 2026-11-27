@@ -36,20 +36,6 @@
       "computedHash": "bd739f79afb0e77cee40bec04776c202ba90ddebfad9d6c77064dedc97e4a330",
       "commit": "ad1d0235e64328bef7d5902c4665e5e441aae541"
     },
-    "rspress-docs-generator": {
-      "source": "rstackjs/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/rspress-docs-generator/SKILL.md",
-      "computedHash": "2e44ca98f9d040d8e1fc8559745d9ba7860bcb4d318dcba8e3b215e9de4debd6",
-      "commit": "ad1d0235e64328bef7d5902c4665e5e441aae541"
-    },
-    "rstack-cli-docs": {
-      "source": "rstackjs/rstack-cli",
-      "sourceType": "github",
-      "skillPath": ".agents/skills/rstack-cli-docs/SKILL.md",
-      "computedHash": "acddb59faff99d231e4a1111b08e702d4cbfa96fa83bac6187e94ccc80b3c2ab",
-      "commit": "c6a9f393107bda34fb6b996e820f24e30dd220c1"
-    },
     "rstest-best-practices": {
       "source": "rstackjs/agent-skills",
       "sourceType": "github",

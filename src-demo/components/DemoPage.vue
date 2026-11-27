@@ -1,13 +1,32 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue';
 
-  import Pedestrian16 from '@carbon/icons/es/pedestrian/16';
-  import ModelAlt16 from '@carbon/icons/es/model--alt/16';
-
   import VrmCanvas from '@/components/VrmCanvas';
-  import type { AnimationData, CameraInteractionOptions, VrmCanvasExposed } from '@/index';
+  import type {
+    AnimationData,
+    CameraInteractionOptions,
+    VrmCanvasExposed,
+    VrmExpressionNames
+  } from '@/index';
+
+  import { selectedTab } from '../utils/carbonEvents';
+  import CameraPanel, { type CameraInteractionState } from './panels/CameraPanel.vue';
+  import ExpressionPanel from './panels/ExpressionPanel.vue';
+  import GeneralPanel from './panels/GeneralPanel.vue';
+
+  import Document from '@carbon/icons/es/document/16.js';
+  import Video from '@carbon/icons/es/video/16.js';
+  import FaceSatisfied from '@carbon/icons/es/face--satisfied/16.js';
 
   const sampleVrmUrl = new URL('../assets/AvatarSample_A.vrm', import.meta.url).href;
+
+  const tabs = [
+    { value: 'general', icon: Document, label: 'General' },
+    { value: 'camera', icon: Video, label: 'Camera Control' },
+    { value: 'expression', icon: FaceSatisfied, label: 'Expression' }
+  ] as const;
+  type Tab = (typeof tabs)[number]['value'];
+  const activeTab = ref<Tab>('general');
 
   const modelData = ref<ArrayBuffer>();
   const animationData = ref<AnimationData>();
@@ -17,7 +36,10 @@
   const errorMessage = ref<string>();
   const vrmCanvas = ref<VrmCanvasExposed>();
 
-  const interaction = ref({
+  const expressionNames = ref<VrmExpressionNames>({ preset: [], custom: [] });
+  const autoBlink = ref(true);
+
+  const interaction = ref<CameraInteractionState>({
     enabled: true,
     rotate: true,
     pan: true,
@@ -31,16 +53,9 @@
       : undefined
   );
 
-  /** Read the new state from a `cds-toggle-changed` event. */
-  function checked(event: Event): boolean {
-    return (event as CustomEvent<{ checked: boolean }>).detail.checked;
-  }
-
-  /** Read the first file from a `cds-file-uploader-drop-container-changed` event. */
-  async function readDroppedFile(event: Event): Promise<ArrayBuffer | undefined> {
-    errorMessage.value = undefined;
-    const { addedFiles } = (event as CustomEvent<{ addedFiles: File[] }>).detail;
-    return addedFiles[0]?.arrayBuffer();
+  function onModelLoaded(): void {
+    isLoading.value = false;
+    expressionNames.value = vrmCanvas.value?.getExpressionNames() ?? { preset: [], custom: [] };
   }
 
   function onError(error: Error): void {
@@ -62,14 +77,14 @@
     }
   }
 
-  async function onModelFile(event: Event): Promise<void> {
-    const buffer = await readDroppedFile(event);
-    if (buffer) modelData.value = buffer;
+  function onModelFile(buffer: ArrayBuffer): void {
+    errorMessage.value = undefined;
+    modelData.value = buffer;
   }
 
-  async function onAnimationFile(event: Event): Promise<void> {
-    const buffer = await readDroppedFile(event);
-    if (buffer) animationData.value = buffer;
+  function onAnimationFile(buffer: ArrayBuffer): void {
+    errorMessage.value = undefined;
+    animationData.value = buffer;
   }
 
   onMounted(loadAvatarSample);
@@ -78,102 +93,32 @@
 <template>
   <div class="demo-page">
     <section class="demo-controls">
-      <cds-stack gap="5">
-        <p>
-          Load your own VRM file, or use the sample VRM provided by clicking the "Sample VRM"
-          button.
-        </p>
+      <cds-tabs :value="activeTab" @cds-tabs-selected="activeTab = selectedTab($event) as Tab">
+        <cds-tab v-for="tab in tabs" :key="tab.value" :value="tab.value"
+          ><cds-icon :icon="tab.icon" />{{ tab.label }}</cds-tab
+        >
+      </cds-tabs>
 
-        <div>
-          <cds-file-uploader>
-            <span slot="label-title" class="label-with-icon">
-              <cds-icon :icon="ModelAlt16" />
-              VRM file
-            </span>
-            <cds-file-uploader-drop-container
-              slot="drop-container"
-              accept=".vrm .glb"
-              @cds-file-uploader-drop-container-changed="onModelFile"
-            >
-              Drag and drop a VRM file here or click to upload
-            </cds-file-uploader-drop-container>
-          </cds-file-uploader>
-          <cds-button kind="secondary" size="sm" @click="loadAvatarSample">Sample VRM</cds-button>
-        </div>
-        <cds-file-uploader>
-          <span slot="label-title" class="label-with-icon">
-            <cds-icon :icon="Pedestrian16" />
-            VRMA (VRM Animation) file
-          </span>
-          <span slot="label-description">
-            Due to licensing restrictions, a VRMA file is not bundled. Download one from
-            <a
-              href="https://vroid.booth.pm/items/5512385"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              BOOTH
-            </a>
-            and load it yourself.
-          </span>
-          <cds-file-uploader-drop-container
-            slot="drop-container"
-            accept=".vrma .glb"
-            @cds-file-uploader-drop-container-changed="onAnimationFile"
-          >
-            Drag and drop a VRMA file here or click to upload
-          </cds-file-uploader-drop-container>
-        </cds-file-uploader>
-
-        <cds-toggle
-          label-text="Show grid"
-          :toggled="showGrid"
-          @cds-toggle-changed="showGrid = checked($event)"
+      <div v-show="activeTab === 'general'" class="demo-panel" role="tabpanel">
+        <GeneralPanel
+          v-model:show-grid="showGrid"
+          v-model:bg-transparent="bgTransparent"
+          @model-file="onModelFile"
+          @animation-file="onAnimationFile"
+          @load-sample="loadAvatarSample"
         />
-        <cds-toggle
-          label-text="Transparent background"
-          :toggled="bgTransparent"
-          @cds-toggle-changed="bgTransparent = checked($event)"
+      </div>
+      <div v-show="activeTab === 'camera'" class="demo-panel" role="tabpanel">
+        <CameraPanel v-model="interaction" @reset="vrmCanvas?.resetCamera()" />
+      </div>
+      <div v-show="activeTab === 'expression'" class="demo-panel" role="tabpanel">
+        <ExpressionPanel
+          @change="(name, weight) => vrmCanvas?.setExpression(name, weight)"
+          @reset="vrmCanvas?.resetExpressions()"
+          v-model:auto-blink="autoBlink"
+          :names="expressionNames"
         />
-
-        <fieldset class="demo-fieldset">
-          <legend>Camera control</legend>
-          <cds-stack gap="3">
-            <cds-toggle
-              label-text="Enable interaction"
-              :toggled="interaction.enabled"
-              @cds-toggle-changed="interaction.enabled = checked($event)"
-            />
-            <cds-toggle
-              label-text="Orbit rotate (drag)"
-              :disabled="!interaction.enabled"
-              :toggled="interaction.rotate"
-              @cds-toggle-changed="interaction.rotate = checked($event)"
-            />
-            <cds-toggle
-              label-text="Pan (right drag / Ctrl + drag)"
-              :disabled="!interaction.enabled"
-              :toggled="interaction.pan"
-              @cds-toggle-changed="interaction.pan = checked($event)"
-            />
-            <cds-toggle
-              label-text="Zoom (mouse wheel)"
-              :disabled="!interaction.enabled"
-              :toggled="interaction.zoom"
-              @cds-toggle-changed="interaction.zoom = checked($event)"
-            />
-            <cds-toggle
-              label-text="Roll (focus canvas, then Q / E)"
-              :disabled="!interaction.enabled"
-              :toggled="interaction.roll"
-              @cds-toggle-changed="interaction.roll = checked($event)"
-            />
-            <cds-button kind="tertiary" size="sm" @click="vrmCanvas?.resetCamera()">
-              Reset camera
-            </cds-button>
-          </cds-stack>
-        </fieldset>
-      </cds-stack>
+      </div>
     </section>
 
     <section class="demo-preview">
@@ -192,9 +137,10 @@
         :show-grid="showGrid"
         :bg-transparent="bgTransparent"
         :camera-interaction="cameraInteraction"
+        :auto-blink="autoBlink"
         :max-width="640"
         @model:loading="isLoading = true"
-        @model:loaded="isLoading = false"
+        @model:loaded="onModelLoaded"
         @model:error="onError"
         @animation:error="onError"
         @error="onError"
@@ -219,8 +165,7 @@
     flex: 1 1 480px;
   }
 
-  .demo-fieldset {
-    padding: var(--cds-spacing-05, 1rem);
-    border: 1px solid var(--cds-border-subtle-01, #e0e0e0);
+  .demo-panel {
+    padding-block: var(--cds-spacing-05, 1rem);
   }
 </style>

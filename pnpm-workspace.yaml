@@ -44,5 +44,9 @@ skills:
     - .agents
 
 permissions:
+  '@rspress/core':
+    skills: [rspress-best-practices, rspress-description-generator, rspress-docs-generator]
+  rstack:
+    skills: true
   taze:
     skills: true

@@ -200,6 +200,10 @@ snapshots:
 				},
 			},
 			"devDependencies": {
+				"@carbon/colors": {
+					"specifier": "^11.62.0",
+					"version": "11.62.0",
+				},
 				"@carbon/icons": {
 					"specifier": "^11.92.0",
 					"version": "11.92.0",
@@ -309,8 +313,8 @@ snapshots:
 					"version": "10.1.0",
 				},
 				"eslint-config-prettier": {
-					"specifier": "^10.1.8",
-					"version": "10.1.8",
+					"specifier": "^10.1.9",
+					"version": "10.1.9",
 				},
 				"happy-dom": {
 					"specifier": "^21.0.4",
@@ -353,8 +357,8 @@ snapshots:
 					"version": "7.0.2",
 				},
 				"vize": {
-					"specifier": "^0.804.0",
-					"version": "0.804.0",
+					"specifier": "^0.807.0",
+					"version": "0.807.0",
 				},
 			},
 		},
@@ -983,8 +987,8 @@ snapshots:
 			},
 		},
 
-		"@eslint-community/regexpp@4.12.3": {
-			"integrity": "sha512-R76UKbvsqI68DJJVTVyqFKqU98CN4+B+acxNfEA2IFarSzP0SjtKf/3+fFiXzTyv5Fj3PxLkGHe2wnVWWMxobQ==",
+		"@eslint-community/regexpp@4.12.4": {
+			"integrity": "sha512-1qH3WeISXHFS8P3QI0lntHlMrlfTh1OarxlRbPNDEkSCqoyXC3apBE7MDyRKOL8HpuW48aQtff30wvEFww/4ww==",
 			"engines": {"node": "^12.0.0 || ^14.0.0 || >=16.0.0"},
 		},
 
@@ -2297,7 +2301,7 @@ snapshots:
 			"dependencies": {
 				"deepmerge": "4.3.1",
 				"loader-utils": "2.0.4",
-				"postcss": "8.5.33",
+				"postcss": "8.5.34",
 				"reduce-configs": "2.0.1",
 				"sass-embedded": "1.108.2",
 			},
@@ -2328,7 +2332,7 @@ snapshots:
 				"deepmerge": "4.3.1",
 				"json5": "2.2.3",
 				"reduce-configs": "1.1.2",
-				"ts-checker-rspack-plugin": "1.8.0",
+				"ts-checker-rspack-plugin": "1.9.0",
 			},
 		},
 
@@ -4165,24 +4169,24 @@ snapshots:
 			},
 		},
 
-		"@vizejs/native-darwin-arm64@0.804.0": {
-			"integrity": "sha512-6fD5qz8kwz8Dkwu4GA+o27kNgjekhM/vojrQSYxjtFkcU/jauk8cK/zSwNkEnmQznD0GkRWa+1sm2qahh3OICQ==",
+		"@vizejs/native-darwin-arm64@0.807.0": {
+			"integrity": "sha512-T5oQDFRyb0WKUNKF/+W3OWr4iry3Qxqulp+WCKRzRktS8qaJI7oRw5lBQwHhrdHCuiWDRm1gGY3FQAkt/a8pfA==",
 			"engines": {"node": ">=22"},
 			"cpu": ["arm64"],
 			"os": ["darwin"],
 			"optional": true,
 		},
 
-		"@vizejs/native-darwin-x64@0.804.0": {
-			"integrity": "sha512-wrGkzUHwmJzkPHg7OCqF3MQTZk029cbaRd9byHAgFe+FQHU5vUhlVLmYyezPrB23ELF2DZFvZ74i12FO2LuJ8w==",
+		"@vizejs/native-darwin-x64@0.807.0": {
+			"integrity": "sha512-DnpcTJ3WbNYgds/sOfDsMQek4UVigkHvJYsrAMjJchArQkUGs0qSo3ZS/wgJHrBvQB4GxJyflMlZW5la89K37w==",
 			"engines": {"node": ">=22"},
 			"cpu": ["x64"],
 			"os": ["darwin"],
 			"optional": true,
 		},
 
-		"@vizejs/native-linux-arm64-gnu@0.804.0": {
-			"integrity": "sha512-eliD1agyHShMNpjddQnUqfKjUpAK068iM7ljffKLRfrnhbr8b5p1mg87FZf5ppe69+C90BWiNvjH25td/ZJpaQ==",
+		"@vizejs/native-linux-arm64-gnu@0.807.0": {
+			"integrity": "sha512-JjCK+d4mew6IrjOTq7AYMLhBgGhqRIDKYZEI1p97e4TU5fRVyMAFUDnqpQ2hKcUjwB1z2ubJ+2S3i6PbG2id6A==",
 			"engines": {"node": ">=22"},
 			"cpu": ["arm64"],
 			"os": ["linux"],
@@ -4190,8 +4194,8 @@ snapshots:
 			"optional": true,
 		},
 
-		"@vizejs/native-linux-arm64-musl@0.804.0": {
-			"integrity": "sha512-Fj725WxvqNM7a9dOnXm/HQ16D7RPSVnnTlKUaGpPPcTjqHKtcPAMGsH2GYrQx/EF/wUFkfNBl/PgTNCS3ttPQQ==",
+		"@vizejs/native-linux-arm64-musl@0.807.0": {
+			"integrity": "sha512-qTuh2vWAkmEUiVZrGj6qF7E4wJXgl1R2aVGpex+D10pHtiMZT6y/1iQRP5hg4rHcSa4i81uN+0aAL1LsVhJUmA==",
 			"engines": {"node": ">=22"},
 			"cpu": ["arm64"],
 			"os": ["linux"],
@@ -4199,8 +4203,8 @@ snapshots:
 			"optional": true,
 		},
 
-		"@vizejs/native-linux-x64-gnu@0.804.0": {
-			"integrity": "sha512-ezyratvAGaj46U8jP+apdweIgSoVSl5pnP8isN/ZQa2Aca8aP1s9Twoff4xpy5k9XdqagqpWi/9J05+gjZ4m6g==",
+		"@vizejs/native-linux-x64-gnu@0.807.0": {
+			"integrity": "sha512-4AzoV6Z7bgLnW+5uDC6co2WluqaXnbSWnvTLoycTLW3RRXQkKZV2rAiXGKjqkEgRPhrWZI6JzUSKWycgkC8U0A==",
 			"engines": {"node": ">=22"},
 			"cpu": ["x64"],
 			"os": ["linux"],
@@ -4208,8 +4212,8 @@ snapshots:
 			"optional": true,
 		},
 
-		"@vizejs/native-linux-x64-musl@0.804.0": {
-			"integrity": "sha512-n/ByOTZZeAepJ/1RBhGmF7z2OOY0MEryxt/FoAgCzaXBz44nBhh8ozqk/D7rl1/AyPY53036pinMN/i1nxPPMg==",
+		"@vizejs/native-linux-x64-musl@0.807.0": {
+			"integrity": "sha512-ai8BPdMSNc8jYMQQJjYQD7wo3hgfr8lKMYrNewF87/z9pLkkvZvQ6y+yRQtc/RT7khpE6NWkyutKccqZjCLC6g==",
 			"engines": {"node": ">=22"},
 			"cpu": ["x64"],
 			"os": ["linux"],
@@ -4217,34 +4221,34 @@ snapshots:
 			"optional": true,
 		},
 
-		"@vizejs/native-win32-arm64-msvc@0.804.0": {
-			"integrity": "sha512-nT15HqpbK24tVE4lKlc3RgFiJUTby8y5mbO4ttMUusYfHw9WGgZavkjWBs1r1oDCbAoY/9szGgygSwrXQdlEhg==",
+		"@vizejs/native-win32-arm64-msvc@0.807.0": {
+			"integrity": "sha512-6GsXwXru+AyzhJf3HLr4nwGrghWJRZmByASEJu//w9ddwxDhePLbVX4uhQaLY6o2Rs1fH4/vMe1ePFRD2m5rZg==",
 			"engines": {"node": ">=22"},
 			"cpu": ["arm64"],
 			"os": ["win32"],
 			"optional": true,
 		},
 
-		"@vizejs/native-win32-x64-msvc@0.804.0": {
-			"integrity": "sha512-hTZPKmYHbBRTuNHJTrrXBjCLYGQrhFE/qNeS+T2kaYkuNx3zxghEQjqvQgIRBm1HqjpLjQfr0OPCLQ9DLqt+Hg==",
+		"@vizejs/native-win32-x64-msvc@0.807.0": {
+			"integrity": "sha512-Uq4ifVKu+8QJwe8K497w8DjiyilONsR4bqTNJy/rGk9fRuwJh28NNQMufiUrs6E2BrmHj+JN0T2czn+RtGI0Bw==",
 			"engines": {"node": ">=22"},
 			"cpu": ["x64"],
 			"os": ["win32"],
 			"optional": true,
 		},
 
-		"@vizejs/native@0.804.0": {
-			"integrity": "sha512-xaOVibNUp4Ykace5MhMESOoDH4sbGV7tIw+qTI2MkDHRt7gDe2ZgRvIWicO0f6coGVuSaS7dqeXxqfTREQuWDg==",
+		"@vizejs/native@0.807.0": {
+			"integrity": "sha512-A2K37y61GmRUyHKk7eAt3WNJpknWq2J4gTKgduBKuKQjuh4hBnjYDOHHMytelj9az6xF5avCqzG5pz3uBlYs6w==",
 			"engines": {"node": ">=22"},
 			"optionalDependencies": {
-				"@vizejs/native-darwin-arm64": "0.804.0",
-				"@vizejs/native-darwin-x64": "0.804.0",
-				"@vizejs/native-linux-arm64-gnu": "0.804.0",
-				"@vizejs/native-linux-arm64-musl": "0.804.0",
-				"@vizejs/native-linux-x64-gnu": "0.804.0",
-				"@vizejs/native-linux-x64-musl": "0.804.0",
-				"@vizejs/native-win32-arm64-msvc": "0.804.0",
-				"@vizejs/native-win32-x64-msvc": "0.804.0",
+				"@vizejs/native-darwin-arm64": "0.807.0",
+				"@vizejs/native-darwin-x64": "0.807.0",
+				"@vizejs/native-linux-arm64-gnu": "0.807.0",
+				"@vizejs/native-linux-arm64-musl": "0.807.0",
+				"@vizejs/native-linux-x64-gnu": "0.807.0",
+				"@vizejs/native-linux-x64-musl": "0.807.0",
+				"@vizejs/native-win32-arm64-msvc": "0.807.0",
+				"@vizejs/native-win32-x64-msvc": "0.807.0",
 			},
 		},
 
@@ -4391,7 +4395,7 @@ snapshots:
 				"@vue/shared": "3.5.46",
 				"estree-walker": "2.0.2",
 				"magic-string": "0.30.21",
-				"postcss": "8.5.33",
+				"postcss": "8.5.34",
 				"source-map-js": "1.2.4",
 			},
 		},
@@ -5375,8 +5379,8 @@ snapshots:
 			"engines": {"node": ">=12"},
 		},
 
-		"eslint-config-prettier@10.1.8": {
-			"integrity": "sha512-82GZUjRS0p/jganf6q1rEO25VSoHH0hKPCTrgillPjdI/3bgBhAE1QzHrHTizjpRvy6pGAvKjDJtk2pF9NDq8w==",
+		"eslint-config-prettier@10.1.9": {
+			"integrity": "sha512-JnOR0K4u67CWOiSS3vaduGlLUWS32lGiyglMIV6AyvK9DBRpS+QhR2ESKaUe2eWGRsdVmrxy77yaOk2hzDa4Bg==",
 			"hasBin": true,
 			"peerDependencies": {
 				"eslint": {
@@ -5424,7 +5428,7 @@ snapshots:
 			},
 			"dependencies": {
 				"@eslint-community/eslint-utils": "4.10.1",
-				"@eslint-community/regexpp": "4.12.3",
+				"@eslint-community/regexpp": "4.12.4",
 				"@eslint/config-array": "0.23.6",
 				"@eslint/config-helpers": "0.7.0",
 				"@eslint/core": "1.2.1",
@@ -7791,8 +7795,8 @@ snapshots:
 			"engines": {"node": ">= 0.4"},
 		},
 
-		"postcss@8.5.33": {
-			"integrity": "sha512-RVHEU9/Pp1Fnjr/MpAJsZoADukCKhfIi15OunEYiGktIkYLkPVvC1sioWolGDS7XByMTx9m/IGbro0Js13zhnQ==",
+		"postcss@8.5.34": {
+			"integrity": "sha512-P1Qzj0XXZjMda74C7qiVnBG90UKNbyNUAOeQRBW8X63RsIMV57gevRqjnkELdwtZ/S2/uQFksJhmwuN8xShLPw==",
 			"engines": {"node": "^10 || ^12 || >=14"},
 			"dependencies": {
 				"nanoid": "3.3.20",
@@ -9079,8 +9083,8 @@ snapshots:
 			"integrity": "sha512-tmMpK00BjZiUyVyvrBK7knerNgmgvcV/KLVyuma/SC+TQN167GrMRciANTz09+k3zW8L8t60jWO1GpfkZdjTaw==",
 		},
 
-		"ts-checker-rspack-plugin@1.8.0": {
-			"integrity": "sha512-Vd/i6zi1X8p/LQyfKvh2gQLbvlUyHDAjA4hPOAAo0kC1XaqKdcr4WxBaVWQpQz1kJHCUo+dnIQYOAc4hIZCbrg==",
+		"ts-checker-rspack-plugin@1.9.0": {
+			"integrity": "sha512-lgtUEwrq9AgvmGOdyci6Z/tdfHf0QYtmEZnrIgwBNZakmwN9nv84XgFQ9oFoIM2HMIdEzsieBoHh1cDY+i7UMg==",
 			"peerDependencies": {
 				"@rspack/core": {
 					"specifier": "^1.0.0 || ^2.0.0",
@@ -9487,7 +9491,7 @@ snapshots:
 			"dependencies": {
 				"lightningcss": "1.33.0",
 				"picomatch": "4.0.7",
-				"postcss": "8.5.33",
+				"postcss": "8.5.34",
 				"rolldown": "1.3.4",
 				"tinyglobby": "0.2.17",
 			},
@@ -9497,8 +9501,8 @@ snapshots:
 			},
 		},
 
-		"vize@0.804.0": {
-			"integrity": "sha512-YOLjpnYHWd6QmRQ1lA/MV4TPQpig+PnPdA69VlLbc/9Q/6Xgb7FqLO3YXpAgIQemxkl0bPd1iqO6/MPPYtnOjA==",
+		"vize@0.807.0": {
+			"integrity": "sha512-x14s1S1qY/HjHSxJtjSHBC0Ijqa26xTdUiBppaX/mjfDnPzfH3JT1JTSBqqGkZauOW7xpIDP07e+k737a62gzA==",
 			"engines": {"node": ">=22"},
 			"hasBin": true,
 			"peerDependencies": {
@@ -9513,7 +9517,7 @@ snapshots:
 				},
 			},
 			"dependencies": {
-				"@vizejs/native": "0.804.0",
+				"@vizejs/native": "0.807.0",
 				"oxc-transform": "0.157.0",
 			},
 			"optionalDependencies": {
