@@ -25,6 +25,10 @@ Pass an object of weights keyed by expression name. Preset names are auto-comple
 
 Weights are clamped to 0–1. Expressions not listed in the object are left untouched, so a VRMA animation can still control them. When a key is removed from the object, that expression returns to `0`. Names the model does not define are ignored with a warning in the console.
 
+:::tip Choosing between the prop and `setExpression()`
+Use the `expressions` prop for declarative changes, such as occasionally switching facial expressions. For values that change many times per second, such as sliders or [lip sync](#lip-sync), use `setExpression()`: replacing the prop object on every input re-renders the parent and the component, which can make dragging feel sluggish.
+:::
+
 ## Custom expressions {#custom-expressions}
 
 Custom expressions defined in the VRM file are loaded automatically. Their names differ for each model, so get them with `getExpressionNames()` after `model:loaded`, then use them as keys like presets.
